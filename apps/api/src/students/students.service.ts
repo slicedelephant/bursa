@@ -37,6 +37,7 @@ export class StudentsService {
       },
     });
     if (!profile) return { profile: null, campaign: null };
-    return profile;
+    const { campaign, ...rest } = profile;
+    return { profile: rest, campaign: campaign ?? null };
   }
 }
