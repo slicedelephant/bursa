@@ -58,7 +58,9 @@ export class ApiService {
   }
 
   me(): Observable<{ user: AuthUser; profile: unknown }> {
-    return this.unwrap(this.http.get<Envelope<{ user: AuthUser; profile: unknown }>>(`${API_BASE}/auth/me`));
+    return this.unwrap(
+      this.http.get<Envelope<{ user: AuthUser; profile: unknown }>>(`${API_BASE}/auth/me`),
+    );
   }
 
   // ---- Schools ----
@@ -70,8 +72,13 @@ export class ApiService {
     return this.unwrap(this.http.post<Envelope<School>>(`${API_BASE}/schools`, body));
   }
 
-  verifySchoolPayout(id: string, body: { payoutVerified: boolean; payoutAccountRef?: string }): Observable<School> {
-    return this.unwrap(this.http.patch<Envelope<School>>(`${API_BASE}/schools/${id}/verify-payout`, body));
+  verifySchoolPayout(
+    id: string,
+    body: { payoutVerified: boolean; payoutAccountRef?: string },
+  ): Observable<School> {
+    return this.unwrap(
+      this.http.patch<Envelope<School>>(`${API_BASE}/schools/${id}/verify-payout`, body),
+    );
   }
 
   // ---- Campaigns ----
@@ -80,7 +87,9 @@ export class ApiService {
     for (const [k, v] of Object.entries(query)) {
       if (v) params = params.set(k, v);
     }
-    return this.unwrap(this.http.get<Envelope<CampaignCard[]>>(`${API_BASE}/campaigns`, { params }));
+    return this.unwrap(
+      this.http.get<Envelope<CampaignCard[]>>(`${API_BASE}/campaigns`, { params }),
+    );
   }
 
   campaign(id: string): Observable<CampaignDetail> {
@@ -103,19 +112,27 @@ export class ApiService {
   }
 
   updateCampaign(id: string, body: Partial<OwnerCampaign>): Observable<OwnerCampaign> {
-    return this.unwrap(this.http.patch<Envelope<OwnerCampaign>>(`${API_BASE}/campaigns/${id}`, body));
+    return this.unwrap(
+      this.http.patch<Envelope<OwnerCampaign>>(`${API_BASE}/campaigns/${id}`, body),
+    );
   }
 
   submitCampaign(id: string, body: { admissionRef?: string }): Observable<OwnerCampaign> {
-    return this.unwrap(this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/campaigns/${id}/submit`, body));
+    return this.unwrap(
+      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/campaigns/${id}/submit`, body),
+    );
   }
 
   listUpdates(id: string): Observable<CampaignUpdate[]> {
-    return this.unwrap(this.http.get<Envelope<CampaignUpdate[]>>(`${API_BASE}/campaigns/${id}/updates`));
+    return this.unwrap(
+      this.http.get<Envelope<CampaignUpdate[]>>(`${API_BASE}/campaigns/${id}/updates`),
+    );
   }
 
   postUpdate(id: string, body: { title: string; body: string }): Observable<CampaignUpdate> {
-    return this.unwrap(this.http.post<Envelope<CampaignUpdate>>(`${API_BASE}/campaigns/${id}/updates`, body));
+    return this.unwrap(
+      this.http.post<Envelope<CampaignUpdate>>(`${API_BASE}/campaigns/${id}/updates`, body),
+    );
   }
 
   // ---- Donations ----
@@ -131,18 +148,29 @@ export class ApiService {
     },
   ): Observable<DonationResult> {
     return this.unwrap(
-      this.http.post<Envelope<DonationResult>>(`${API_BASE}/campaigns/${campaignId}/donations/card`, body),
+      this.http.post<Envelope<DonationResult>>(
+        `${API_BASE}/campaigns/${campaignId}/donations/card`,
+        body,
+      ),
     );
   }
 
-  donateSepa(campaignId: string, body: { amountCents: number; message?: string }): Observable<DonationResult> {
+  donateSepa(
+    campaignId: string,
+    body: { amountCents: number; message?: string },
+  ): Observable<DonationResult> {
     return this.unwrap(
-      this.http.post<Envelope<DonationResult>>(`${API_BASE}/campaigns/${campaignId}/donations/sepa`, body),
+      this.http.post<Envelope<DonationResult>>(
+        `${API_BASE}/campaigns/${campaignId}/donations/sepa`,
+        body,
+      ),
     );
   }
 
   listDonations(campaignId: string): Observable<PublicDonation[]> {
-    return this.unwrap(this.http.get<Envelope<PublicDonation[]>>(`${API_BASE}/campaigns/${campaignId}/donations`));
+    return this.unwrap(
+      this.http.get<Envelope<PublicDonation[]>>(`${API_BASE}/campaigns/${campaignId}/donations`),
+    );
   }
 
   // ---- Students ----
@@ -153,7 +181,9 @@ export class ApiService {
     recommendation?: string;
     photoUrl?: string;
   }): Observable<StudentProfile> {
-    return this.unwrap(this.http.put<Envelope<StudentProfile>>(`${API_BASE}/students/profile`, body));
+    return this.unwrap(
+      this.http.put<Envelope<StudentProfile>>(`${API_BASE}/students/profile`, body),
+    );
   }
 
   studentMe(): Observable<StudentMe> {
@@ -167,7 +197,9 @@ export class ApiService {
     contactName?: string;
     logoUrl?: string;
   }): Observable<CorporateProfile> {
-    return this.unwrap(this.http.put<Envelope<CorporateProfile>>(`${API_BASE}/sponsors/profile`, body));
+    return this.unwrap(
+      this.http.put<Envelope<CorporateProfile>>(`${API_BASE}/sponsors/profile`, body),
+    );
   }
 
   sponsorImpact(): Observable<SponsorImpact> {
@@ -175,25 +207,38 @@ export class ApiService {
   }
 
   receipt(donationId: string): Observable<Receipt> {
-    return this.unwrap(this.http.get<Envelope<Receipt>>(`${API_BASE}/sponsors/donations/${donationId}/receipt`));
+    return this.unwrap(
+      this.http.get<Envelope<Receipt>>(`${API_BASE}/sponsors/donations/${donationId}/receipt`),
+    );
   }
 
   // ---- Admin ----
   verifications(status = 'PENDING'): Observable<OwnerCampaign[]> {
     const params = new HttpParams().set('status', status);
-    return this.unwrap(this.http.get<Envelope<OwnerCampaign[]>>(`${API_BASE}/admin/verifications`, { params }));
+    return this.unwrap(
+      this.http.get<Envelope<OwnerCampaign[]>>(`${API_BASE}/admin/verifications`, { params }),
+    );
   }
 
-  verifyCampaign(id: string, body: { admissionRef?: string; note?: string }): Observable<OwnerCampaign> {
-    return this.unwrap(this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/admin/campaigns/${id}/verify`, body));
+  verifyCampaign(
+    id: string,
+    body: { admissionRef?: string; note?: string },
+  ): Observable<OwnerCampaign> {
+    return this.unwrap(
+      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/admin/campaigns/${id}/verify`, body),
+    );
   }
 
   rejectCampaign(id: string, body: { note: string }): Observable<OwnerCampaign> {
-    return this.unwrap(this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/admin/campaigns/${id}/reject`, body));
+    return this.unwrap(
+      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/admin/campaigns/${id}/reject`, body),
+    );
   }
 
   payoutCampaign(campaignId: string): Observable<Payout> {
-    return this.unwrap(this.http.post<Envelope<Payout>>(`${API_BASE}/admin/campaigns/${campaignId}/payout`, {}));
+    return this.unwrap(
+      this.http.post<Envelope<Payout>>(`${API_BASE}/admin/campaigns/${campaignId}/payout`, {}),
+    );
   }
 
   payouts(): Observable<Payout[]> {

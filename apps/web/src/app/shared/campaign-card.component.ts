@@ -14,7 +14,9 @@ import { VerifiedBadgeComponent } from './verified-badge.component';
       [routerLink]="['/campaigns', campaign.id]"
       class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg"
     >
-      <div class="relative h-44 overflow-hidden bg-gradient-to-br from-brand-green/20 to-brand-blue/20">
+      <div
+        class="relative h-44 overflow-hidden bg-gradient-to-br from-brand-green/20 to-brand-blue/20"
+      >
         @if (campaign.photoUrl) {
           <img
             [src]="campaign.photoUrl"
@@ -22,7 +24,9 @@ import { VerifiedBadgeComponent } from './verified-badge.component';
             class="h-full w-full object-cover transition group-hover:scale-105"
           />
         } @else {
-          <div class="flex h-full w-full items-center justify-center text-4xl font-bold text-brand-green">
+          <div
+            class="flex h-full w-full items-center justify-center text-4xl font-bold text-brand-green"
+          >
             {{ initials }}
           </div>
         }
@@ -47,9 +51,7 @@ import { VerifiedBadgeComponent } from './verified-badge.component';
           {{ campaign.title }}
         </h3>
 
-        <p class="text-sm text-slate2">
-          {{ campaign.programName }} · {{ campaign.schoolName }}
-        </p>
+        <p class="text-sm text-slate2">{{ campaign.programName }} · {{ campaign.schoolName }}</p>
 
         <div class="mt-auto space-y-2 pt-2">
           <app-progress-bar [percent]="campaign.percent" />

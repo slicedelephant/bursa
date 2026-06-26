@@ -75,7 +75,10 @@ import { ProgressBarComponent } from '../../shared/progress-bar.component';
           <div class="mt-6 rounded-lg bg-brand-orange/10 p-4">
             <p class="text-sm font-semibold text-brand-orange">Verification rejected</p>
             <p class="mt-1 text-sm text-ink">
-              {{ campaign().verification?.note || 'Please review your details and contact support for the next steps.' }}
+              {{
+                campaign().verification?.note ||
+                  'Please review your details and contact support for the next steps.'
+              }}
             </p>
           </div>
         }

@@ -39,7 +39,9 @@ export interface CompanyProfileInput {
         </div>
 
         <div>
-          <label for="sector" class="block text-sm font-medium text-ink">Sector <span class="text-slate2">(optional)</span></label>
+          <label for="sector" class="block text-sm font-medium text-ink"
+            >Sector <span class="text-slate2">(optional)</span></label
+          >
           <input
             id="sector"
             name="sector"
@@ -50,7 +52,9 @@ export interface CompanyProfileInput {
         </div>
 
         <div>
-          <label for="contactName" class="block text-sm font-medium text-ink">Contact name <span class="text-slate2">(optional)</span></label>
+          <label for="contactName" class="block text-sm font-medium text-ink"
+            >Contact name <span class="text-slate2">(optional)</span></label
+          >
           <input
             id="contactName"
             name="contactName"
@@ -62,7 +66,9 @@ export interface CompanyProfileInput {
         </div>
 
         <div>
-          <label for="logoUrl" class="block text-sm font-medium text-ink">Logo URL <span class="text-slate2">(optional)</span></label>
+          <label for="logoUrl" class="block text-sm font-medium text-ink"
+            >Logo URL <span class="text-slate2">(optional)</span></label
+          >
           <input
             id="logoUrl"
             name="logoUrl"

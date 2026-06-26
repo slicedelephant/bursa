@@ -39,7 +39,9 @@ export class AdminService {
           status: VerificationStatus.VERIFIED,
           verifiedById: adminId,
           verifiedAt: new Date(),
-          ...(dto.admissionRef !== undefined ? { admissionRef: dto.admissionRef } : {}),
+          ...(dto.admissionRef !== undefined
+            ? { admissionRef: dto.admissionRef }
+            : {}),
           ...(dto.note !== undefined ? { note: dto.note } : {}),
         },
         create: {
@@ -55,7 +57,7 @@ export class AdminService {
         data: {
           campaignId: id,
           title: 'Admission verified',
-          body: 'This student\'s admission has been verified. The campaign is now live.',
+          body: "This student's admission has been verified. The campaign is now live.",
           type: UpdateType.SYSTEM,
         },
       });

@@ -40,7 +40,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? (b.message as string[]).join('; ')
           : ((b.message as string) ?? message);
         code = (b.code as string) ?? STATUS_CODE[status] ?? 'ERROR';
-        details = b.details ?? (Array.isArray(b.message) ? b.message : undefined);
+        details =
+          b.details ?? (Array.isArray(b.message) ? b.message : undefined);
       }
       if (code === 'INTERNAL_ERROR') code = STATUS_CODE[status] ?? 'ERROR';
     } else if (exception instanceof Error) {
@@ -48,6 +49,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       this.logger.error(exception.message, exception.stack);
     }
 
-    response.status(status).json({ success: false, error: { code, message, details } });
+    response
+      .status(status)
+      .json({ success: false, error: { code, message, details } });
   }
 }

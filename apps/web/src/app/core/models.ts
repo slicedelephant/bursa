@@ -161,7 +161,12 @@ export interface Receipt {
 export interface SponsorImpact {
   totalCommittedCents: number;
   studentsSupported: number;
-  campaignsSupported: { campaignId: string; title: string; schoolName: string; amountCents: number }[];
+  campaignsSupported: {
+    campaignId: string;
+    title: string;
+    schoolName: string;
+    amountCents: number;
+  }[];
   donations: { id: string; amountCents: number; campaignTitle?: string; createdAt: string }[];
 }
 

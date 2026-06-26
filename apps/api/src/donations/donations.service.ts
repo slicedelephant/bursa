@@ -20,7 +20,11 @@ export class DonationsService {
 
   async donateCard(campaignId: string, dto: CardDonationDto) {
     const campaign = await this.loadDonatable(campaignId);
-    const { amountToGoal, tip } = this.split(campaign, dto.amountCents, dto.tipCents ?? 0);
+    const { amountToGoal, tip } = this.split(
+      campaign,
+      dto.amountCents,
+      dto.tipCents ?? 0,
+    );
     const total = dto.amountCents + (dto.tipCents ?? 0);
 
     const result = await this.payments.createCardCharge({
@@ -196,7 +200,9 @@ export class DonationsService {
         data: {
           raisedCents: newRaised,
           tipsCents: newTips,
-          ...(funded && campaign.status !== 'FUNDED' ? { status: 'FUNDED' } : {}),
+          ...(funded && campaign.status !== 'FUNDED'
+            ? { status: 'FUNDED' }
+            : {}),
         },
       });
 

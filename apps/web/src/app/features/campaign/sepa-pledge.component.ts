@@ -11,10 +11,15 @@ import { DonationResult, Receipt } from '../../core/models';
   template: `
     <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
       <div class="flex items-center gap-2">
-        <span class="rounded-full bg-brand-blue/10 px-2.5 py-1 text-xs font-semibold text-brand-blue">Corporate</span>
+        <span
+          class="rounded-full bg-brand-blue/10 px-2.5 py-1 text-xs font-semibold text-brand-blue"
+          >Corporate</span
+        >
         <h3 class="font-display text-lg font-semibold text-ink">Pledge via SEPA</h3>
       </div>
-      <p class="mt-1 text-sm text-slate2">Commit a corporate gift and receive a receipt for your records.</p>
+      <p class="mt-1 text-sm text-slate2">
+        Commit a corporate gift and receive a receipt for your records.
+      </p>
 
       @if (receipt(); as r) {
         <div class="mt-4 space-y-2 rounded-xl bg-mist p-4 text-sm">
@@ -46,9 +51,13 @@ import { DonationResult, Receipt } from '../../core/models';
       } @else {
         <form class="mt-4 space-y-4" (ngSubmit)="submit()">
           <div>
-            <label for="sepa-amount" class="mb-1.5 block text-sm font-medium text-ink">Amount (€)</label>
+            <label for="sepa-amount" class="mb-1.5 block text-sm font-medium text-ink"
+              >Amount (€)</label
+            >
             <div class="relative">
-              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate2">€</span>
+              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate2"
+                >€</span
+              >
               <input
                 id="sepa-amount"
                 name="sepaAmount"
@@ -63,7 +72,9 @@ import { DonationResult, Receipt } from '../../core/models';
           </div>
 
           <div>
-            <label for="sepa-message" class="mb-1.5 block text-sm font-medium text-ink">Message (optional)</label>
+            <label for="sepa-message" class="mb-1.5 block text-sm font-medium text-ink"
+              >Message (optional)</label
+            >
             <textarea
               id="sepa-message"
               name="sepaMessage"
@@ -75,7 +86,9 @@ import { DonationResult, Receipt } from '../../core/models';
           </div>
 
           @if (errorMsg()) {
-            <p class="rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange">{{ errorMsg() }}</p>
+            <p class="rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange">
+              {{ errorMsg() }}
+            </p>
           }
 
           <button

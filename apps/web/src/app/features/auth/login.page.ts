@@ -96,7 +96,9 @@ export class LoginPage {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.error?.error?.message ?? 'Could not sign in. Check your details and try again.');
+        this.error.set(
+          err?.error?.error?.message ?? 'Could not sign in. Check your details and try again.',
+        );
       },
     });
   }

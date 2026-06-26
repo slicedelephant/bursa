@@ -22,12 +22,16 @@ import { relativeTime } from './relative-time';
                 <p class="truncate text-sm font-medium text-ink">
                   {{ donation.donorName }}
                   @if (donation.type === 'CORPORATE') {
-                    <span class="ml-1 rounded bg-brand-blue/10 px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase text-brand-blue">
+                    <span
+                      class="ml-1 rounded bg-brand-blue/10 px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase text-brand-blue"
+                    >
                       Corporate
                     </span>
                   }
                 </p>
-                <span class="shrink-0 text-sm font-semibold text-ink">{{ donation.amountCents | money }}</span>
+                <span class="shrink-0 text-sm font-semibold text-ink">{{
+                  donation.amountCents | money
+                }}</span>
               </div>
               @if (donation.message) {
                 <p class="mt-0.5 text-sm text-slate2">“{{ donation.message }}”</p>

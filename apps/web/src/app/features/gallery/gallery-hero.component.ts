@@ -7,9 +7,13 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-green/10 via-mist to-brand-blue/10 px-6 py-16 ring-1 ring-black/5 sm:px-12 sm:py-20">
+    <div
+      class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-green/10 via-mist to-brand-blue/10 px-6 py-16 ring-1 ring-black/5 sm:px-12 sm:py-20"
+    >
       <div class="mx-auto max-w-3xl text-center">
-        <span class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-brand-green ring-1 ring-brand-green/20">
+        <span
+          class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-brand-green ring-1 ring-brand-green/20"
+        >
           Direct school funding
         </span>
 

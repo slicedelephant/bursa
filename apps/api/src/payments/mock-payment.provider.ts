@@ -38,7 +38,8 @@ export class MockPaymentProvider implements PaymentProvider {
       return {
         status: 'FAILED',
         reference,
-        failureReason: 'Payment declined (mock test sentinel: amount ending in .13)',
+        failureReason:
+          'Payment declined (mock test sentinel: amount ending in .13)',
       };
     }
     return { status: 'SUCCEEDED', reference };

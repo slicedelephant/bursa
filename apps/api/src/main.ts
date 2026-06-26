@@ -28,7 +28,9 @@ async function bootstrap(): Promise<void> {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Bursa API')
-    .setDescription('Funding platform for verified, admitted MBA students — prototype')
+    .setDescription(
+      'Funding platform for verified, admitted MBA students — prototype',
+    )
     .setVersion('0.1.0')
     .addBearerAuth()
     .build();

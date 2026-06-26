@@ -11,21 +11,23 @@ import { CampaignCard, Payout, PayoutStatus } from '../../core/models';
   imports: [RouterLink, MoneyPipe],
   template: `
     <div class="space-y-8">
-      <div
-        class="rounded-xl bg-brand-blue/10 px-4 py-3 text-sm text-ink ring-1 ring-brand-blue/20"
-      >
-        Funds are always disbursed to the verified <span class="font-semibold">school</span>, never to the
-        student directly.
+      <div class="rounded-xl bg-brand-blue/10 px-4 py-3 text-sm text-ink ring-1 ring-brand-blue/20">
+        Funds are always disbursed to the verified <span class="font-semibold">school</span>, never
+        to the student directly.
       </div>
 
       @if (error()) {
-        <div class="rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange ring-1 ring-brand-orange/20">
+        <div
+          class="rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange ring-1 ring-brand-orange/20"
+        >
           {{ error() }}
         </div>
       }
 
       @if (success()) {
-        <div class="rounded-lg bg-brand-green/10 px-4 py-3 text-sm text-brand-green ring-1 ring-brand-green/20">
+        <div
+          class="rounded-lg bg-brand-green/10 px-4 py-3 text-sm text-brand-green ring-1 ring-brand-green/20"
+        >
           {{ success() }}
         </div>
       }
@@ -72,7 +74,9 @@ import { CampaignCard, Payout, PayoutStatus } from '../../core/models';
                 <div class="flex items-center gap-4">
                   <div class="text-right">
                     <p class="text-xs uppercase tracking-wide text-slate2">Raised</p>
-                    <p class="font-display text-lg font-semibold text-ink">{{ c.raisedCents | money }}</p>
+                    <p class="font-display text-lg font-semibold text-ink">
+                      {{ c.raisedCents | money }}
+                    </p>
                   </div>
                   <button
                     type="button"

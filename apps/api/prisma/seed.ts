@@ -29,7 +29,10 @@ function readOpenAiKey(): string | null {
 
 const OPENAI_KEY = readOpenAiKey();
 
-async function generatePortrait(prompt: string, slug: string): Promise<string | null> {
+async function generatePortrait(
+  prompt: string,
+  slug: string,
+): Promise<string | null> {
   const outPath = path.join(SEED_IMAGE_DIR, `${slug}.png`);
   if (fs.existsSync(outPath)) return `/seed/${slug}.png`;
   if (!OPENAI_KEY) return null;
@@ -95,10 +98,38 @@ interface StudentSeed {
 }
 
 const SCHOOLS = [
-  { key: 'esmt', name: 'ESMT Berlin', country: 'Germany', city: 'Berlin', website: 'https://esmt.berlin', verified: true },
-  { key: 'insead', name: 'INSEAD', country: 'France', city: 'Fontainebleau', website: 'https://insead.edu', verified: true },
-  { key: 'ie', name: 'IE Business School', country: 'Spain', city: 'Madrid', website: 'https://ie.edu', verified: true },
-  { key: 'rsm', name: 'Rotterdam School of Management', country: 'Netherlands', city: 'Rotterdam', website: 'https://rsm.nl', verified: false },
+  {
+    key: 'esmt',
+    name: 'ESMT Berlin',
+    country: 'Germany',
+    city: 'Berlin',
+    website: 'https://esmt.berlin',
+    verified: true,
+  },
+  {
+    key: 'insead',
+    name: 'INSEAD',
+    country: 'France',
+    city: 'Fontainebleau',
+    website: 'https://insead.edu',
+    verified: true,
+  },
+  {
+    key: 'ie',
+    name: 'IE Business School',
+    country: 'Spain',
+    city: 'Madrid',
+    website: 'https://ie.edu',
+    verified: true,
+  },
+  {
+    key: 'rsm',
+    name: 'Rotterdam School of Management',
+    country: 'Netherlands',
+    city: 'Rotterdam',
+    website: 'https://rsm.nl',
+    verified: false,
+  },
 ];
 
 const STUDENTS: StudentSeed[] = [
@@ -136,7 +167,8 @@ const STUDENTS: StudentSeed[] = [
     status: 'LIVE',
     story:
       'I spent five years moving medicines to clinics no truck wanted to reach. INSEAD gave me a seat; the deposit alone is more than my annual salary. An MBA lets me turn a scrappy operation into a company that keeps rural pharmacies stocked.',
-    recommendation: '"Kwame solves problems most people walk away from." — Regional health director',
+    recommendation:
+      '"Kwame solves problems most people walk away from." — Regional health director',
     donations: [
       { name: 'Sofia L.', amount: 2000 },
       { name: 'James P.', amount: 5000, message: 'Healthcare access matters.' },
@@ -155,9 +187,14 @@ const STUDENTS: StudentSeed[] = [
     status: 'LIVE',
     story:
       'I co-founded a solar microgrid pilot that now powers three villages. IE Business School admitted me to scale this into a regional energy company. The tuition gap is the only thing standing between me and that classroom in Madrid.',
-    recommendation: '"A natural systems-thinker and a relentless builder." — Engineering mentor',
+    recommendation:
+      '"A natural systems-thinker and a relentless builder." — Engineering mentor',
     donations: [
-      { name: 'Green Future e.V.', amount: 6000, message: 'Powering the future.' },
+      {
+        name: 'Green Future e.V.',
+        amount: 6000,
+        message: 'Powering the future.',
+      },
       { name: 'Lena K.', amount: 750 },
     ],
   },
@@ -190,7 +227,9 @@ const STUDENTS: StudentSeed[] = [
     status: 'LIVE',
     story:
       'My platform connects 12,000 smallholder farmers to buyers and fair prices. INSEAD admitted me to sharpen the business model. I am the first in my family to finish university; this MBA would be a first too.',
-    donations: [{ name: 'Clara V.', amount: 4000, message: 'Feed the future!' }],
+    donations: [
+      { name: 'Clara V.', amount: 4000, message: 'Feed the future!' },
+    ],
   },
   {
     slug: 'priya-sharma',
@@ -206,7 +245,11 @@ const STUDENTS: StudentSeed[] = [
       'I run a community tourism cooperative that keeps revenue in mountain villages instead of foreign tour operators. IE Business School admitted me to grow it responsibly across the region.',
     donations: [
       { name: 'Anonymous', amount: 2500, anonymous: true },
-      { name: 'Robert H.', amount: 1500, message: 'I trekked there once — beautiful work.' },
+      {
+        name: 'Robert H.',
+        amount: 1500,
+        message: 'I trekked there once — beautiful work.',
+      },
     ],
   },
   {
@@ -221,7 +264,9 @@ const STUDENTS: StudentSeed[] = [
     status: 'LIVE',
     story:
       'I led a team that cut diagnostic test costs by 60% for community clinics. ESMT Berlin admitted me to turn that into a scalable medical-device venture.',
-    donations: [{ name: 'MedAccess Group', amount: 9000, message: 'Health is wealth.' }],
+    donations: [
+      { name: 'MedAccess Group', amount: 9000, message: 'Health is wealth.' },
+    ],
   },
   {
     slug: 'tenzin-dorji',
@@ -235,9 +280,14 @@ const STUDENTS: StudentSeed[] = [
     status: 'FUNDED',
     story:
       'I built Bhutan’s first startup incubator. INSEAD admitted me to learn how to connect Himalayan founders to global capital. Thanks to an extraordinary community, this campaign is fully funded — tuition will be paid directly to INSEAD.',
-    recommendation: '"Tenzin is a once-in-a-generation connector." — Incubator board chair',
+    recommendation:
+      '"Tenzin is a once-in-a-generation connector." — Incubator board chair',
     donations: [
-      { name: 'Acme Capital', amount: 60000, message: 'Backing exceptional talent.' },
+      {
+        name: 'Acme Capital',
+        amount: 60000,
+        message: 'Backing exceptional talent.',
+      },
       { name: 'Anonymous', amount: 28000, anonymous: true },
     ],
   },
@@ -254,7 +304,11 @@ const STUDENTS: StudentSeed[] = [
     story:
       'I grew a fair-trade textile cooperative from 8 to 140 weavers. IE Business School admitted me to build the brand internationally. This campaign reached its goal — the funds go straight to IE.',
     donations: [
-      { name: 'Acme Capital', amount: 30000, message: 'Sustainable business, funded.' },
+      {
+        name: 'Acme Capital',
+        amount: 30000,
+        message: 'Sustainable business, funded.',
+      },
       { name: 'Isabella F.', amount: 12000 },
       { name: 'Anonymous', amount: 10000, anonymous: true },
     ],
@@ -273,7 +327,11 @@ const STUDENTS: StudentSeed[] = [
       'My offline-first learning app reached 80,000 students without reliable internet. ESMT Berlin tuition has been paid in full and directly to the school — I am now enrolled and building what comes next.',
     recommendation: '"Samuel ships. Then he ships more." — Lead teacher, Accra',
     donations: [
-      { name: 'Learning Forward Fund', amount: 25000, message: 'Education changes everything.' },
+      {
+        name: 'Learning Forward Fund',
+        amount: 25000,
+        message: 'Education changes everything.',
+      },
       { name: 'Anonymous', amount: 14000, anonymous: true },
     ],
   },
@@ -313,7 +371,9 @@ async function main(): Promise<void> {
   console.log('Seeding Bursa…');
   fs.mkdirSync(SEED_IMAGE_DIR, { recursive: true });
   if (!OPENAI_KEY) {
-    console.warn('! No OPENAI_KEY found — profile images fall back to initials avatars.');
+    console.warn(
+      '! No OPENAI_KEY found — profile images fall back to initials avatars.',
+    );
   }
 
   await clearDatabase();
@@ -329,7 +389,9 @@ async function main(): Promise<void> {
         city: s.city,
         website: s.website,
         payoutVerified: s.verified,
-        payoutAccountRef: s.verified ? `DE89 3704 ${Math.floor(1000 + Math.random() * 8999)} ${s.key.toUpperCase()}` : null,
+        payoutAccountRef: s.verified
+          ? `DE89 3704 ${Math.floor(1000 + Math.random() * 8999)} ${s.key.toUpperCase()}`
+          : null,
       },
     });
     schoolByKey[s.key] = created.id;
@@ -338,13 +400,28 @@ async function main(): Promise<void> {
 
   // Platform users
   const admin = await prisma.user.create({
-    data: { email: 'admin@bursa.test', passwordHash, displayName: 'Platform Admin', role: 'ADMIN' },
+    data: {
+      email: 'admin@bursa.test',
+      passwordHash,
+      displayName: 'Platform Admin',
+      role: 'ADMIN',
+    },
   });
   const donor = await prisma.user.create({
-    data: { email: 'donor@bursa.test', passwordHash, displayName: 'Generous Donor', role: 'DONOR' },
+    data: {
+      email: 'donor@bursa.test',
+      passwordHash,
+      displayName: 'Generous Donor',
+      role: 'DONOR',
+    },
   });
   const sponsorUser = await prisma.user.create({
-    data: { email: 'sponsor@acme.test', passwordHash, displayName: 'Acme Capital', role: 'SPONSOR' },
+    data: {
+      email: 'sponsor@acme.test',
+      passwordHash,
+      displayName: 'Acme Capital',
+      role: 'SPONSOR',
+    },
   });
   const sponsorProfile = await prisma.corporateProfile.create({
     data: {
@@ -364,7 +441,9 @@ async function main(): Promise<void> {
   const BATCH = 4;
   for (let i = 0; i < STUDENTS.length; i += BATCH) {
     const batch = STUDENTS.slice(i, i + BATCH);
-    const results = await Promise.all(batch.map((st) => generatePortrait(promptFor(st), st.slug)));
+    const results = await Promise.all(
+      batch.map((st) => generatePortrait(promptFor(st), st.slug)),
+    );
     batch.forEach((st, j) => {
       photoBySlug[st.slug] = results[j];
     });
@@ -420,7 +499,10 @@ async function main(): Promise<void> {
         admissionRef: `ADM-${st.slug.toUpperCase()}`,
         verifiedById: st.status === 'PENDING' ? null : admin.id,
         verifiedAt: st.status === 'PENDING' ? null : new Date(),
-        note: st.status === 'PENDING' ? null : 'Admission letter checked against school confirmation.',
+        note:
+          st.status === 'PENDING'
+            ? null
+            : 'Admission letter checked against school confirmation.',
       },
     });
 
@@ -492,9 +574,13 @@ async function main(): Promise<void> {
     if (campaignStatus === 'LIVE') liveCount += 1;
   }
 
-  console.log(`Created ${STUDENTS.length} students/campaigns (${liveCount} live).`);
+  console.log(
+    `Created ${STUDENTS.length} students/campaigns (${liveCount} live).`,
+  );
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
-  console.log('  admin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test');
+  console.log(
+    '  admin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test',
+  );
   console.log('Done.');
 }
 

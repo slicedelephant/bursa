@@ -39,7 +39,11 @@ export class SponsorsService {
       where: { userId },
     });
     if (!profile) {
-      throw new DomainException('NOT_FOUND', 'Corporate profile not found', 404);
+      throw new DomainException(
+        'NOT_FOUND',
+        'Corporate profile not found',
+        404,
+      );
     }
 
     const donations = await this.prisma.donation.findMany({

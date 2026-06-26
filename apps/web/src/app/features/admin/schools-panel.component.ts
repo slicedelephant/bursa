@@ -16,13 +16,19 @@ import { School } from '../../core/models';
             A school’s payout account must be verified before any of its campaigns can go LIVE.
           </p>
         </div>
-        <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 hover:bg-mist" (click)="load()">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-200 px-4 py-2 hover:bg-mist"
+          (click)="load()"
+        >
           Refresh
         </button>
       </header>
 
       @if (error()) {
-        <div class="rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange ring-1 ring-brand-orange/20">
+        <div
+          class="rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange ring-1 ring-brand-orange/20"
+        >
           {{ error() }}
         </div>
       }
@@ -123,7 +129,10 @@ export class AdminSchoolsPanelComponent implements OnInit {
     this.busyId.set(s.id);
     this.error.set(null);
     this.api
-      .verifySchoolPayout(s.id, { payoutVerified: true, payoutAccountRef: 'DE00 MOCK 0000 0000 0000 00' })
+      .verifySchoolPayout(s.id, {
+        payoutVerified: true,
+        payoutAccountRef: 'DE00 MOCK 0000 0000 0000 00',
+      })
       .subscribe({
         next: () => {
           this.busyId.set(null);

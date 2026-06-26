@@ -24,7 +24,9 @@ import { relativeTime } from './relative-time';
               {{ update.title }}
             </h3>
             @if (update.type === 'SYSTEM') {
-              <span class="rounded-full bg-mist px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate2">
+              <span
+                class="rounded-full bg-mist px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate2"
+              >
                 System
               </span>
             }

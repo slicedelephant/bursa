@@ -14,7 +14,10 @@ export class SponsorsController {
   @Put('profile')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SPONSOR)
-  upsertProfile(@CurrentUser('id') userId: string, @Body() dto: UpsertCompanyDto) {
+  upsertProfile(
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpsertCompanyDto,
+  ) {
     return this.sponsors.upsertProfile(userId, dto);
   }
 

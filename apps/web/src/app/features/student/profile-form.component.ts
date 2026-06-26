@@ -19,7 +19,10 @@ import { ApiService } from '../../core/api.service';
       </p>
 
       @if (error()) {
-        <p class="mt-4 rounded-lg bg-brand-orange/10 px-3 py-2 text-sm font-medium text-brand-orange" role="alert">
+        <p
+          class="mt-4 rounded-lg bg-brand-orange/10 px-3 py-2 text-sm font-medium text-brand-orange"
+          role="alert"
+        >
           {{ error() }}
         </p>
       }

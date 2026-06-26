@@ -16,7 +16,8 @@ import { JwtStrategy } from './jwt.strategy';
         signOptions: {
           // jsonwebtoken types expiresIn as a template-literal `StringValue`;
           // a plain env string is valid at runtime, so narrow the type here.
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '7d') as `${number}d`,
+          expiresIn: (config.get<string>('JWT_EXPIRES_IN') ??
+            '7d') as `${number}d`,
         },
       }),
     }),

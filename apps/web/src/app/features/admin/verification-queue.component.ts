@@ -19,13 +19,19 @@ import { OwnerCampaign } from '../../core/models';
             Review submitted campaigns. Verifying publishes the campaign and takes it LIVE.
           </p>
         </div>
-        <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 hover:bg-mist" (click)="load()">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-200 px-4 py-2 hover:bg-mist"
+          (click)="load()"
+        >
           Refresh
         </button>
       </header>
 
       @if (error()) {
-        <div class="rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange ring-1 ring-brand-orange/20">
+        <div
+          class="rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange ring-1 ring-brand-orange/20"
+        >
           {{ error() }}
         </div>
       }
@@ -68,7 +74,9 @@ import { OwnerCampaign } from '../../core/models';
                 </div>
                 <div class="text-right">
                   <p class="text-xs uppercase tracking-wide text-slate2">Goal</p>
-                  <p class="font-display text-lg font-semibold text-ink">{{ c.goalCents | money }}</p>
+                  <p class="font-display text-lg font-semibold text-ink">
+                    {{ c.goalCents | money }}
+                  </p>
                 </div>
               </div>
 
@@ -79,7 +87,9 @@ import { OwnerCampaign } from '../../core/models';
               }
 
               @if (gateId() === c.id) {
-                <p class="mt-3 rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange ring-1 ring-brand-orange/20">
+                <p
+                  class="mt-3 rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange ring-1 ring-brand-orange/20"
+                >
                   This school’s payout account is not verified yet. Verify it under the
                   <span class="font-semibold">Schools</span> tab before publishing this campaign.
                 </p>

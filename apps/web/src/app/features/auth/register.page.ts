@@ -160,7 +160,9 @@ export class RegisterPage {
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err?.error?.error?.message ?? 'Could not create your account. Please try again.');
+          this.error.set(
+            err?.error?.error?.message ?? 'Could not create your account. Please try again.',
+          );
         },
       });
   }

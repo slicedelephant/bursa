@@ -24,7 +24,9 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
     <section class="mx-auto max-w-6xl px-4 py-10">
       <header class="mb-8">
         <h1 class="font-display text-3xl font-bold text-ink">Sponsor dashboard</h1>
-        <p class="mt-1 text-slate2">Track your sponsorship impact and download donation receipts.</p>
+        <p class="mt-1 text-slate2">
+          Track your sponsorship impact and download donation receipts.
+        </p>
       </header>
 
       @if (loading()) {
@@ -63,7 +65,9 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
           </div>
           <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
             <p class="text-sm font-medium text-slate2">Campaigns supported</p>
-            <p class="mt-1 font-display text-3xl font-bold text-ink">{{ imp.campaignsSupported.length }}</p>
+            <p class="mt-1 font-display text-3xl font-bold text-ink">
+              {{ imp.campaignsSupported.length }}
+            </p>
           </div>
         </div>
 
@@ -80,12 +84,16 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
                     <p class="font-semibold text-ink">{{ c.title }}</p>
                     <p class="text-sm text-slate2">{{ c.schoolName }}</p>
                   </div>
-                  <span class="whitespace-nowrap font-semibold text-brand-green">{{ c.amountCents | money }}</span>
+                  <span class="whitespace-nowrap font-semibold text-brand-green">{{
+                    c.amountCents | money
+                  }}</span>
                 </li>
               }
             </ul>
           } @else {
-            <p class="mt-3 text-slate2">No pledges yet. Browse campaigns below to support a student.</p>
+            <p class="mt-3 text-slate2">
+              No pledges yet. Browse campaigns below to support a student.
+            </p>
           }
         </div>
 
@@ -129,7 +137,8 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
           <h2 class="font-display text-xl font-semibold text-ink">Browse campaigns to pledge</h2>
           <p class="mt-1 max-w-2xl text-slate2">
             Corporate pledges are made on a campaign page via SEPA bank transfer. Pick a student to
-            support, commit your company's pledge, and it will appear here with a downloadable receipt.
+            support, commit your company's pledge, and it will appear here with a downloadable
+            receipt.
           </p>
           <a
             routerLink="/campaigns"

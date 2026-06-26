@@ -18,7 +18,8 @@ export class SchoolsService {
 
   async verifyPayout(id: string, dto: VerifyPayoutDto) {
     const school = await this.prisma.school.findUnique({ where: { id } });
-    if (!school) throw new DomainException('NOT_FOUND', 'School not found', 404);
+    if (!school)
+      throw new DomainException('NOT_FOUND', 'School not found', 404);
     return this.prisma.school.update({
       where: { id },
       data: {

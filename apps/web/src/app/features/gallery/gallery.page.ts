@@ -71,13 +71,17 @@ import { StatsStripComponent } from './stats-strip.component';
         </div>
 
         @if (error(); as e) {
-          <div class="mt-6 rounded-2xl bg-brand-orange/10 p-6 text-center text-sm font-medium text-brand-orange ring-1 ring-brand-orange/20">
+          <div
+            class="mt-6 rounded-2xl bg-brand-orange/10 p-6 text-center text-sm font-medium text-brand-orange ring-1 ring-brand-orange/20"
+          >
             {{ e }}
           </div>
         } @else if (loading()) {
           <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @for (slot of skeletons; track slot) {
-              <div class="h-72 animate-pulse rounded-2xl bg-white shadow-card ring-1 ring-black/5"></div>
+              <div
+                class="h-72 animate-pulse rounded-2xl bg-white shadow-card ring-1 ring-black/5"
+              ></div>
             }
           </div>
         } @else if (campaigns().length === 0) {

@@ -18,7 +18,9 @@ export interface DonationSuccess {
     <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
       @if (success()) {
         <div class="flex flex-col items-center gap-3 py-4 text-center">
-          <div class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
+          <div
+            class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-green/10 text-brand-green"
+          >
             <svg class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path
                 fill-rule="evenodd"
@@ -29,8 +31,9 @@ export interface DonationSuccess {
           </div>
           <h3 class="font-display text-xl font-semibold text-ink">Thank you!</h3>
           <p class="text-sm text-slate2">
-            Your gift of <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is on its way
-            to the school.
+            Your gift of
+            <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is on
+            its way to the school.
           </p>
           <button
             type="button"
@@ -65,9 +68,13 @@ export interface DonationSuccess {
           </div>
 
           <div>
-            <label for="donate-amount" class="mb-1.5 block text-sm font-medium text-ink">Custom amount (€)</label>
+            <label for="donate-amount" class="mb-1.5 block text-sm font-medium text-ink"
+              >Custom amount (€)</label
+            >
             <div class="relative">
-              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate2">€</span>
+              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate2"
+                >€</span
+              >
               <input
                 id="donate-amount"
                 name="amount"
@@ -86,7 +93,9 @@ export interface DonationSuccess {
               Tip to support Bursa (optional)
             </label>
             <div class="relative">
-              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate2">€</span>
+              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate2"
+                >€</span
+              >
               <input
                 id="donate-tip"
                 name="tip"
@@ -102,7 +111,9 @@ export interface DonationSuccess {
           </div>
 
           <div>
-            <label for="donate-name" class="mb-1.5 block text-sm font-medium text-ink">Your name (optional)</label>
+            <label for="donate-name" class="mb-1.5 block text-sm font-medium text-ink"
+              >Your name (optional)</label
+            >
             <input
               id="donate-name"
               name="donorName"
@@ -115,7 +126,9 @@ export interface DonationSuccess {
           </div>
 
           <div>
-            <label for="donate-message" class="mb-1.5 block text-sm font-medium text-ink">Message (optional)</label>
+            <label for="donate-message" class="mb-1.5 block text-sm font-medium text-ink"
+              >Message (optional)</label
+            >
             <textarea
               id="donate-message"
               name="message"
@@ -137,7 +150,9 @@ export interface DonationSuccess {
           </label>
 
           @if (errorMsg()) {
-            <p class="rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange">{{ errorMsg() }}</p>
+            <p class="rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange">
+              {{ errorMsg() }}
+            </p>
           }
 
           <button
@@ -235,7 +250,8 @@ export class DonateCardComponent {
           const apiErr = err?.error?.error;
           let msg = apiErr?.message ?? 'Something went wrong';
           if (apiErr?.code === 'PAYMENT_FAILED') {
-            msg += ' — in this prototype, amounts ending in .13 always fail. Try a different amount.';
+            msg +=
+              ' — in this prototype, amounts ending in .13 always fail. Try a different amount.';
           }
           this.errorMsg.set(msg);
           this.submitting.set(false);

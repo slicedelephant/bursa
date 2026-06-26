@@ -21,7 +21,9 @@ import { Receipt } from '../../core/models';
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-brand-green">Donation receipt</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-brand-green">
+              Donation receipt
+            </p>
             <h3 class="font-display text-xl font-semibold text-ink">{{ receipt.receiptNo }}</h3>
           </div>
           <button

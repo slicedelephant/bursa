@@ -34,7 +34,9 @@ const STEPS: readonly Step[] = [
       <div class="mt-6 grid gap-6 sm:grid-cols-3">
         @for (step of steps; track step.num) {
           <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
-            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-green/10 font-display text-lg font-bold text-brand-green">
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-green/10 font-display text-lg font-bold text-brand-green"
+            >
               {{ step.num }}
             </div>
             <h3 class="mt-4 font-display text-lg font-semibold text-ink">{{ step.title }}</h3>
