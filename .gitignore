@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
+
+# Build output
+dist/
+apps/*/dist/
+apps/web/.angular/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+apps/*/.env
+apps/*/.env.*
+!apps/*/.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Test / coverage
+coverage/
+
+# Seed working files (generated images are committed under apps/web/public/seed)
+scripts/seed/.cache/

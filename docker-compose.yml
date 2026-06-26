@@ -1,0 +1,23 @@
+# Local development database for FundingApp.
+# Local-only credentials — NOT production secrets.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fundingapp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fundingapp
+      POSTGRES_PASSWORD: fundingapp
+      POSTGRES_DB: fundingapp
+    ports:
+      - "5433:5432" # host 5433 -> container 5432 (avoids clashing with other local Postgres)
+    volumes:
+      - fundingapp_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fundingapp -d fundingapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  fundingapp_pgdata:

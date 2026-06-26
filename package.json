@@ -1,0 +1,21 @@
+{
+  "name": "fundingapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FundingApp — a giving platform for verified, admitted MBA students from lower-income countries. Funds go directly to the business school.",
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "install:all": "npm --prefix apps/api install && npm --prefix apps/web install",
+    "prisma:migrate": "npm --prefix apps/api run prisma:migrate",
+    "seed": "npm --prefix apps/api run seed",
+    "dev:api": "npm --prefix apps/api run start:dev",
+    "dev:web": "npm --prefix apps/web start",
+    "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "build": "npm --prefix apps/api run build && npm --prefix apps/web run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
