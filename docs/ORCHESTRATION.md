@@ -49,23 +49,34 @@ entschieden (Dennis schlaeft). Schwere Arbeit wird an Sub-Agents/Workflows deleg
 - [x] Repo geklont (war leer), spec-kit initialisiert (`.specify/`, Claude-Integration).
 - [x] Constitution v1.0.0 geschrieben.
 - [x] Monorepo-Geruest: NestJS 11 (`apps/api`), Angular 20 (`apps/web`), docker-compose, Root-Scripts, .gitignore, .env.example.
-- [~] **Marktrecherche** (Multi-Agent-Workflow, laeuft im Hintergrund) -> Report `260626_FundingApp_Marktrecherche.md` im OneDrive-Ordner.
-- [ ] spec.md (specify) - nach Recherche.
-- [ ] plan.md + research/data-model/contracts/quickstart.
-- [ ] tasks.md.
-- [ ] Implementierung (Backend + Frontend + Seed).
-- [ ] Lokaler Run + Screenshots/Walkthrough.
-- [ ] Commit + Push.
+- [x] **Marktrecherche** (Multi-Agent-Workflow, 27 Agenten, ~1,8 Mio Tokens) -> Report `260626_FundingApp_Marktrecherche.md` im OneDrive-Ordner.
+- [x] spec.md (specify) - `specs/001-bursa-funding-platform/spec.md`.
+- [x] plan.md + research/data-model/contracts/quickstart.
+- [x] tasks.md.
+- [x] Backend (NestJS): Fundament + 3 Module selbst, 4 Module via paralleler Sub-Agents. Build + Boot + Tests gruen.
+- [x] Frontend (Angular): Core/Design-System selbst, 6 Feature-Pages via paralleler Sub-Agents. Build gruen.
+- [x] Seed: 11 synthetische Studierende, 4 Schools, Demo-Accounts, KI-Portraits (gpt-image-1).
+- [x] Lokaler End-to-End-Run im Browser verifiziert (Spende, Admin-Verify, Payout, Sponsor, Student).
+- [x] 1 Integrationsbug gefixt (`/students/me`-Shape) + Build-Output-Fix (prisma aus nest build).
+- [x] Walkthrough + README + 4 Screenshots.
+- [x] Commit (sauber, mehrere logische Commits) + Push nach GitHub.
 
-## So startest du die App (sobald fertig - vorlaeufig)
+## Status: FERTIG. Lauffaehiger Prototyp.
+
+Verifizierte Flows (live im Browser): Gallery + Kartenspende (Fortschritt aktualisiert),
+Admin-Verifizierung (PENDING -> LIVE, erscheint in Gallery), Direktauszahlung an die Schule
+(FUNDED -> DISBURSED, Payout an INSEAD), Sponsor-Impact + Receipt, Studierenden-Dashboard.
+
+## So startest du die App
 
 ```bash
 cd ~/dev/se_projects/fundingApp
-npm run db:up          # Postgres via Docker
+npm run db:up          # Postgres via Docker (Port 5433)
 npm run install:all    # falls noch nicht installiert
 npm run prisma:migrate # Schema
-npm run seed           # Dummy-Daten + Profilbilder
-npm run dev            # API (3000) + Web (4200)
+npm run seed           # 11 Studierende + KI-Profilbilder (setzt Demo-Daten zurueck)
+npm run dev            # API (3000) + Web (4200)  ->  http://localhost:4200
 ```
 
-(Wird im finalen Walkthrough-Dokument praezisiert.)
+Demo-Login (Passwort `bursa1234`): admin@bursa.test, sponsor@acme.test, donor@bursa.test, amara@bursa.test.
+Details: `docs/WALKTHROUGH.md`.
