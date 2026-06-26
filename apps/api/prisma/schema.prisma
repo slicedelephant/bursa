@@ -1,13 +1,215 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Bursa — Funding Platform. Schema derived from specs/001-bursa-funding-platform/data-model.md.
+// Money is stored as integer cents (EUR). IDs are cuid().
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  DONOR
+  SPONSOR
+  ADMIN
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  LIVE
+  FUNDED
+  DISBURSED
+  CLOSED
+  REJECTED
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DonationMethod {
+  CARD
+  SEPA
+}
+
+enum DonationType {
+  PRIVATE
+  CORPORATE
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum PayoutStatus {
+  PENDING
+  SENT
+  CONFIRMED
+}
+
+enum UpdateType {
+  MANUAL
+  SYSTEM
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(DONOR)
+  displayName  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  studentProfile   StudentProfile?
+  corporateProfile CorporateProfile?
+  donations        Donation[]            @relation("DonorDonations")
+  updates          CampaignUpdate[]
+  verifications    AdmissionVerification[] @relation("VerifiedBy")
+}
+
+model School {
+  id               String   @id @default(cuid())
+  name             String
+  country          String
+  city             String?
+  website          String?
+  logoUrl          String?
+  payoutVerified   Boolean  @default(false)
+  payoutAccountRef String?
+  createdAt        DateTime @default(now())
+
+  campaigns Campaign[]
+  payouts   Payout[]
+}
+
+model StudentProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  fullName       String
+  country        String
+  photoUrl       String?
+  story          String
+  recommendation String?
+  createdAt      DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign Campaign?
+}
+
+model Campaign {
+  id               String         @id @default(cuid())
+  studentProfileId String         @unique
+  schoolId         String
+  programName      String
+  title            String
+  story            String
+  goalCents        Int
+  currency         String         @default("EUR")
+  raisedCents      Int            @default(0)
+  tipsCents        Int            @default(0)
+  status           CampaignStatus @default(DRAFT)
+  deadline         DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  studentProfile StudentProfile         @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  school         School                 @relation(fields: [schoolId], references: [id])
+  verification   AdmissionVerification?
+  donations      Donation[]
+  updates        CampaignUpdate[]
+  payout         Payout?
+
+  @@index([status])
+  @@index([schoolId])
+}
+
+model AdmissionVerification {
+  id           String             @id @default(cuid())
+  campaignId   String             @unique
+  status       VerificationStatus @default(PENDING)
+  admissionRef String?
+  note         String?
+  verifiedById String?
+  verifiedAt   DateTime?
+  createdAt    DateTime           @default(now())
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  verifiedBy User?    @relation("VerifiedBy", fields: [verifiedById], references: [id])
+}
+
+model Donation {
+  id                 String         @id @default(cuid())
+  campaignId         String
+  donorUserId        String?
+  corporateProfileId String?
+  amountCents        Int
+  tipCents           Int            @default(0)
+  currency           String         @default("EUR")
+  method             DonationMethod
+  type               DonationType
+  status             DonationStatus @default(PENDING)
+  providerRef        String?
+  message            String?
+  anonymous          Boolean        @default(false)
+  donorName          String?
+  createdAt          DateTime       @default(now())
+
+  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donorUser        User?             @relation("DonorDonations", fields: [donorUserId], references: [id])
+  corporateProfile CorporateProfile? @relation(fields: [corporateProfileId], references: [id])
+
+  @@index([campaignId])
+}
+
+model CorporateProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  companyName String
+  sector      String?
+  contactName String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  donations Donation[]
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  campaignId  String       @unique
+  schoolId    String
+  amountCents Int
+  method      DonationMethod @default(SEPA)
+  reference   String
+  status      PayoutStatus @default(PENDING)
+  proofNote   String?
+  createdAt   DateTime     @default(now())
+  sentAt      DateTime?
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  school   School   @relation(fields: [schoolId], references: [id])
+}
+
+model CampaignUpdate {
+  id         String     @id @default(cuid())
+  campaignId String
+  authorId   String?
+  title      String
+  body       String
+  type       UpdateType @default(MANUAL)
+  createdAt  DateTime   @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  author   User?    @relation(fields: [authorId], references: [id])
+
+  @@index([campaignId])
 }
