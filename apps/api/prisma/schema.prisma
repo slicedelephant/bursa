@@ -115,6 +115,10 @@ model Campaign {
   programName      String
   title            String
   story            String
+  storyBackground  String?
+  storyChallenge   String?
+  storyVision      String?
+  videoUrl         String?
   goalCents        Int
   currency         String         @default("EUR")
   raisedCents      Int            @default(0)

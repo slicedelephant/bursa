@@ -114,6 +114,18 @@
         "branches": 80,
         "functions": 80,
         "lines": 80
+      },
+      "**/campaigns/video-url.util.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/campaigns/dto/is-video-url.validator.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
       }
     }
   }

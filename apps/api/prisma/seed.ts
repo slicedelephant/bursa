@@ -101,6 +101,8 @@ interface StudentSeed {
   goal: number; // euros
   status: 'LIVE' | 'FUNDED' | 'DISBURSED' | 'PENDING';
   story: string;
+  /** Optional pitch video as an embeddable YouTube/Vimeo link (no upload). */
+  video?: string;
   recommendation?: string;
   donations: DonationSeed[];
 }
@@ -152,6 +154,7 @@ const STUDENTS: StudentSeed[] = [
     title: 'From Lagos fintech to a Berlin MBA',
     goal: 42000,
     status: 'LIVE',
+    video: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
     story:
       'I built and scaled a mobile payments team in Lagos serving 200,000 users. ESMT Berlin admitted me to their Full-Time MBA, but the naira devaluation pushed the tuition far beyond what my savings can cover. With your help, I will bring operational experience back to West Africa and mentor the next wave of founders.',
     recommendation:
@@ -173,6 +176,7 @@ const STUDENTS: StudentSeed[] = [
     title: 'Healthcare logistics for rural Ghana',
     goal: 95000,
     status: 'LIVE',
+    video: 'https://vimeo.com/76979871',
     story:
       'I spent five years moving medicines to clinics no truck wanted to reach. INSEAD gave me a seat; the deposit alone is more than my annual salary. An MBA lets me turn a scrappy operation into a company that keeps rural pharmacies stocked.',
     recommendation:
@@ -193,6 +197,7 @@ const STUDENTS: StudentSeed[] = [
     title: 'Solar microgrids for Southern Africa',
     goal: 58000,
     status: 'LIVE',
+    video: 'https://youtu.be/aqz-KE-bpKQ',
     story:
       'I co-founded a solar microgrid pilot that now powers three villages. IE Business School admitted me to scale this into a regional energy company. The tuition gap is the only thing standing between me and that classroom in Madrid.',
     recommendation:
@@ -493,6 +498,7 @@ async function main(): Promise<void> {
         programName: st.program,
         title: st.title,
         story: st.story,
+        videoUrl: st.video ?? null,
         goalCents: eur(st.goal),
         raisedCents,
         status: campaignStatus,

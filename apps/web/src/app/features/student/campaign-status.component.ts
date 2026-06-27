@@ -4,12 +4,13 @@ import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { CampaignStatus, OwnerCampaign } from '../../core/models';
 import { ProgressBarComponent } from '../../shared/progress-bar.component';
+import { ShareToolkitComponent } from '../campaign/share-toolkit.component';
 
 /** Step 3: shows the campaign status and the next action for the student. */
 @Component({
   selector: 'app-student-campaign-status',
   standalone: true,
-  imports: [RouterLink, MoneyPipe, ProgressBarComponent],
+  imports: [RouterLink, MoneyPipe, ProgressBarComponent, ShareToolkitComponent],
   template: `
     <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
       <div class="flex items-start justify-between gap-4">
@@ -89,6 +90,25 @@ import { ProgressBarComponent } from '../../shared/progress-bar.component';
           >
             View your public campaign →
           </a>
+
+          <div class="mt-6">
+            <app-share-toolkit
+              [campaignId]="campaign().id"
+              [title]="campaign().title"
+              [studentName]="studentName()"
+              [firstBackers]="campaign().raisedCents === 0"
+              [heading]="
+                campaign().raisedCents === 0
+                  ? 'Get your first 3 backers'
+                  : 'Share your campaign'
+              "
+              [subtext]="
+                campaign().raisedCents === 0
+                  ? 'Share with your inner circle and diaspora first — early backers create the momentum that pulls in strangers.'
+                  : 'Keep the momentum going — every share reaches new donors.'
+              "
+            />
+          </div>
         }
       }
     </div>
@@ -98,6 +118,8 @@ export class StudentCampaignStatus {
   private readonly api = inject(ApiService);
 
   readonly campaign = input.required<OwnerCampaign>();
+  /** Student name for the pre-written share message. */
+  readonly studentName = input<string>('');
 
   /** Emitted after a status change (e.g. submitted) so the parent can reload. */
   readonly changed = output<void>();

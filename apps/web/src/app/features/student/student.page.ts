@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { StudentMe } from '../../core/models';
-import { StudentCampaignForm } from './campaign-form.component';
+import { CampaignWizardComponent } from './campaign-wizard.component';
 import { StudentCampaignStatus } from './campaign-status.component';
 import { StudentProfileForm } from './profile-form.component';
 
@@ -10,7 +10,7 @@ import { StudentProfileForm } from './profile-form.component';
 @Component({
   selector: 'app-student-page',
   standalone: true,
-  imports: [StudentProfileForm, StudentCampaignForm, StudentCampaignStatus],
+  imports: [StudentProfileForm, CampaignWizardComponent, StudentCampaignStatus],
   template: `
     <section class="mx-auto max-w-2xl px-4 py-10">
       <header class="mb-8">
@@ -71,9 +71,13 @@ import { StudentProfileForm } from './profile-form.component';
         @if (!data.profile) {
           <app-student-profile-form (saved)="load()" />
         } @else if (!data.campaign) {
-          <app-student-campaign-form (saved)="load()" />
+          <app-student-campaign-wizard (saved)="load()" />
         } @else {
-          <app-student-campaign-status [campaign]="data.campaign" (changed)="load()" />
+          <app-student-campaign-status
+            [campaign]="data.campaign"
+            [studentName]="data.profile.fullName"
+            (changed)="load()"
+          />
         }
       }
     </section>

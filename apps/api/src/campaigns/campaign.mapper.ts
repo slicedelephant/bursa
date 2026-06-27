@@ -94,6 +94,7 @@ export function toDetail(c: CampaignFull) {
   return {
     ...toCard(c),
     story: c.story,
+    videoUrl: c.videoUrl,
     recommendation: c.studentProfile.recommendation,
     deadline: c.deadline,
     tipsCents: c.tipsCents,

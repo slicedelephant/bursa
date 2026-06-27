@@ -5,10 +5,12 @@ import { AuthService } from '../../core/auth.service';
 import { CampaignDetail, DonationResult } from '../../core/models';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
 import { CampaignProgressComponent } from './campaign-progress.component';
+import { CampaignVideoComponent } from './campaign-video.component';
 import { DonateCardComponent, DonationSuccess } from './donate-card.component';
 import { PayoutProofComponent } from './payout-proof.component';
 import { RecentDonorsComponent } from './recent-donors.component';
 import { SepaPledgeComponent } from './sepa-pledge.component';
+import { ShareToolkitComponent } from './share-toolkit.component';
 import { TrustPanelComponent } from './trust-panel.component';
 import { UpdatesTimelineComponent } from './updates-timeline.component';
 
@@ -20,6 +22,8 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
     VerifiedBadgeComponent,
     DonateCardComponent,
     CampaignProgressComponent,
+    CampaignVideoComponent,
+    ShareToolkitComponent,
     SepaPledgeComponent,
     UpdatesTimelineComponent,
     RecentDonorsComponent,
@@ -94,6 +98,10 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
               <p class="text-sm text-slate2">{{ c.programName }} · {{ c.school.name }}</p>
             </div>
 
+            @if (c.videoUrl) {
+              <app-campaign-video [videoUrl]="c.videoUrl" />
+            }
+
             <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
               <h2 class="font-display text-lg font-semibold text-ink">The story</h2>
               <p class="mt-3 whitespace-pre-line leading-relaxed text-ink">{{ c.story }}</p>
@@ -144,6 +152,19 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
               @if (auth.role() === 'SPONSOR') {
                 <app-sepa-pledge [campaignId]="c.id" (pledged)="onPledged($event)" />
               }
+
+              <app-share-toolkit
+                [campaignId]="c.id"
+                [title]="c.title"
+                [studentName]="c.studentName"
+                [firstBackers]="c.donorCount < 3"
+                [heading]="c.donorCount < 3 ? 'Be the first to back ' + c.studentName : 'Share this campaign'"
+                [subtext]="
+                  c.donorCount < 3
+                    ? 'A few early backers create the momentum that pulls in strangers.'
+                    : ''
+                "
+              />
             </div>
           </div>
         </div>

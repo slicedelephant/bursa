@@ -192,3 +192,17 @@ describe('toDetail payout proof', () => {
     expect(result.payoutProof).toBeNull();
   });
 });
+
+describe('toDetail video', () => {
+  it('exposes the pitch videoUrl when set', () => {
+    const result = toDetail(
+      makeDetail({ videoUrl: 'https://youtu.be/dQw4w9WgXcQ' }),
+    );
+    expect(result.videoUrl).toBe('https://youtu.be/dQw4w9WgXcQ');
+  });
+
+  it('exposes a null videoUrl when no video is set', () => {
+    const result = toDetail(makeDetail({ videoUrl: null }));
+    expect(result.videoUrl).toBeNull();
+  });
+});

@@ -45,6 +45,10 @@ export class CampaignsService {
         story: dto.story,
         goalCents: dto.goalCents,
         deadline: dto.deadline ? new Date(dto.deadline) : null,
+        videoUrl: dto.videoUrl ?? null,
+        storyBackground: dto.storyBackground ?? null,
+        storyChallenge: dto.storyChallenge ?? null,
+        storyVision: dto.storyVision ?? null,
       },
     });
   }
@@ -63,6 +67,16 @@ export class CampaignsService {
         ...(dto.goalCents !== undefined ? { goalCents: dto.goalCents } : {}),
         ...(dto.deadline !== undefined
           ? { deadline: new Date(dto.deadline) }
+          : {}),
+        ...(dto.videoUrl !== undefined ? { videoUrl: dto.videoUrl } : {}),
+        ...(dto.storyBackground !== undefined
+          ? { storyBackground: dto.storyBackground }
+          : {}),
+        ...(dto.storyChallenge !== undefined
+          ? { storyChallenge: dto.storyChallenge }
+          : {}),
+        ...(dto.storyVision !== undefined
+          ? { storyVision: dto.storyVision }
           : {}),
       },
     });
