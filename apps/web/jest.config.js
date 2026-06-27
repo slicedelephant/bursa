@@ -181,5 +181,36 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E6 — Security-Hardening (new code, held to >= 80%).
+    './src/app/core/password-strength.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/core/pii-mask.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/account/account-security.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/auth/password-strength-meter.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/account/privacy-panel.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

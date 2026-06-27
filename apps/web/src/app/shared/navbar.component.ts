@@ -35,6 +35,13 @@ import { AuthService } from '../core/auth.service';
             >
               My dashboard
             </a>
+            <a
+              routerLink="/account"
+              routerLinkActive="text-brand-green"
+              class="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-mist"
+            >
+              Account
+            </a>
             <span class="hidden px-2 text-sm text-slate2 sm:inline">
               {{ auth.user()?.displayName }}
             </span>

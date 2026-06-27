@@ -43,5 +43,10 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] },
     loadComponent: () => import('./features/admin/admin.page').then((m) => m.AdminPage),
   },
+  {
+    path: 'account',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),
+  },
   { path: '**', redirectTo: 'campaigns' },
 ];

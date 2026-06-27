@@ -375,4 +375,20 @@ export class ApiService {
       ),
     );
   }
+
+  // ---- Account / GDPR (E6) ----
+  /** Right of access: the authenticated user's own data as a structured export. */
+  exportMyData(): Observable<unknown> {
+    return this.unwrap(this.http.get<Envelope<unknown>>(`${API_BASE}/account/export`));
+  }
+
+  /** Right to erasure: anonymises the account (keeps the money trail). */
+  deleteMyAccount(): Observable<{ anonymized: boolean; anonymizedAt: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ anonymized: boolean; anonymizedAt: string }>>(
+        `${API_BASE}/account/delete`,
+        {},
+      ),
+    );
+  }
 }

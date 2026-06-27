@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { PasswordStrengthMeterComponent } from './password-strength-meter.component';
 
 type RegisterRole = 'DONOR' | 'STUDENT' | 'SPONSOR';
 
@@ -20,7 +21,7 @@ const ROLE_BLURBS: Record<RegisterRole, string> = {
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, PasswordStrengthMeterComponent],
   template: `
     <section class="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-mist px-4 py-12">
       <div class="mx-auto w-full max-w-md">
@@ -83,8 +84,9 @@ const ROLE_BLURBS: Record<RegisterRole, string> = {
                 required
                 [(ngModel)]="password"
                 class="w-full rounded-lg border border-slate-200 px-3 py-2 text-ink outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/30"
-                placeholder="Choose a password"
+                placeholder="Choose a strong password"
               />
+              <app-password-strength-meter [password]="password" />
             </div>
 
             <div>
