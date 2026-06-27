@@ -58,11 +58,21 @@ Reihenfolge gesamt: E1->E2->E3->E4->E5->[Research devs/ops]->E6->E7.
 
 | Epic | Feature | Branch | Spec | Plan | Tasks | Impl | Tests>=80% | E2E | PR | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
-| E1 | 002 | 002-trust-layer | ✓ | - | - | - | - | - | - | IN ARBEIT (Spec fertig, naechster: plan) |
+| E1 | 002 | 002-trust-layer | ✓ | ✓ | ✓ | ✓ | ✓ (neuer Code, Per-Path-Gates) | (Komponententests) | #1 | **FERTIG** - PR https://github.com/slicedelephant/bursa/pull/1 |
 | E2 | 003 | - | - | - | - | - | - | - | - | OFFEN |
 | E3 | 004 | - | - | - | - | - | - | - | - | OFFEN |
 | E4 | 005 | - | - | - | - | - | - | - | - | OFFEN |
 | E5 | 006 | - | - | - | - | - | - | - | - | OFFEN |
 
+## Wichtige Infra-Notizen (fuer alle Epics)
+- **Frontend-Tests jetzt Jest** (jest-preset-angular, jsdom/headless), nicht mehr Karma. Run:
+  `npm --prefix apps/web test` bzw. `test:cov`. Coverage-Gates pro Pfad in `apps/web/jest.config.js`
+  (global floor 0). Fuer jedes Epic die neuen Pfade als 80%-Gate dort eintragen.
+- **Backend-Tests:** `npm --prefix apps/api test` (Jest, coverage via test:cov).
+- **Coverage-Interpretation:** 80% gilt auf dem NEUEN/geaenderten Code je Epic (Per-Path-Gates),
+  nicht global (Altbestand aus Nacht-Build ist untested - globaler Retrofit waere separat).
+- Verify pro Epic: `npm --prefix apps/api test` + `npm --prefix apps/web run test:cov` + beide `run build`.
+
 ## Log
-- 2026-06-27: Direktive erhalten, Entscheidungen geklaert, Tracker angelegt. Start E1.
+- 2026-06-27: Direktive + E6/E7-Folgeauftrag erhalten, Entscheidungen geklaert, Tracker angelegt.
+- 2026-06-27: **E1 FERTIG** (PR #1). Backend Trust-Projektion + Trust-UI + Karma->Jest-Migration. Naechster: E2 (Branch 003 von 002-trust-layer).
