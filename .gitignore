@@ -9,13 +9,13 @@ apps/*/dist/
 apps/web/.angular/
 *.tsbuildinfo
 
-# Environment / secrets
+# Environment / secrets (keep *.example templates tracked)
 .env
 .env.*
-!.env.example
+!.env*.example
 apps/*/.env
 apps/*/.env.*
-!apps/*/.env.example
+!apps/*/.env*.example
 
 # Logs
 *.log
