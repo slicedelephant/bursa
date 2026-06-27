@@ -73,6 +73,22 @@ export interface CampaignUpdate {
   createdAt: string;
 }
 
+/** Public trust signals derived from existing verification/school data. */
+export interface CampaignTrust {
+  admissionVerified: boolean;
+  schoolConfirmed: boolean;
+  identityChecked: boolean;
+}
+
+/** Public payout proof, present only for DISBURSED campaigns with a payout record. */
+export interface PayoutProof {
+  schoolName: string;
+  amountCents: number;
+  reference: string;
+  status: PayoutStatus;
+  sentAt?: string | null;
+}
+
 export interface CampaignDetail extends CampaignCard {
   story: string;
   recommendation?: string | null;
@@ -82,6 +98,8 @@ export interface CampaignDetail extends CampaignCard {
   donorCount: number;
   recentDonations: PublicDonation[];
   updates: CampaignUpdate[];
+  trust: CampaignTrust;
+  payoutProof?: PayoutProof | null;
 }
 
 export interface Stats {

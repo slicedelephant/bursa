@@ -7,8 +7,10 @@ import { CampaignDetail, DonationResult } from '../../core/models';
 import { ProgressBarComponent } from '../../shared/progress-bar.component';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
 import { DonateCardComponent, DonationSuccess } from './donate-card.component';
+import { PayoutProofComponent } from './payout-proof.component';
 import { RecentDonorsComponent } from './recent-donors.component';
 import { SepaPledgeComponent } from './sepa-pledge.component';
+import { TrustPanelComponent } from './trust-panel.component';
 import { UpdatesTimelineComponent } from './updates-timeline.component';
 
 @Component({
@@ -23,6 +25,8 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
     SepaPledgeComponent,
     UpdatesTimelineComponent,
     RecentDonorsComponent,
+    TrustPanelComponent,
+    PayoutProofComponent,
   ],
   template: `
     <section class="mx-auto max-w-6xl px-4 py-10">
@@ -133,11 +137,11 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
                 <p class="mt-1 text-sm text-slate2">
                   {{ c.donorCount }} supporter{{ c.donorCount === 1 ? '' : 's' }}
                 </p>
-
-                <p class="mt-4 rounded-lg bg-mist px-3 py-2 text-xs text-slate2">
-                  Bursa pays the school directly. The student never receives the money.
-                </p>
               </div>
+
+              <app-payout-proof [proof]="c.payoutProof ?? null" />
+
+              <app-trust-panel [trust]="c.trust" />
 
               <app-donate-card [campaignId]="c.id" (donated)="onDonated($event)" />
 

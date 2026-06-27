@@ -3,6 +3,7 @@ import {
   Campaign,
   CampaignUpdate,
   Donation,
+  Payout,
   School,
   StudentProfile,
 } from '@prisma/client';
@@ -28,7 +29,31 @@ type DonationWithCorp = Donation & {
 type CampaignFull = CampaignWithBasics & {
   donations: DonationWithCorp[];
   updates: CampaignUpdate[];
+  payout?: Payout | null;
 };
+
+/** Public trust signals derived from existing verification/school data. */
+export function toTrust(c: CampaignWithBasics) {
+  const admissionVerified = c.verification?.status === 'VERIFIED';
+  return {
+    admissionVerified,
+    schoolConfirmed: c.school.payoutVerified,
+    // Prototype: identity check is symbolically derived from a verified admission.
+    identityChecked: admissionVerified,
+  };
+}
+
+/** Public payout proof, only for disbursed campaigns that have a payout record. */
+export function toPayoutProof(c: CampaignFull) {
+  if (c.status !== 'DISBURSED' || !c.payout) return null;
+  return {
+    schoolName: c.school.name,
+    amountCents: c.payout.amountCents,
+    reference: c.payout.reference,
+    status: c.payout.status,
+    sentAt: c.payout.sentAt,
+  };
+}
 
 export function toCard(c: CampaignWithBasics) {
   return {
@@ -89,5 +114,7 @@ export function toDetail(c: CampaignFull) {
       type: u.type,
       createdAt: u.createdAt,
     })),
+    trust: toTrust(c),
+    payoutProof: toPayoutProof(c),
   };
 }

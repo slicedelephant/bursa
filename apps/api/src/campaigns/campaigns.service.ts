@@ -128,6 +128,7 @@ export class CampaignsService {
         studentProfile: true,
         school: true,
         verification: true,
+        payout: true,
         donations: {
           where: { status: 'SUCCEEDED' },
           orderBy: { createdAt: 'desc' },
