@@ -96,6 +96,8 @@ export interface CampaignDetail extends CampaignCard {
   updates: CampaignUpdate[];
   trust: CampaignTrust;
   payoutProof?: PayoutProof | null;
+  /** Public corporate recognition (named scholarships + logos). E5. */
+  recognition?: CampaignRecognition[];
 }
 
 export interface Stats {
@@ -281,4 +283,105 @@ export interface SubscriptionItem {
   campaignId: string;
   campaignTitle: string;
   createdAt: string;
+}
+
+// ---- E5: Corporate Channel ----
+
+export type SponsorshipTier = 'SEMESTER' | 'YEAR' | 'FULL' | 'CUSTOM';
+export type RecognitionKind = 'ANONYMOUS' | 'LOGO' | 'NAMED';
+export type InvoiceDocType = 'DONATION' | 'SPONSORING';
+export type InvoiceStatus = 'ISSUED' | 'PENDING' | 'PAID';
+
+export interface GiftTier {
+  tier: SponsorshipTier;
+  label: string;
+  amountCents: number;
+  highlight?: boolean;
+}
+
+export interface CampaignRecognition {
+  companyName: string;
+  logoUrl?: string | null;
+  scholarshipName?: string | null;
+}
+
+export interface CorporateInvoice {
+  invoiceNo: string;
+  documentType: InvoiceDocType;
+  netCents: number;
+  vatCents: number;
+  grossCents: number;
+  currency: string;
+  vatId?: string | null;
+  poNumber?: string | null;
+  status: InvoiceStatus;
+  settledAt?: string | null;
+  issuedAt?: string;
+  companyName?: string;
+  campaignTitle?: string;
+  schoolName?: string;
+  issuer?: string;
+}
+
+export interface SponsorBody {
+  tier: SponsorshipTier;
+  amountCents?: number;
+  method: 'CARD' | 'SEPA';
+  scholarshipName?: string;
+  logoRecognition?: boolean;
+  impactReportOptIn?: boolean;
+  poNumber?: string;
+  vatId?: string;
+  message?: string;
+}
+
+export interface CorporateSponsorshipResult {
+  donation: { id: string; amountCents: number; status: string };
+  campaign: {
+    id: string;
+    status: CampaignStatus;
+    goalCents: number;
+    raisedCents: number;
+    tipsCents: number;
+    currency: string;
+    percent: number;
+  };
+  sponsorship: {
+    id: string;
+    tier: SponsorshipTier;
+    fullTuition: boolean;
+    scholarshipName?: string | null;
+    logoRecognition: boolean;
+    recognitionKind: RecognitionKind;
+  };
+  invoice: CorporateInvoice;
+  capture?: { capturedIds: string[]; failedIds: string[]; capturedCents: number };
+}
+
+export interface EsgMetrics {
+  studentsSupported: number;
+  countriesReached: number;
+  schoolsSupported: number;
+  totalCommittedCents: number;
+  fullScholarships: number;
+  namedScholarships: number;
+}
+
+export interface EsgRow {
+  campaignTitle: string;
+  studentName: string;
+  studentCountry: string;
+  schoolName: string;
+  amountCents: number;
+  tier: SponsorshipTier;
+  scholarshipName?: string | null;
+  fullTuition: boolean;
+  recognitionKind: RecognitionKind;
+  createdAt: string;
+}
+
+export interface EsgDashboard {
+  companyName: string;
+  metrics: EsgMetrics;
+  rows: EsgRow[];
 }

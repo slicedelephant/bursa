@@ -150,5 +150,36 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E5 — Corporate Channel (new code, held to >= 80%).
+    './src/app/features/corporate/gift-tiers.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/corporate/esg-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/corporate/recognition-banner.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/corporate/esg-dashboard.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/corporate/corporate-sponsor-box.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

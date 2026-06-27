@@ -2,14 +2,15 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { CampaignDetail, DonationResult } from '../../core/models';
+import { CampaignDetail, CorporateSponsorshipResult, DonationResult } from '../../core/models';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
+import { CorporateSponsorBoxComponent } from '../corporate/corporate-sponsor-box.component';
+import { RecognitionBannerComponent } from '../corporate/recognition-banner.component';
 import { CampaignProgressComponent } from './campaign-progress.component';
 import { CampaignVideoComponent } from './campaign-video.component';
 import { DonateCardComponent, DonationSuccess } from './donate-card.component';
 import { PayoutProofComponent } from './payout-proof.component';
 import { RecentDonorsComponent } from './recent-donors.component';
-import { SepaPledgeComponent } from './sepa-pledge.component';
 import { ShareToolkitComponent } from './share-toolkit.component';
 import { TrustPanelComponent } from './trust-panel.component';
 import { UpdatesTimelineComponent } from './updates-timeline.component';
@@ -24,7 +25,8 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
     CampaignProgressComponent,
     CampaignVideoComponent,
     ShareToolkitComponent,
-    SepaPledgeComponent,
+    CorporateSponsorBoxComponent,
+    RecognitionBannerComponent,
     UpdatesTimelineComponent,
     RecentDonorsComponent,
     TrustPanelComponent,
@@ -147,10 +149,19 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
 
               <app-trust-panel [trust]="c.trust" />
 
+              @if (c.recognition?.length) {
+                <app-recognition-banner [recognition]="c.recognition ?? []" />
+              }
+
               <app-donate-card [campaignId]="c.id" (donated)="onDonated($event)" />
 
               @if (auth.role() === 'SPONSOR') {
-                <app-sepa-pledge [campaignId]="c.id" (pledged)="onPledged($event)" />
+                <app-corporate-sponsor-box
+                  [campaignId]="c.id"
+                  [goalCents]="c.goalCents"
+                  [raisedCents]="c.raisedCents"
+                  (sponsored)="onSponsored($event)"
+                />
               }
 
               <app-share-toolkit
@@ -214,12 +225,27 @@ export class CampaignPage implements OnInit {
     );
   }
 
-  onPledged(result: DonationResult): void {
+  onSponsored(result: CorporateSponsorshipResult): void {
     this.applyResult(result);
-    this.detail.update((d) => (d ? { ...d, donorCount: d.donorCount + 1 } : d));
+    this.detail.update((d) => {
+      if (!d) return d;
+      const sp = result.sponsorship;
+      const recognition =
+        sp.recognitionKind !== 'ANONYMOUS'
+          ? [
+              {
+                companyName: 'Your company',
+                logoUrl: null,
+                scholarshipName: sp.scholarshipName ?? null,
+              },
+              ...(d.recognition ?? []),
+            ]
+          : d.recognition;
+      return { ...d, donorCount: d.donorCount + 1, recognition };
+    });
   }
 
-  private applyResult(result: DonationResult): void {
+  private applyResult(result: DonationResult | CorporateSponsorshipResult): void {
     this.detail.update((d) =>
       d
         ? {

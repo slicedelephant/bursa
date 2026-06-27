@@ -369,6 +369,8 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  await prisma.invoice.deleteMany();
+  await prisma.corporateSponsorship.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
@@ -702,6 +704,72 @@ async function main(): Promise<void> {
     ],
   });
   console.log('Created donor-retention demo data (history, recurring, feed).');
+
+  // --------------------------------------------------------------------------
+  // E5 — Corporate channel demo: a named, logo-recognised SEPA sponsorship
+  // (named scholarship on the campaign + a SPONSORING invoice with VAT).
+  // --------------------------------------------------------------------------
+  const liveCampaign = await prisma.campaign.findFirst({
+    where: { status: 'LIVE', verification: { status: 'VERIFIED' } },
+    orderBy: { raisedCents: 'asc' },
+  });
+  if (liveCampaign) {
+    const gap = Math.max(0, liveCampaign.goalCents - liveCampaign.raisedCents);
+    const net = Math.min(eur(8000), gap);
+    if (net > 0) {
+      const corpDonation = await prisma.donation.create({
+        data: {
+          campaignId: liveCampaign.id,
+          corporateProfileId: sponsorProfile.id,
+          amountCents: net,
+          method: 'SEPA',
+          type: 'CORPORATE',
+          status: 'SUCCEEDED',
+          providerRef: 'mock_seed_corp_sepa',
+          donorName: 'Acme Capital',
+          message: 'Proud to back the next generation of leaders.',
+        },
+      });
+      const sponsorship = await prisma.corporateSponsorship.create({
+        data: {
+          donationId: corpDonation.id,
+          corporateProfileId: sponsorProfile.id,
+          campaignId: liveCampaign.id,
+          tier: 'CUSTOM',
+          fullTuition: false,
+          scholarshipName: 'The Acme Capital Scholarship',
+          logoRecognition: true,
+          recognitionKind: 'NAMED',
+          impactReportOptIn: true,
+          poNumber: 'PO-2026-0042',
+          vatId: 'DE811234567',
+        },
+      });
+      const vat = Math.round(net * 0.19);
+      await prisma.invoice.create({
+        data: {
+          sponsorshipId: sponsorship.id,
+          invoiceNo: `BURSA-INV-${new Date().getFullYear()}-${sponsorship.id
+            .slice(-8)
+            .toUpperCase()}`,
+          documentType: 'SPONSORING',
+          netCents: net,
+          vatCents: vat,
+          grossCents: net + vat,
+          vatId: 'DE811234567',
+          poNumber: 'PO-2026-0042',
+          status: 'PAID',
+          settledAt: new Date(),
+        },
+      });
+      await prisma.campaign.update({
+        where: { id: liveCampaign.id },
+        data: { raisedCents: { increment: net } },
+      });
+      console.log('Created corporate-channel demo data (named scholarship + invoice).');
+    }
+  }
+
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(
     '  admin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test',

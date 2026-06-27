@@ -7,10 +7,13 @@ import {
   CampaignCard,
   CampaignDetail,
   CampaignUpdate,
+  CorporateInvoice,
   CorporateProfile,
+  CorporateSponsorshipResult,
   DonationResult,
   DonorHistory,
   DonorNotification,
+  EsgDashboard,
   NotificationFeed,
   OwnerCampaign,
   Payout,
@@ -21,6 +24,7 @@ import {
   School,
   Session,
   SponsorImpact,
+  SponsorBody,
   Stats,
   StudentMe,
   StudentProfile,
@@ -328,6 +332,47 @@ export class ApiService {
   listSubscriptions(): Observable<SubscriptionItem[]> {
     return this.unwrap(
       this.http.get<Envelope<SubscriptionItem[]>>(`${API_BASE}/donors/me/subscriptions`),
+    );
+  }
+
+  // ---- Corporate channel (E5) ----
+  corporateSponsor(
+    campaignId: string,
+    body: SponsorBody,
+  ): Observable<CorporateSponsorshipResult> {
+    return this.unwrap(
+      this.http.post<Envelope<CorporateSponsorshipResult>>(
+        `${API_BASE}/campaigns/${campaignId}/corporate/sponsor`,
+        body,
+      ),
+    );
+  }
+
+  esgDashboard(): Observable<EsgDashboard> {
+    return this.unwrap(this.http.get<Envelope<EsgDashboard>>(`${API_BASE}/sponsors/me/esg`));
+  }
+
+  /** ESG export as a binary blob (CSV or PDF); the auth token is added by the interceptor. */
+  esgExport(format: 'csv' | 'pdf'): Observable<Blob> {
+    return this.http.get(`${API_BASE}/sponsors/me/esg/export.${format}`, {
+      responseType: 'blob',
+    });
+  }
+
+  corporateInvoice(sponsorshipId: string): Observable<CorporateInvoice> {
+    return this.unwrap(
+      this.http.get<Envelope<CorporateInvoice>>(
+        `${API_BASE}/sponsors/me/sponsorships/${sponsorshipId}/invoice`,
+      ),
+    );
+  }
+
+  settleSponsorship(sponsorshipId: string): Observable<CorporateInvoice> {
+    return this.unwrap(
+      this.http.post<Envelope<CorporateInvoice>>(
+        `${API_BASE}/sponsors/me/sponsorships/${sponsorshipId}/settle`,
+        {},
+      ),
     );
   }
 }

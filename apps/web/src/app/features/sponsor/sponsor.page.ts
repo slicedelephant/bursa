@@ -3,7 +3,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
-import { Receipt, SponsorImpact } from '../../core/models';
+import { EsgDashboard, Receipt, SponsorImpact } from '../../core/models';
+import { EsgDashboardComponent } from '../corporate/esg-dashboard.component';
 import { CompanyProfileFormComponent, CompanyProfileInput } from './company-profile-form.component';
 import { ReceiptPanelComponent } from './receipt-panel.component';
 
@@ -19,7 +20,14 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
 @Component({
   selector: 'app-sponsor-page',
   standalone: true,
-  imports: [RouterLink, MoneyPipe, DatePipe, CompanyProfileFormComponent, ReceiptPanelComponent],
+  imports: [
+    RouterLink,
+    MoneyPipe,
+    DatePipe,
+    CompanyProfileFormComponent,
+    ReceiptPanelComponent,
+    EsgDashboardComponent,
+  ],
   template: `
     <section class="mx-auto max-w-6xl px-4 py-10">
       <header class="mb-8">
@@ -70,6 +78,17 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
             </p>
           </div>
         </div>
+
+        <!-- ESG / CSR impact dashboard -->
+        @if (esg(); as e) {
+          <div class="mt-10">
+            <app-esg-dashboard
+              [dashboard]="e"
+              (exportCsv)="exportEsg('csv')"
+              (exportPdf)="exportEsg('pdf')"
+            />
+          </div>
+        }
 
         <!-- Students you support -->
         <div class="mt-10">
@@ -170,6 +189,8 @@ export class SponsorPage implements OnInit {
   readonly receiptLoadingId = signal<string | null>(null);
   readonly receiptError = signal<string | null>(null);
 
+  readonly esg = signal<EsgDashboard | null>(null);
+
   ngOnInit(): void {
     this.loadImpact();
   }
@@ -182,6 +203,7 @@ export class SponsorPage implements OnInit {
         this.impact.set(impact);
         this.needsProfile.set(false);
         this.loading.set(false);
+        this.loadEsg();
       },
       error: (err) => {
         const notFound = err?.status === 404 || err?.error?.error?.code === 'NOT_FOUND';
@@ -231,5 +253,27 @@ export class SponsorPage implements OnInit {
   closeReceipt(): void {
     this.receipt.set(null);
     this.receiptError.set(null);
+  }
+
+  loadEsg(): void {
+    this.api.esgDashboard().subscribe({
+      next: (e) => this.esg.set(e),
+      error: () => this.esg.set(null),
+    });
+  }
+
+  exportEsg(format: 'csv' | 'pdf'): void {
+    this.api.esgExport(format).subscribe({
+      next: (blob) => this.downloadBlob(blob, `bursa-esg-report.${format}`),
+    });
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 }
