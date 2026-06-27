@@ -59,7 +59,7 @@ Reihenfolge gesamt: E1->E2->E3->E4->E5->[Research devs/ops]->E6->E7.
 | Epic | Feature | Branch | Spec | Plan | Tasks | Impl | Tests>=80% | E2E | PR | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
 | E1 | 002 | 002-trust-layer | ✓ | ✓ | ✓ | ✓ | ✓ (neuer Code, Per-Path-Gates) | (Komponententests) | #1 | **FERTIG** - PR https://github.com/slicedelephant/bursa/pull/1 |
-| E2 | 003 | - | - | - | - | - | - | - | - | OFFEN |
+| E2 | 003 | 003-payments-allornothing | ✓ | ✓ | ✓ | ✓ | ✓ (neuer Code, Per-Path-Gates) | (Komponententests) | #2 | **FERTIG** - PR https://github.com/slicedelephant/bursa/pull/2 |
 | E3 | 004 | - | - | - | - | - | - | - | - | OFFEN |
 | E4 | 005 | - | - | - | - | - | - | - | - | OFFEN |
 | E5 | 006 | - | - | - | - | - | - | - | - | OFFEN |
@@ -76,3 +76,4 @@ Reihenfolge gesamt: E1->E2->E3->E4->E5->[Research devs/ops]->E6->E7.
 ## Log
 - 2026-06-27: Direktive + E6/E7-Folgeauftrag erhalten, Entscheidungen geklaert, Tracker angelegt.
 - 2026-06-27: **E1 FERTIG** (PR #1). Backend Trust-Projektion + Trust-UI + Karma->Jest-Migration. Naechster: E2 (Branch 003 von 002-trust-layer).
+- 2026-06-27: **E2 FERTIG** (PR #2). All-or-Nothing Pledge/Capture-Engine: PaymentProvider um savePledge/captureOnGoalReached/payoutToSchool erweitert, Mock (Default) + echter StripePaymentProvider hinter PAYMENT_PROVIDER-Flag (lazy SDK, Fallback Mock). Kartenspende = PLEDGED (kein Charge), Capture aller Pledges bei Zielerreichung -> CAPTURED + Beleg, Kampagne FUNDED. Prisma-Migration payments_allornothing (DonationStatus +PLEDGED/CAPTURED/EXPIRED, +pledgeRef/+capturedAt). Frontend goal-math + campaign-progress (Restsumme, 80/90%-Meilenstein, Deadline, AoN-Hinweis). API 50 Tests, Web 46 Tests gruen, Per-Path-80%-Gates, beide Builds gruen, Seed laeuft. Naechster: E3 (Branch 004 von 003-payments-allornothing).
