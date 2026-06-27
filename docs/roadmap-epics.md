@@ -161,3 +161,62 @@ Der Prototyp kann bereits den ganzen Fluss zeigen, aber drei Dinge fehlen, um au
 - Matching-Gift-Statistiken: https://doublethedonation.com/matching-gift-statistics/ ; https://doublethedonation.com/corporate-matching-gift-programs/
 - Tribute-Gifts und Anonymität: https://www.dojiggy.com/blog/the-ins-and-outs-of-tribute-gifts/ ; https://www.nature.com/articles/s41467-019-11852-z
 - Talent-Pipeline über Stipendien: https://scholarshipamerica.org/blog/building-your-talent-pipeline-through-scholarships/ ; https://news.okstate.edu/articles/communications/2024/loves_travel_stops_gift_establishes_tom_love_scholars_program_at_osu.html
+
+## Phase-2-Epics: Entwickler/Betreiber (E6, E7)
+
+**Kurzfazit Betreibersicht:** Ab E2/E5 bewegt Bursa echtes Geld über Stripe und verarbeitet sensible Personendaten (Identitäts-, Zulassungs- und Schulnachweise, Spender-PII quer über Ländergrenzen). Aus Betreiber-/Dev-Sicht ist das nächste Engpassthema deshalb nicht "noch ein Feature", sondern Betreibbarkeit. Zwei Dinge entscheiden ab hier, ob die Plattform live bleibt und ob der Trust-USP hält: dass sie nicht kompromittiert oder als Karten-Test-Wiese missbraucht wird (E6), und dass der Betreiber überhaupt sieht, was passiert - Funnel, Zahlungsfehler, Ausfälle (E7). Marketing/SEO und internes Admin-Tooling sind real, aber nachrangig: SEO-Wachstum ist wertlos, solange ein Sicherheitsvorfall den Vertrauenskern zerstört oder niemand merkt, dass der Checkout seit zwei Stunden 500er wirft. E3 deckt den Share-/Growth-Hebel bereits ab, und Admin-Tooling ist eher Effizienz als Existenzfrage.
+
+### E6 - Security-Hardening (OWASP, Rate-Limiting, Secrets, Auth-Härtung, PCI/GDPR)
+
+**Problem / Warum jetzt:** Bursas gesamter USP ist Vertrauen, und ab E2 fließt echtes Geld über Stripe plus sensible PII (Identitäts-, Zulassungs- und Schulnachweise, Spenderdaten über Ländergrenzen). Genau diese Kombination ist ein Top-Angriffsziel: Spenden-/Wohltätigkeitsplattformen sind überproportional von Card-Testing betroffen - rund 11% aller von Stripe beobachteten Card-Testing-Attacken zielen auf Charities, weil dort Kleinbeträge erlaubt sind und auf dem Kontoauszug seltener auffallen. Jeder durchgelassene Karten-Test produziert Chargebacks, Stripe-Risk-Flags und im Extremfall eine Account-Sperre, die die ganze Zahl-Engine stilllegt. PCI DSS 4.0 ist seit März 2025 für jeden verpflichtend, der Kartenzahlungen verarbeitet; GDPR-Bußgelder treffen auch die grenzüberschreitende Diaspora-Spende, und Datenpannen haben den Nonprofit-Sektor bereits zweistellige Millionenbeträge an Vergleichen gekostet. Security-Misconfiguration ist laut OWASP 2025 zum zweithäufigsten realen Breach-Grund aufgestiegen. Ein einziger sichtbarer Vorfall zerstört den Trust-USP nachhaltiger, als jedes Feature ihn aufbaut - deshalb jetzt, bevor echtes Volumen fließt.
+
+**Was es liefert (Scope):**
+- Rate-Limiting und Bot-/Abuse-Abwehr auf allen geld- und auth-nahen Endpunkten (Donation-Intent, Login, Registrierung, Passwort-Reset) plus CAPTCHA/Challenge und Velocity-Limits gegen Card-Testing
+- OWASP-Top-10-Härtung: serverseitige Input-Validierung/Sanitizing (z.B. Zod), Output-Encoding gegen XSS, parametrisierte Queries, Security-Header (CSP, HSTS) und sichere Defaults gegen Misconfiguration
+- Auth-Härtung: robuste Session-/Token-Handhabung, Brute-Force-Schutz, saubere Rollen-/Rechte-Trennung (Spender, Studierende, Admin) und MFA für Admin- und Auszahlungs-Funktionen
+- Secrets-Management: Stripe-Keys, DB-Credentials und Webhook-Secrets aus dem Code raus in Env/Vault, Key-Rotation und verpflichtende Stripe-Webhook-Signaturprüfung
+- PII-/GDPR-Schutz: Verschlüsselung at-rest und in-transit für Verifizierungs- und Spenderdaten, Lösch-/Aufbewahrungskonzept, Zugriffsprotokollierung und PII-Minimierung in Logs
+- Dependency-/Supply-Chain-Scanning (SCA/SAST, Dependabot) und eine wiederholbare Security-Checkliste als Release-Gate
+
+**Benefit für Betreiber:** Schützt die einzige Existenzgrundlage der Plattform - das Vertrauen - und hält die Zahl-Engine betriebsfähig, indem Card-Testing und Chargebacks unter der Stripe-Risk-Schwelle bleiben und ein PII-Leak (mit Millionen-Settlement-Risiko und GDPR-Bußgeld) vermieden wird. Macht Bursa zugleich Compliance-erzählbar (PCI DSS 4.0, GDPR) und schaltet damit direkt den Corporate-Channel (E5) frei, weil Procurement und Legal ohne diesen Nachweis nicht zeichnen.
+
+**Größe:** M/L
+
+**Erfolgsindikatoren:** Card-Testing-/Chargeback-Rate unter der Stripe-Risk-Schwelle; null kritische Findings aus dem Dependency-/SAST-Scan beim Release; alle Secrets aus dem Code entfernt und rotierbar; Security-Checkliste als verpflichtendes Release-Gate etabliert.
+
+### E7 - Observability & Funnel-Analytics (Logging, Metrics, Payment-Monitoring, Uptime/SLO)
+
+**Problem / Warum jetzt:** Jede einzelne Erfolgskennzahl, die E1-E5 versprechen ("Conversion-Rate steigt messbar", "mobile Checkout-Abschluss-Rate", "Onboarding-Abschlussquote", "Wiederspender-Quote", "Update-Öffnungsrate"), ist heute schlicht nicht messbar, weil keine Instrumentierung existiert. Der Betreiber fliegt blind: Bricht der Stripe-Checkout, merkt es niemand, bis sich Spender beschweren - und unter All-or-Nothing mit Deadline bis Studienstart bedeutet jede Stunde Checkout-Ausfall verlorene Kampagnen, die nicht nachgeholt werden können. Funnel-Daten (Visitor -> Checkout geöffnet -> Spende abgeschlossen) sind der Standard-Hebel, um zu sehen, wo Spender abspringen; gehäufter Abbruch in der Payment-Stufe ist oft das erste Signal für ein Gateway- oder Vertrauensproblem. Ohne Logs, Metrics und Alerting gibt es keine Vorfallserkennung, keine Datengrundlage für die Conversion-Optimierung der gesamten Roadmap und keinen Beleg für die ESG-/Impact-Zahlen, die der Corporate-Channel (E5) exportieren soll.
+
+**Was es liefert (Scope):**
+- Strukturiertes Logging (korrelierte Request-IDs, PII-arm) über Frontend, API und Stripe-Webhooks, zentral durchsuchbar
+- Metrics und Dashboards für Geschäfts- und Systemkennzahlen: Donation-Funnel (Visitor -> Checkout -> Erfolg), Zahlungs-Erfolgs-/Fehlerrate, Auszahlungs-Status, API-Latenz und Fehlerquote
+- Funnel-/Drop-off-Analytics je Schritt (Gallery -> Kampagne -> Spendenstart -> Abschluss) und je Onboarding-Schritt, als gemeinsame Wahrheit für die E1-E5-Erfolgsindikatoren
+- Payment-/Webhook-Monitoring mit Alerting auf fehlgeschlagene Charges, hängende SetupIntents und nicht zugestellte oder abgelehnte Stripe-Webhooks
+- Uptime-/Synthetic-Monitoring der kritischen Pfade (Spenden-Flow, Login) plus SLO, Error-Budget und Multi-Window-Burn-Rate-Alerting, damit Ausfälle erkannt werden, bevor Kampagnen-Deadlines reißen
+- Datenschutzkonforme Produkt-Analytics (Consent, IP-/PII-Schonung) als Grundlage für die belegbaren Impact-/ESG-Exporte aus E5
+
+**Benefit für Betreiber:** Verwandelt Blindflug in Steuerbarkeit. Der Betreiber erkennt Zahlungs- und Webhook-Ausfälle in Minuten statt über Beschwerden, schützt unter All-or-Nothing direkt auszahlungsrelevante Kampagnen und bekommt endlich die Datengrundlage, um die Conversion-Versprechen aus E1-E5 zu messen und zu optimieren, statt sie nur zu behaupten. Nebenbei liefert die gleiche Instrumentierung die prüfbaren Zahlen für das ESG-/Impact-Reporting aus E5.
+
+**Größe:** M
+
+**Erfolgsindikatoren:** Mean-Time-to-Detect für Checkout-/Webhook-Ausfälle von Stunden auf Minuten; Donation-Funnel über alle E1-E5-Schritte durchgängig instrumentiert; SLO mit Burn-Rate-Alerting auf dem Spenden-Flow aktiv; alle E1-E5-Erfolgsindikatoren aus einem Dashboard ablesbar.
+
+### Warum E6/E7 (und nicht Marketing/SEO oder Admin-Tooling)
+
+Für eine vertrauensbasierte Spenden-Plattform, die echtes Geld und grenzüberschreitende PII verarbeitet, haben Security und Observability den höchsten Hebel: Security schützt den Vertrauenskern (ein Vorfall macht E1-E5 wertlos), Observability macht die Plattform überhaupt erst betreibbar und die Roadmap-Versprechen messbar. Marketing/SEO ist nachgelagert (E3 liefert bereits Share-Toolkit und Growth-Mechanik; OG-Tags/Sitemap sind ein kleiner Folge-Schritt) und internes Admin-Tooling ist eine Effizienz-, keine Existenzfrage - Teile davon entstehen ohnehin im ESG-Dashboard (E5) und in den Ops-Dashboards aus E7.
+
+### Quellen (E6/E7)
+
+- Stripe - Card-Testing-Fraud (Schutzmaßnahmen): https://stripe.com/resources/more/what-is-card-testing-fraud-heres-how-you-can-protect-your-business
+- Stripe - Card-Testing-Welle & Charities-Anteil (Rate-Limiter-Reaktion): https://stripe.com/newsroom/news/card-testing-surge
+- Stripe Docs - Protect yourself from card testing: https://docs.stripe.com/disputes/prevention/card-testing
+- OWASP Top 10 (Web): https://owasp.org/www-project-top-ten/
+- OWASP Top 10 Privacy Risks: https://owasp.org/www-project-top-10-privacy-risks/
+- Nonprofit Donor Data Security 2026 (PCI DSS 4.0, Settlement-Kosten): https://stratuslive.com/blog/nonprofit-donor-data-security-guide/
+- Fundraise Up - Nonprofit Cybersecurity / Donor-Data: https://fundraiseup.com/blog/nonprofit-cybersecurity/
+- Fundraise Up Insights - Funnel (Visitors/Checkout/Supporters/Conversion): https://fundraiseup.com/docs/insights/
+- Google Analytics für Donor-Funnel & Drop-off: https://www2.fundsforngos.org/articles-searching-grants-and-donors/how-to-use-google-analytics-to-track-donor-engagement/
+- Google SRE - Alerting on SLOs / Burn-Rate: https://sre.google/workbook/alerting-on-slos/
+- OneUptime - Error-Alerting auf OTel-Metrics & SLO (Payment-Beispiel): https://oneuptime.com/blog/post/2026-02-06-error-alerting-policies-otel-metrics-slo/view
+- incident.io - Incident Management Best Practices 2026: https://incident.io/blog/incident-management-best-practices-2026
