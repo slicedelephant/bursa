@@ -71,6 +71,26 @@ describe('MockPaymentProvider', () => {
     expect(r.status).toBe('FAILED');
   });
 
+  it('charges immediately for a corporate full-tuition card (chargeImmediately)', async () => {
+    const r = await provider.chargeImmediately({
+      amountCents: 2_360_000,
+      currency: 'EUR',
+      method: 'CARD',
+    });
+    expect(r.status).toBe('SUCCEEDED');
+    expect(r.reference).toContain('mock_charge_');
+  });
+
+  it('fails chargeImmediately for the .13 sentinel', async () => {
+    const r = await provider.chargeImmediately({
+      amountCents: 1013,
+      currency: 'EUR',
+      method: 'CARD',
+    });
+    expect(r.status).toBe('FAILED');
+    expect(r.failureReason).toBeTruthy();
+  });
+
   it('always sends payouts (legacy + payoutToSchool)', async () => {
     const input = {
       amountCents: 100_000,
