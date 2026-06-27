@@ -34,38 +34,46 @@ async function generatePortrait(
   slug: string,
 ): Promise<string | null> {
   const outPath = path.join(SEED_IMAGE_DIR, `${slug}.png`);
-  if (fs.existsSync(outPath)) return `/seed/${slug}.png`;
-  if (!OPENAI_KEY) return null;
-  try {
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt,
-        size: '1024x1024',
-        quality: 'medium',
-        n: 1,
-      }),
-    });
-    if (!res.ok) {
-      console.warn(`  image gen failed for ${slug}: ${res.status}`);
-      return null;
+  const servedPath = `/seed/${slug}.png`;
+
+  // The 11 portraits are committed in the repo and served by the web app at
+  // /seed/<slug>.png. The photoUrl always points there. We only (re)generate a
+  // file when it is missing locally AND a key is available (best effort) — e.g.
+  // to add a new student. In a container deploy the API has no web/ dir, so we
+  // skip generation and just reference the served path.
+  if (!fs.existsSync(outPath) && OPENAI_KEY) {
+    try {
+      const res = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-image-1',
+          prompt,
+          size: '1024x1024',
+          quality: 'medium',
+          n: 1,
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { data?: { b64_json?: string }[] };
+        const b64 = json.data?.[0]?.b64_json;
+        if (b64) {
+          fs.mkdirSync(SEED_IMAGE_DIR, { recursive: true });
+          fs.writeFileSync(outPath, Buffer.from(b64, 'base64'));
+          console.log(`  ✓ portrait ${slug}.png`);
+        }
+      } else {
+        console.warn(`  image gen failed for ${slug}: ${res.status}`);
+      }
+    } catch (e) {
+      console.warn(`  image error for ${slug}:`, (e as Error).message);
     }
-    const json = (await res.json()) as { data?: { b64_json?: string }[] };
-    const b64 = json.data?.[0]?.b64_json;
-    if (!b64) return null;
-    fs.mkdirSync(SEED_IMAGE_DIR, { recursive: true });
-    fs.writeFileSync(outPath, Buffer.from(b64, 'base64'));
-    console.log(`  ✓ portrait ${slug}.png`);
-    return `/seed/${slug}.png`;
-  } catch (e) {
-    console.warn(`  image error for ${slug}:`, (e as Error).message);
-    return null;
   }
+
+  return servedPath;
 }
 
 // ----------------------------------------------------------------------------

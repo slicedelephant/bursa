@@ -1,0 +1,77 @@
+# Production deploy for Bursa — builds on the VPS, fronted by the existing Traefik.
+# Pattern mirrors littleBrother services (proxy + internal networks, mytlschallenge TLS).
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bursa-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - bursa_db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: ./apps/api
+    image: bursa-api:latest
+    container_name: bursa-api
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 7d
+      PORT: 3000
+      CORS_ORIGIN: https://${SUBDOMAIN}.${DOMAIN_NAME}
+      PAYMENT_PROVIDER: mock
+      SEED_ON_START: ${SEED_ON_START}
+    networks:
+      - internal
+
+  web:
+    build:
+      context: ./apps/web
+    image: bursa-web:latest
+    container_name: bursa-web
+    restart: always
+    depends_on:
+      - api
+    networks:
+      - proxy
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bursa.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.bursa.entrypoints=web,websecure
+      - traefik.http.routers.bursa.tls=true
+      - traefik.http.routers.bursa.tls.certresolver=mytlschallenge
+      - traefik.http.services.bursa.loadbalancer.server.port=80
+      - traefik.http.middlewares.bursa.headers.SSLRedirect=true
+      - traefik.http.middlewares.bursa.headers.STSSeconds=315360000
+      - traefik.http.middlewares.bursa.headers.browserXSSFilter=true
+      - traefik.http.middlewares.bursa.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.bursa.headers.forceSTSHeader=true
+      - traefik.http.middlewares.bursa.headers.SSLHost=${DOMAIN_NAME}
+      - traefik.http.middlewares.bursa.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.bursa.headers.STSPreload=true
+      - traefik.http.routers.bursa.middlewares=bursa@docker
+
+networks:
+  proxy:
+    external: true
+  internal:
+
+volumes:
+  bursa_db_data:
