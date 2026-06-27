@@ -112,13 +112,14 @@ enum InvoiceStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
   passwordHash String
-  role         Role     @default(DONOR)
+  role         Role      @default(DONOR)
   displayName  String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  anonymizedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   studentProfile   StudentProfile?
   corporateProfile CorporateProfile?
@@ -128,6 +129,25 @@ model User {
   recurringPledges RecurringPledge[]     @relation("DonorRecurring")
   subscriptions    UpdateSubscription[]  @relation("DonorSubscriptions")
   notifications    Notification[]
+  auditLogs        AuditLog[]            @relation("AuditActor")
+}
+
+/// Append-only access/security audit trail. Metadata is PII-redacted before
+/// it is persisted (see SecurityModule's AuditService).
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  actorUserId String?
+  targetType  String?
+  targetId    String?
+  ip          String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([action, createdAt])
+  @@index([actorUserId])
 }
 
 model School {

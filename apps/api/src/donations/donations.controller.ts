@@ -5,6 +5,7 @@ import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { CurrentUser } from '../common/current-user.decorator';
 import { Roles } from '../common/roles.decorator';
 import { RolesGuard } from '../common/roles.guard';
+import { RateLimit } from '../security/rate-limit.decorator';
 import { DonationsService } from './donations.service';
 import { CardDonationDto } from './dto/card-donation.dto';
 import { SepaDonationDto } from './dto/sepa-donation.dto';
@@ -19,6 +20,7 @@ export class DonationsController {
   }
 
   @Post('card')
+  @RateLimit({ limit: 10, windowMs: 60_000, name: 'donation-card' })
   @UseGuards(OptionalJwtAuthGuard)
   card(
     @Param('campaignId') campaignId: string,

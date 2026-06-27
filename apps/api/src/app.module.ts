@@ -14,6 +14,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { RecurringModule } from './recurring/recurring.module';
 import { DonorsModule } from './donors/donors.module';
 import { CorporateModule } from './corporate/corporate.module';
+import { SecurityModule } from './security/security.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CorporateModule } from './corporate/corporate.module';
     RecurringModule,
     DonorsModule,
     CorporateModule,
+    SecurityModule,
   ],
 })
 export class AppModule {}

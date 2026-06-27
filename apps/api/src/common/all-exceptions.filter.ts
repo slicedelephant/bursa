@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { redact } from '../security/pii-redact';
 
 const STATUS_CODE: Record<number, string> = {
   400: 'VALIDATION_ERROR',
@@ -46,7 +47,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (code === 'INTERNAL_ERROR') code = STATUS_CODE[status] ?? 'ERROR';
     } else if (exception instanceof Error) {
       message = exception.message;
-      this.logger.error(exception.message, exception.stack);
+      // Redact PII (emails, tokens, card/IBAN numbers) before it reaches logs.
+      this.logger.error(redact(exception.message) as string, exception.stack);
     }
 
     response

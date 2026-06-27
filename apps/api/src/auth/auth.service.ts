@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { DomainException } from '../common/domain.exception';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../security/audit.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -12,6 +13,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly audit: AuditService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -29,6 +31,11 @@ export class AuthService {
         role: (dto.role as Role) ?? Role.DONOR,
       },
     });
+    await this.audit.record({
+      action: 'auth.register',
+      actorUserId: user.id,
+      metadata: { role: user.role },
+    });
     return this.session(user);
   }
 
@@ -37,8 +44,13 @@ export class AuthService {
       where: { email: dto.email.toLowerCase() },
     });
     if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
+      await this.audit.record({
+        action: 'auth.login_failed',
+        metadata: { email: dto.email },
+      });
       throw new DomainException('UNAUTHORIZED', 'Invalid credentials', 401);
     }
+    await this.audit.record({ action: 'auth.login', actorUserId: user.id });
     return this.session(user);
   }
 

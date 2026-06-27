@@ -372,6 +372,7 @@ async function clearDatabase(): Promise<void> {
   await prisma.invoice.deleteMany();
   await prisma.corporateSponsorship.deleteMany();
   await prisma.notification.deleteMany();
+  await prisma.auditLog.deleteMany();
   await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
   await prisma.payout.deleteMany();
@@ -769,6 +770,26 @@ async function main(): Promise<void> {
       console.log('Created corporate-channel demo data (named scholarship + invoice).');
     }
   }
+
+  // Security audit trail demo data (E6): a small, PII-arm access log.
+  await prisma.auditLog.createMany({
+    data: [
+      { action: 'auth.login', actorUserId: admin.id, ip: '203.0.113.10' },
+      { action: 'auth.login', actorUserId: donor.id, ip: '198.51.100.7' },
+      {
+        action: 'auth.login_failed',
+        ip: '203.0.113.66',
+        metadata: { email: '[redacted]' },
+      },
+      {
+        action: 'admin.verify',
+        actorUserId: admin.id,
+        targetType: 'Campaign',
+        ip: '203.0.113.10',
+      },
+    ],
+  });
+  console.log('Created security audit-log demo data.');
 
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(

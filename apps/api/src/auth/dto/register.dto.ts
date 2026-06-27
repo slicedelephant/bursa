@@ -1,17 +1,12 @@
-import {
-  IsEmail,
-  IsIn,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsStrongPassword } from '../../security/is-strong-password.validator';
 
 export class RegisterDto {
   @IsEmail()
   email!: string;
 
   @IsString()
-  @MinLength(6)
+  @IsStrongPassword()
   password!: string;
 
   @IsString()

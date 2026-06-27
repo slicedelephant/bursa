@@ -5,12 +5,39 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { ApiResponseInterceptor } from './common/api-response.interceptor';
+import { securityHeaders } from './security/security-headers';
+import { validateEnv } from './security/env-validation';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  // Fail closed on insecure configuration in production (OWASP A05).
+  const { errors, warnings } = validateEnv(process.env);
+  warnings.forEach((w) => Logger.warn(w, 'EnvValidation'));
+  if (errors.length > 0) {
+    errors.forEach((e) => Logger.error(e, 'EnvValidation'));
+    throw new Error(
+      `Refusing to start: ${errors.length} security configuration error(s).`,
+    );
+  }
+
+  // rawBody is needed so the webhook guard can verify the signature over the
+  // exact signed bytes; the normal JSON parser stays active for every other route.
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
+  const isProd = (config.get<string>('NODE_ENV') ?? 'development') === 'production';
 
   app.setGlobalPrefix('api');
+
+  // Security headers on every response; the interactive docs route gets a
+  // relaxed CSP so Swagger UI can load its inline assets.
+  app.use((req: { path?: string }, res: { setHeader: (k: string, v: string) => void }, next: () => void) => {
+    const headers = securityHeaders({
+      production: isProd,
+      relaxedCsp: (req.path ?? '').startsWith('/api/docs'),
+    });
+    for (const [key, value] of Object.entries(headers)) res.setHeader(key, value);
+    next();
+  });
+
   app.enableCors({
     origin: config.get<string>('CORS_ORIGIN') ?? 'http://localhost:4200',
     credentials: true,
