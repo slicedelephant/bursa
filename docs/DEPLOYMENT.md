@@ -26,10 +26,13 @@ dns-list slicedelephant.de | grep bursa   # pruefen
 
 ## 2. Code auf den VPS bringen
 
+Konvention auf littleBrother: ein Ordner pro Service direkt unter `~/` (wie `~/n8n`,
+`~/ghost`, …). Bursa ist der geklonte Repo selbst:
+
 ```bash
 ssh dennisvocke@littleBrother        # bzw. dennisvocke@37.120.187.6
-git clone https://github.com/slicedelephant/fundingApp.git ~/apps/bursa
-cd ~/apps/bursa
+git clone https://github.com/slicedelephant/fundingApp.git ~/bursa
+cd ~/bursa
 ```
 
 ## 3. Prod-Env anlegen
@@ -68,7 +71,7 @@ Demo-Login (`bursa1234`): `admin@bursa.test`, `sponsor@acme.test`, `donor@bursa.
 
 ```bash
 # Update nach git push:
-cd ~/apps/bursa && git pull && docker compose -f docker-compose.prod.yml up -d --build
+cd ~/bursa && git pull && docker compose -f docker-compose.prod.yml up -d --build
 
 # Demo-Daten manuell neu seeden (falls SEED_ON_START=false):
 docker compose -f docker-compose.prod.yml exec api npm run seed
