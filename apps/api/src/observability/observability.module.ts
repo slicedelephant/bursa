@@ -19,7 +19,9 @@ import { PaymentMonitorService } from './payment-monitor.service';
 @Module({
   controllers: [AnalyticsController, ObservabilityController],
   providers: [
-    MetricsStore,
+    // Factory so Nest does not try to resolve the numeric `capacity` ctor arg
+    // (kept for unit tests that instantiate the store directly).
+    { provide: MetricsStore, useFactory: () => new MetricsStore() },
     MetricsService,
     AnalyticsService,
     PaymentMonitorService,

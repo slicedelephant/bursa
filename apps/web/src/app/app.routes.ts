@@ -44,6 +44,15 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/admin.page').then((m) => m.AdminPage),
   },
   {
+    path: 'admin/observability',
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./features/admin/observability/observability-dashboard.component').then(
+        (m) => m.ObservabilityDashboardComponent,
+      ),
+  },
+  {
     path: 'account',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),

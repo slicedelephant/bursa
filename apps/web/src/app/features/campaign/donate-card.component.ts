@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AnalyticsService } from '../../core/analytics.service';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { donateStartEvent, donateSuccessEvent } from '../../core/funnel-events';
 import { MoneyPipe } from '../../core/money.pipe';
 import { DonationResult, PublicDonation, TributeType } from '../../core/models';
 import { tributeLine } from '../donor/tribute-display';
@@ -226,6 +228,7 @@ export interface DonationSuccess {
 export class DonateCardComponent {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly analytics = inject(AnalyticsService);
 
   @Input({ required: true }) campaignId!: string;
   @Output() donated = new EventEmitter<DonationSuccess>();
@@ -280,6 +283,7 @@ export class DonateCardComponent {
 
     this.errorMsg.set(null);
     this.submitting.set(true);
+    this.analytics.track(donateStartEvent(this.campaignId));
 
     const amountCents = this.amountCents;
 
@@ -313,6 +317,7 @@ export class DonateCardComponent {
           this.submitting.set(false);
           this.lastAmountCents.set(amountCents);
           this.success.set(true);
+          this.analytics.track(donateSuccessEvent(this.campaignId));
 
           const optimistic: PublicDonation = {
             id: result.donation.id,

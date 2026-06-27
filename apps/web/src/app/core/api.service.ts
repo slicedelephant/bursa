@@ -14,8 +14,12 @@ import {
   DonorHistory,
   DonorNotification,
   EsgDashboard,
+  HealthReport,
   NotificationFeed,
+  ObsFunnel,
+  ObsMetrics,
   OwnerCampaign,
+  PaymentAlerts,
   Payout,
   PublicDonation,
   Receipt,
@@ -23,6 +27,7 @@ import {
   RecurringRunResult,
   School,
   Session,
+  SloReport,
   SponsorImpact,
   SponsorBody,
   Stats,
@@ -31,6 +36,16 @@ import {
   SubscriptionItem,
   TributeType,
 } from './models';
+
+export interface TrackEventBody {
+  type: string;
+  visitorId?: string;
+  sessionId?: string;
+  campaignId?: string;
+  path?: string;
+  step?: string;
+  metadata?: Record<string, unknown>;
+}
 
 export const API_BASE = '/api';
 
@@ -388,6 +403,51 @@ export class ApiService {
       this.http.post<Envelope<{ anonymized: boolean; anonymizedAt: string }>>(
         `${API_BASE}/account/delete`,
         {},
+      ),
+    );
+  }
+
+  // ---- Observability & funnel analytics (E7) ----
+  /** Privacy-aware product/funnel event ingest (anonymous visitorId, no PII). */
+  trackEvent(body: TrackEventBody): Observable<{ recorded: boolean }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ recorded: boolean }>>(
+        `${API_BASE}/analytics/events`,
+        body,
+      ),
+    );
+  }
+
+  health(): Observable<HealthReport> {
+    return this.unwrap(this.http.get<Envelope<HealthReport>>(`${API_BASE}/health`));
+  }
+
+  obsFunnel(campaignId?: string): Observable<ObsFunnel> {
+    let params = new HttpParams();
+    if (campaignId) params = params.set('campaignId', campaignId);
+    return this.unwrap(
+      this.http.get<Envelope<ObsFunnel>>(`${API_BASE}/observability/funnel`, {
+        params,
+      }),
+    );
+  }
+
+  obsMetrics(): Observable<ObsMetrics> {
+    return this.unwrap(
+      this.http.get<Envelope<ObsMetrics>>(`${API_BASE}/observability/metrics`),
+    );
+  }
+
+  obsSlo(): Observable<SloReport> {
+    return this.unwrap(
+      this.http.get<Envelope<SloReport>>(`${API_BASE}/observability/slo`),
+    );
+  }
+
+  obsPaymentAlerts(): Observable<PaymentAlerts> {
+    return this.unwrap(
+      this.http.get<Envelope<PaymentAlerts>>(
+        `${API_BASE}/observability/payment-alerts`,
       ),
     );
   }

@@ -4,4 +4,9 @@
     <router-outlet />
   </main>
   <app-footer />
+  <app-consent-banner
+    [visible]="showConsent()"
+    (accepted)="acceptConsent()"
+    (declined)="declineConsent()"
+  />
 </div>

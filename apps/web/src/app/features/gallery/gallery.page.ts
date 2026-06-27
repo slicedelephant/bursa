@@ -1,7 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AnalyticsService } from '../../core/analytics.service';
 import { ApiService } from '../../core/api.service';
+import { galleryViewEvent } from '../../core/funnel-events';
 import { CampaignCard, Stats } from '../../core/models';
 import { CampaignCardComponent } from '../../shared/campaign-card.component';
 import { GalleryHeroComponent } from './gallery-hero.component';
@@ -125,6 +127,7 @@ import { StatsStripComponent } from './stats-strip.component';
 })
 export class GalleryPage implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly campaigns = signal<CampaignCard[]>([]);
   readonly stats = signal<Stats | null>(null);
@@ -135,6 +138,7 @@ export class GalleryPage implements OnInit {
   readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   ngOnInit(): void {
+    this.analytics.track(galleryViewEvent('/campaigns'));
     this.loadStats();
     this.loadCampaigns();
   }

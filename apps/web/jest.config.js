@@ -212,5 +212,72 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E7 — Observability & funnel analytics (new code, held to >= 80%).
+    './src/app/core/visitor-id.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/core/analytics-consent.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/core/funnel-events.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/core/analytics.service.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/observability/funnel-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/observability/metrics-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/observability/slo-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/observability/funnel-chart.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/observability/metrics-panel.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/observability/slo-panel.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/shared/consent-banner.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };
