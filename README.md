@@ -18,11 +18,15 @@ Prereqs: Node 24, Docker + Docker Compose.
 
 ```bash
 npm run db:up          # PostgreSQL via Docker (host port 5433)
-npm run install:all    # install apps/api and apps/web deps (first run)
+npm run install:all    # install deps + create apps/api/.env from .env.example
 npm run prisma:migrate # apply the schema
 npm run seed           # synthetic data + AI portraits (uses OPENAI_KEY)
 npm run dev            # API on :3000, web on :4200
 ```
+
+> `install:all` and `prisma:migrate` auto-create `apps/api/.env` from
+> [`apps/api/.env.example`](./apps/api/.env.example) (it holds the local DB URL). Run
+> `npm run setup` manually to (re)create it. Your real secrets stay out of git.
 
 Open **http://localhost:4200**. API docs (Swagger) at **http://localhost:3000/api/docs**.
 

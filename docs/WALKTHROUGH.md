@@ -14,7 +14,7 @@ Trust-USP und der rechtliche Schutzwall (siehe Marktrecherche, Abschnitt 7 und 1
 ```bash
 cd ~/dev/se_projects/fundingApp
 npm run db:up          # Postgres via Docker (Port 5433)
-npm run install:all    # nur beim ersten Mal
+npm run install:all    # Deps + legt apps/api/.env aus .env.example an (nur 1. Mal)
 npm run prisma:migrate # Schema
 npm run seed           # synthetische Daten + KI-Profilbilder (DALL-E / gpt-image-1)
 npm run dev            # API :3000 + Web :4200
