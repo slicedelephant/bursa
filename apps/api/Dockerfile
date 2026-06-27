@@ -10,8 +10,9 @@ RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists
 ENV NODE_ENV=production
 
 # Install all deps (ts-node is needed for the seed step at deploy time).
+# npm install (not ci) tolerates platform-specific optional-dep lockfile drift.
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 
