@@ -7,6 +7,7 @@ import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { ApiResponseInterceptor } from './common/api-response.interceptor';
 import { securityHeaders } from './security/security-headers';
 import { validateEnv } from './security/env-validation';
+import { resolveRequestId } from './observability/request-id';
 
 async function bootstrap(): Promise<void> {
   // Fail closed on insecure configuration in production (OWASP A05).
@@ -26,6 +27,22 @@ async function bootstrap(): Promise<void> {
   const isProd = (config.get<string>('NODE_ENV') ?? 'development') === 'production';
 
   app.setGlobalPrefix('api');
+
+  // Correlation id: reuse a valid incoming x-request-id or mint one, expose it on
+  // the request (for the metrics interceptor) and mirror it back in the response
+  // so a client/proxy can correlate end-to-end. PII-free, additive.
+  app.use(
+    (
+      req: { headers: Record<string, unknown>; requestId?: string },
+      res: { setHeader: (k: string, v: string) => void },
+      next: () => void,
+    ) => {
+      const requestId = resolveRequestId(req.headers['x-request-id']);
+      req.requestId = requestId;
+      res.setHeader('x-request-id', requestId);
+      next();
+    },
+  );
 
   // Security headers on every response; the interactive docs route gets a
   // relaxed CSP so Swagger UI can load its inline assets.

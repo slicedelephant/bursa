@@ -791,6 +791,47 @@ async function main(): Promise<void> {
   });
   console.log('Created security audit-log demo data.');
 
+  // Observability/funnel demo data (E7): a privacy-arm funnel so the operator
+  // dashboard renders. visitorId is anonymous (never IP); no PII is stored.
+  const obsCampaignId = liveCampaign?.id ?? null;
+  const funnelEvents: {
+    type: string;
+    step?: string;
+    campaignId?: string | null;
+    visitorId: string;
+  }[] = [];
+  const funnelCounts: Record<string, number> = {
+    gallery_view: 120,
+    campaign_view: 48,
+    donate_start: 14,
+    donate_success: 6,
+  };
+  for (const [type, n] of Object.entries(funnelCounts)) {
+    for (let i = 0; i < n; i++) {
+      funnelEvents.push({ type, campaignId: obsCampaignId, visitorId: `v_${type}_${i}` });
+    }
+  }
+  const onboardingCounts: Record<string, number> = {
+    basics: 30,
+    story: 22,
+    video: 16,
+    review: 13,
+    submitted: 11,
+  };
+  for (const [step, n] of Object.entries(onboardingCounts)) {
+    for (let i = 0; i < n; i++) {
+      funnelEvents.push({
+        type: 'onboarding_step',
+        step,
+        visitorId: `v_onb_${step}_${i}`,
+      });
+    }
+  }
+  await prisma.analyticsEvent.createMany({ data: funnelEvents });
+  console.log(
+    `Created observability funnel demo data (${funnelEvents.length} events).`,
+  );
+
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(
     '  admin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test',
