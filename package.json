@@ -13,10 +13,7 @@
     "seed": "npm --prefix apps/api run seed",
     "dev:api": "npm --prefix apps/api run start:dev",
     "dev:web": "npm --prefix apps/web start",
-    "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev": "node scripts/dev.js",
     "build": "npm --prefix apps/api run build && npm --prefix apps/web run build"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
   }
 }
