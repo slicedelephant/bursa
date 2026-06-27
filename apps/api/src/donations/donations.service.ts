@@ -1,12 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Campaign } from '@prisma/client';
+import { Campaign, TributeType } from '@prisma/client';
 import { percentOf, toPublicDonation } from '../campaigns/campaign.mapper';
 import { DomainException } from '../common/domain.exception';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   PAYMENT_PROVIDER,
   type PaymentProvider,
 } from '../payments/payment-provider.interface';
 import { PrismaService } from '../prisma/prisma.service';
+import { splitContribution } from './contribution.util';
 import { CardDonationDto } from './dto/card-donation.dto';
 import { SepaDonationDto } from './dto/sepa-donation.dto';
 import { isGoalReached, summarizeCapture } from './pledge-engine';
@@ -17,6 +19,7 @@ export class DonationsService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_PROVIDER) private readonly payments: PaymentProvider,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /**
@@ -25,7 +28,11 @@ export class DonationsService {
    * when the goal is reached are all pledges charged off_session (captured) and
    * receipts issued. If the goal is never reached, no card is ever debited.
    */
-  async donateCard(campaignId: string, dto: CardDonationDto) {
+  async donateCard(
+    campaignId: string,
+    dto: CardDonationDto,
+    donorUserId?: string,
+  ) {
     const campaign = await this.loadDonatable(campaignId);
     const { amountToGoal, tip } = this.split(
       campaign,
@@ -45,6 +52,7 @@ export class DonationsService {
       await this.prisma.donation.create({
         data: {
           campaignId,
+          donorUserId: donorUserId ?? null,
           amountCents: dto.amountCents,
           tipCents: dto.tipCents ?? 0,
           method: 'CARD',
@@ -54,6 +62,8 @@ export class DonationsService {
           message: dto.message,
           anonymous: dto.anonymous ?? false,
           donorName: dto.donorName,
+          tributeType: dto.tributeType ?? null,
+          tributeName: dto.tributeName ?? null,
         },
       });
       throw new DomainException(
@@ -72,7 +82,17 @@ export class DonationsService {
         message: dto.message,
         anonymous: dto.anonymous ?? false,
         donorName: dto.donorName,
+        donorUserId,
+        tributeType: dto.tributeType,
+        tributeName: dto.tributeName,
       },
+    );
+
+    await this.notifyDonation(
+      campaign,
+      donorUserId,
+      amountToGoal,
+      updated.raisedCents,
     );
 
     if (!funded) {
@@ -235,14 +255,30 @@ export class DonationsService {
 
   /** Over-funding rule: cap the goal-bound amount at the remaining gap; excess becomes a tip. */
   private split(campaign: Campaign, amountCents: number, tipCents: number) {
-    const remaining = campaign.goalCents - campaign.raisedCents;
-    let amountToGoal = amountCents;
-    let tip = tipCents;
-    if (amountToGoal > remaining) {
-      tip += amountToGoal - remaining;
-      amountToGoal = remaining;
-    }
-    return { amountToGoal, tip };
+    return splitContribution(
+      campaign.goalCents,
+      campaign.raisedCents,
+      amountCents,
+      tipCents,
+    );
+  }
+
+  /** Fire donor-retention side-effects (thank-you, auto-subscribe, milestones). */
+  private async notifyDonation(
+    campaign: Campaign & { studentProfile?: { fullName: string } | null },
+    donorUserId: string | undefined,
+    amountToGoal: number,
+    newRaised: number,
+  ): Promise<void> {
+    await this.notifications.onDonation({
+      donorUserId: donorUserId ?? null,
+      campaignId: campaign.id,
+      studentName: campaign.studentProfile?.fullName ?? 'the student',
+      amountCents: amountToGoal,
+      prevRaised: campaign.raisedCents,
+      newRaised,
+      goalCents: campaign.goalCents,
+    });
   }
 
   private async recordPledge(
@@ -254,6 +290,9 @@ export class DonationsService {
       message?: string;
       anonymous: boolean;
       donorName?: string;
+      donorUserId?: string;
+      tributeType?: TributeType;
+      tributeName?: string;
     },
   ) {
     const newRaised = campaign.raisedCents + input.amountToGoal;
@@ -263,6 +302,7 @@ export class DonationsService {
       const donation = await tx.donation.create({
         data: {
           campaignId: campaign.id,
+          donorUserId: input.donorUserId ?? null,
           amountCents: input.amountToGoal,
           tipCents: input.tip,
           method: 'CARD',
@@ -272,6 +312,8 @@ export class DonationsService {
           message: input.message,
           anonymous: input.anonymous,
           donorName: input.donorName,
+          tributeType: input.tributeType ?? null,
+          tributeName: input.tributeName ?? null,
         },
       });
 
@@ -375,7 +417,10 @@ export class DonationsService {
   private async loadDonatable(campaignId: string) {
     const c = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
-      include: { verification: true },
+      include: {
+        verification: true,
+        studentProfile: { select: { fullName: true } },
+      },
     });
     if (
       !c ||

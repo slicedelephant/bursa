@@ -23,7 +23,7 @@ describe('CampaignsService — story/video fields', () => {
       ...(args.data as object),
     }));
 
-    const service = new CampaignsService(prisma as never);
+    const service = new CampaignsService(prisma as never, { onImpactUpdate: jest.fn().mockResolvedValue(undefined) } as never);
     await service.createForUser('u1', {
       schoolId: 's1',
       programName: 'MBA',
@@ -57,7 +57,7 @@ describe('CampaignsService — story/video fields', () => {
     prisma.school.findUnique.mockResolvedValue({ id: 's1' });
     prisma.campaign.create.mockResolvedValue({ id: 'c1' });
 
-    const service = new CampaignsService(prisma as never);
+    const service = new CampaignsService(prisma as never, { onImpactUpdate: jest.fn().mockResolvedValue(undefined) } as never);
     await service.createForUser('u1', {
       schoolId: 's1',
       programName: 'MBA',
@@ -87,7 +87,7 @@ describe('CampaignsService — story/video fields', () => {
     });
     prisma.campaign.update.mockResolvedValue({ id: 'c1' });
 
-    const service = new CampaignsService(prisma as never);
+    const service = new CampaignsService(prisma as never, { onImpactUpdate: jest.fn().mockResolvedValue(undefined) } as never);
     await service.updateForUser('u1', 'c1', {
       videoUrl: 'https://vimeo.com/123456789',
       storyVision: 'New vision',

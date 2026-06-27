@@ -369,9 +369,12 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  await prisma.notification.deleteMany();
+  await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
   await prisma.payout.deleteMany();
   await prisma.donation.deleteMany();
+  await prisma.recurringPledge.deleteMany();
   await prisma.admissionVerification.deleteMany();
   await prisma.campaign.deleteMany();
   await prisma.studentProfile.deleteMany();
@@ -444,8 +447,6 @@ async function main(): Promise<void> {
       contactName: 'Jordan Reyes',
     },
   });
-  void donor;
-
   // Generate portraits (batched concurrency; one-off seed)
   console.log('Generating portraits…');
   const photoBySlug: Record<string, string | null> = {};
@@ -464,6 +465,7 @@ async function main(): Promise<void> {
 
   // Students + campaigns
   let liveCount = 0;
+  const campaignBySlug: Record<string, string> = {};
   for (const st of STUDENTS) {
     const user = await prisma.user.create({
       data: {
@@ -504,6 +506,7 @@ async function main(): Promise<void> {
         status: campaignStatus,
       },
     });
+    campaignBySlug[st.slug] = campaign.id;
 
     // Verification
     await prisma.admissionVerification.create({
@@ -591,6 +594,114 @@ async function main(): Promise<void> {
   console.log(
     `Created ${STUDENTS.length} students/campaigns (${liveCount} live).`,
   );
+
+  // --------------------------------------------------------------------------
+  // E4 — Donor Retention demo data for donor@bursa.test
+  // (account history + tribute, subscriptions, a simulated recurring pledge,
+  //  and an in-app/email notification feed)
+  // --------------------------------------------------------------------------
+  const amaraId = campaignBySlug['amara-okonkwo'];
+  const kwameId = campaignBySlug['kwame-mensah'];
+
+  // Two donor-attributed gifts, one dedicated "in honour of".
+  await prisma.donation.create({
+    data: {
+      campaignId: amaraId,
+      donorUserId: donor.id,
+      amountCents: eur(150),
+      method: 'CARD',
+      type: 'PRIVATE',
+      status: 'CAPTURED',
+      providerRef: 'mock_seed_donor_amara',
+      donorName: 'Generous Donor',
+      tributeType: 'HONOR',
+      tributeName: 'Professor Adeyemi',
+      capturedAt: new Date(),
+    },
+  });
+  await prisma.campaign.update({
+    where: { id: amaraId },
+    data: { raisedCents: { increment: eur(150) } },
+  });
+
+  await prisma.donation.create({
+    data: {
+      campaignId: kwameId,
+      donorUserId: donor.id,
+      amountCents: eur(80),
+      method: 'CARD',
+      type: 'PRIVATE',
+      status: 'CAPTURED',
+      providerRef: 'mock_seed_donor_kwame',
+      donorName: 'Generous Donor',
+      capturedAt: new Date(),
+    },
+  });
+  await prisma.campaign.update({
+    where: { id: kwameId },
+    data: { raisedCents: { increment: eur(80) } },
+  });
+
+  // Update subscriptions for the two supported campaigns.
+  await prisma.updateSubscription.createMany({
+    data: [
+      { donorUserId: donor.id, campaignId: amaraId },
+      { donorUserId: donor.id, campaignId: kwameId },
+    ],
+  });
+
+  // A simulated monthly pledge, due now so "Simulate next charge" works in the demo.
+  await prisma.recurringPledge.create({
+    data: {
+      donorUserId: donor.id,
+      campaignId: amaraId,
+      amountCents: eur(25),
+      currency: 'EUR',
+      status: 'ACTIVE',
+      nextRunAt: new Date(),
+    },
+  });
+
+  // In-app feed + one logged email copy.
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: donor.id,
+        type: 'THANK_YOU',
+        channel: 'IN_APP',
+        title: 'Thank you for your gift',
+        body: "Your €150 gift toward Amara Okonkwo's tuition is on its way directly to the school.",
+        campaignId: amaraId,
+      },
+      {
+        userId: donor.id,
+        type: 'IMPACT_UPDATE',
+        channel: 'IN_APP',
+        title: 'Update from Kwame Mensah: Admission verified',
+        body: 'Kwame posted a new update on the campaign you support.',
+        campaignId: kwameId,
+      },
+      {
+        userId: donor.id,
+        type: 'MILESTONE',
+        channel: 'IN_APP',
+        title: '80% funded',
+        body: "Amara Okonkwo's campaign just passed 80% of its tuition goal.",
+        campaignId: amaraId,
+        readAt: new Date(),
+      },
+      {
+        userId: donor.id,
+        type: 'THANK_YOU',
+        channel: 'EMAIL',
+        title: 'Thank you for your gift',
+        body: 'Email copy (logged, not sent) of the donor thank-you.',
+        campaignId: amaraId,
+        emailLogged: true,
+      },
+    ],
+  });
+  console.log('Created donor-retention demo data (history, recurring, feed).');
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(
     '  admin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test',

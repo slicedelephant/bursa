@@ -1,6 +1,9 @@
 import { DonationsService } from './donations.service';
 import type { PaymentProvider } from '../payments/payment-provider.interface';
 
+/** Notifications collaborator stub — donor-retention side-effects are tested separately. */
+const notif = () => ({ onDonation: jest.fn().mockResolvedValue(undefined) });
+
 /** Runs an action and returns the DomainException `code` it throws. */
 async function codeOf(action: () => Promise<unknown>): Promise<string> {
   try {
@@ -82,7 +85,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const pay = provider();
     pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
 
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
     const res = await service.donateCard('c1', { amountCents: 5000 });
 
     expect(pay.savePledge).toHaveBeenCalled();
@@ -125,7 +128,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_2' });
     pay.captureOnGoalReached.mockResolvedValue({ status: 'SUCCEEDED', reference: 'cap_2' });
 
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
     const res = await service.donateCard('c1', { amountCents: 5000 });
 
     expect(pay.captureOnGoalReached).toHaveBeenCalledTimes(1);
@@ -149,7 +152,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       failureReason: 'declined',
     });
 
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
 
     expect(await codeOf(() => service.donateCard('c1', { amountCents: 5013 }))).toBe(
       'PAYMENT_FAILED',
@@ -163,7 +166,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const tx = buildTx();
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(null);
-    const service = new DonationsService(prisma as never, provider());
+    const service = new DonationsService(prisma as never, provider(), notif() as never);
     expect(await codeOf(() => service.donateCard('missing', { amountCents: 5000 }))).toBe(
       'NOT_FOUND',
     );
@@ -173,7 +176,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const tx = buildTx();
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(null);
-    const service = new DonationsService(prisma as never, provider());
+    const service = new DonationsService(prisma as never, provider(), notif() as never);
     expect(await codeOf(() => service.captureCampaign('nope'))).toBe('NOT_FOUND');
   });
 
@@ -198,7 +201,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const pay = provider();
     pay.createSepaPledge.mockResolvedValue({ status: 'SUCCEEDED', reference: 'sepa_1' });
 
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
     const res = await service.donateSepa('c1', 'u1', { amountCents: 8000 });
 
     expect(res.receipt.donor).toBe('ACME');
@@ -217,7 +220,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       reference: 'sepa_x',
       failureReason: 'mandate rejected',
     });
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
     expect(await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 }))).toBe(
       'PAYMENT_FAILED',
     );
@@ -228,7 +231,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
     prisma.corporateProfile.findUnique.mockResolvedValue(null);
-    const service = new DonationsService(prisma as never, provider());
+    const service = new DonationsService(prisma as never, provider(), notif() as never);
     expect(await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 }))).toBe(
       'VALIDATION_ERROR',
     );
@@ -248,7 +251,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       reference: 'x',
       failureReason: 'auth required',
     });
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
     const summary = await service.captureCampaign('c1');
     expect(summary.capturedIds).toEqual([]);
     expect(summary.failedIds).toEqual(['pa', 'pb']);
@@ -274,7 +277,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     prisma.school.findUnique.mockResolvedValue({ name: 'ESMT Berlin' });
     const pay = provider();
     pay.createSepaPledge.mockResolvedValue({ status: 'SUCCEEDED', reference: 'sepa_2' });
-    const service = new DonationsService(prisma as never, pay);
+    const service = new DonationsService(prisma as never, pay, notif() as never);
     const res = await service.donateSepa('c1', 'u1', { amountCents: 8000 });
     expect(res.campaign.status).toBe('FUNDED');
     expect(tx.campaignUpdate.create).toHaveBeenCalled();
@@ -286,7 +289,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     prisma.campaign.findUnique.mockResolvedValue(
       verifiedLiveCampaign({ status: 'FUNDED', raisedCents: 10000 }),
     );
-    const service = new DonationsService(prisma as never, provider());
+    const service = new DonationsService(prisma as never, provider(), notif() as never);
     expect(await codeOf(() => service.donateCard('c1', { amountCents: 5000 }))).toBe(
       'CAMPAIGN_FULLY_FUNDED',
     );
@@ -298,9 +301,100 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     prisma.campaign.findUnique.mockResolvedValue(
       verifiedLiveCampaign({ status: 'LIVE', raisedCents: 10000 }),
     );
-    const service = new DonationsService(prisma as never, provider());
+    const service = new DonationsService(prisma as never, provider(), notif() as never);
     expect(await codeOf(() => service.donateCard('c1', { amountCents: 5000 }))).toBe(
       'CAMPAIGN_FULLY_FUNDED',
+    );
+  });
+
+  it('attributes the donation to a logged-in donor and fires onDonation', async () => {
+    const tx = buildTx();
+    tx.donation.create.mockResolvedValue({
+      id: 'd1',
+      status: 'PLEDGED',
+      amountCents: 5000,
+      tipCents: 0,
+      createdAt: new Date(),
+      donorName: 'Jane',
+    });
+    tx.campaign.update.mockResolvedValue(
+      verifiedLiveCampaign({ raisedCents: 5000, status: 'LIVE' }),
+    );
+    const prisma = buildPrisma(tx);
+    prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
+    const pay = provider();
+    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+    const notifications = notif();
+
+    const service = new DonationsService(prisma as never, pay, notifications as never);
+    await service.donateCard('c1', { amountCents: 5000 }, 'donor-1');
+
+    expect(tx.donation.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ donorUserId: 'donor-1' }),
+      }),
+    );
+    expect(notifications.onDonation).toHaveBeenCalledWith(
+      expect.objectContaining({ donorUserId: 'donor-1', campaignId: 'c1' }),
+    );
+  });
+
+  it('persists a tribute (honour/memory) on the pledge', async () => {
+    const tx = buildTx();
+    tx.donation.create.mockResolvedValue({
+      id: 'd1',
+      status: 'PLEDGED',
+      amountCents: 5000,
+      tipCents: 0,
+      createdAt: new Date(),
+      donorName: 'Jane',
+    });
+    tx.campaign.update.mockResolvedValue(
+      verifiedLiveCampaign({ raisedCents: 5000, status: 'LIVE' }),
+    );
+    const prisma = buildPrisma(tx);
+    prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
+    const pay = provider();
+    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+
+    const service = new DonationsService(prisma as never, pay, notif() as never);
+    await service.donateCard('c1', {
+      amountCents: 5000,
+      tributeType: 'MEMORY',
+      tributeName: 'Ada',
+    });
+
+    expect(tx.donation.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ tributeType: 'MEMORY', tributeName: 'Ada' }),
+      }),
+    );
+  });
+
+  it('fires onDonation with a null donor for an anonymous (logged-out) gift', async () => {
+    const tx = buildTx();
+    tx.donation.create.mockResolvedValue({
+      id: 'd1',
+      status: 'PLEDGED',
+      amountCents: 5000,
+      tipCents: 0,
+      createdAt: new Date(),
+      donorName: null,
+    });
+    tx.campaign.update.mockResolvedValue(
+      verifiedLiveCampaign({ raisedCents: 5000, status: 'LIVE' }),
+    );
+    const prisma = buildPrisma(tx);
+    prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
+    const pay = provider();
+    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+    const notifications = notif();
+
+    const service = new DonationsService(prisma as never, pay, notifications as never);
+    await service.donateCard('c1', { amountCents: 5000 });
+
+    expect(notifications.onDonation).toHaveBeenCalledWith(
+      expect.objectContaining({ donorUserId: null }),
     );
   });
 });

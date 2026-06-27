@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CampaignStatus } from '@prisma/client';
 import { AuthUser } from '../common/current-user.decorator';
 import { DomainException } from '../common/domain.exception';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { VISIBLE_STATUSES, toCard, toDetail } from './campaign.mapper';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
@@ -14,7 +15,10 @@ const VISIBLE: CampaignStatus[] = [...VISIBLE_STATUSES];
 
 @Injectable()
 export class CampaignsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async createForUser(userId: string, dto: CreateCampaignDto) {
     const profile = await this.prisma.studentProfile.findUnique({
@@ -211,7 +215,7 @@ export class CampaignsService {
     if (!isOwner && user.role !== 'ADMIN') {
       throw new DomainException('FORBIDDEN', 'Not allowed to post here', 403);
     }
-    return this.prisma.campaignUpdate.create({
+    const update = await this.prisma.campaignUpdate.create({
       data: {
         campaignId,
         authorId: user.id,
@@ -220,6 +224,12 @@ export class CampaignsService {
         type: 'MANUAL',
       },
     });
+    await this.notifications.onImpactUpdate({
+      campaignId,
+      studentName: c.studentProfile.fullName,
+      updateTitle: dto.title,
+    });
+    return update;
   }
 
   private async ownedDraft(userId: string, id: string) {

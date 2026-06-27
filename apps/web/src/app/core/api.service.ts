@@ -9,16 +9,23 @@ import {
   CampaignUpdate,
   CorporateProfile,
   DonationResult,
+  DonorHistory,
+  DonorNotification,
+  NotificationFeed,
   OwnerCampaign,
   Payout,
   PublicDonation,
   Receipt,
+  RecurringPledge,
+  RecurringRunResult,
   School,
   Session,
   SponsorImpact,
   Stats,
   StudentMe,
   StudentProfile,
+  SubscriptionItem,
+  TributeType,
 } from './models';
 
 export const API_BASE = '/api';
@@ -149,6 +156,8 @@ export class ApiService {
       anonymous?: boolean;
       donorName?: string;
       donorEmail?: string;
+      tributeType?: TributeType;
+      tributeName?: string;
     },
   ): Observable<DonationResult> {
     return this.unwrap(
@@ -247,5 +256,78 @@ export class ApiService {
 
   payouts(): Observable<Payout[]> {
     return this.unwrap(this.http.get<Envelope<Payout[]>>(`${API_BASE}/admin/payouts`));
+  }
+
+  // ---- Donor account (E4) ----
+  donorHistory(): Observable<DonorHistory> {
+    return this.unwrap(
+      this.http.get<Envelope<DonorHistory>>(`${API_BASE}/donors/me/history`),
+    );
+  }
+
+  donorReceipt(donationId: string): Observable<Receipt> {
+    return this.unwrap(
+      this.http.get<Envelope<Receipt>>(
+        `${API_BASE}/donors/me/donations/${donationId}/receipt`,
+      ),
+    );
+  }
+
+  listNotifications(): Observable<NotificationFeed> {
+    return this.unwrap(
+      this.http.get<Envelope<NotificationFeed>>(`${API_BASE}/notifications`),
+    );
+  }
+
+  markNotificationRead(id: string): Observable<DonorNotification> {
+    return this.unwrap(
+      this.http.post<Envelope<DonorNotification>>(
+        `${API_BASE}/notifications/${id}/read`,
+        {},
+      ),
+    );
+  }
+
+  // ---- Recurring (simulated) ----
+  createRecurring(body: {
+    campaignId: string;
+    amountCents: number;
+  }): Observable<RecurringPledge> {
+    return this.unwrap(
+      this.http.post<Envelope<RecurringPledge>>(`${API_BASE}/donors/me/recurring`, body),
+    );
+  }
+
+  listRecurring(): Observable<RecurringPledge[]> {
+    return this.unwrap(
+      this.http.get<Envelope<RecurringPledge[]>>(`${API_BASE}/donors/me/recurring`),
+    );
+  }
+
+  setRecurringStatus(
+    id: string,
+    action: 'pause' | 'resume' | 'cancel',
+  ): Observable<RecurringPledge> {
+    return this.unwrap(
+      this.http.post<Envelope<RecurringPledge>>(
+        `${API_BASE}/donors/me/recurring/${id}/${action}`,
+        {},
+      ),
+    );
+  }
+
+  runRecurring(): Observable<RecurringRunResult> {
+    return this.unwrap(
+      this.http.post<Envelope<RecurringRunResult>>(
+        `${API_BASE}/donors/me/recurring/run`,
+        {},
+      ),
+    );
+  }
+
+  listSubscriptions(): Observable<SubscriptionItem[]> {
+    return this.unwrap(
+      this.http.get<Envelope<SubscriptionItem[]>>(`${API_BASE}/donors/me/subscriptions`),
+    );
   }
 }

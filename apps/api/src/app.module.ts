@@ -10,6 +10,9 @@ import { StudentsModule } from './students/students.module';
 import { SponsorsModule } from './sponsors/sponsors.module';
 import { PayoutsModule } from './payouts/payouts.module';
 import { AdminModule } from './admin/admin.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { RecurringModule } from './recurring/recurring.module';
+import { DonorsModule } from './donors/donors.module';
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { AdminModule } from './admin/admin.module';
     SponsorsModule,
     PayoutsModule,
     AdminModule,
+    NotificationsModule,
+    RecurringModule,
+    DonorsModule,
   ],
 })
 export class AppModule {}

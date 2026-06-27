@@ -54,6 +54,8 @@ export class AuthService {
         return '/sponsor';
       case 'ADMIN':
         return '/admin';
+      case 'DONOR':
+        return '/donor';
       default:
         return '/campaigns';
     }

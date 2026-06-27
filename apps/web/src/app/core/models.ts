@@ -201,3 +201,84 @@ export interface Payout {
   campaign?: { title: string; studentProfile?: { fullName: string } };
   school?: { name: string };
 }
+
+// ---- E4: Donor Retention ----
+
+export type NotificationType =
+  | 'THANK_YOU'
+  | 'MILESTONE'
+  | 'IMPACT_UPDATE'
+  | 'GOAL_REACHED'
+  | 'RECURRING_CHARGE';
+
+export type TributeType = 'HONOR' | 'MEMORY';
+export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+
+export interface DonorNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  campaignId?: string | null;
+  readAt?: string | null;
+  createdAt: string;
+}
+
+export interface NotificationFeed {
+  items: DonorNotification[];
+  unread: number;
+}
+
+export interface DonorSummary {
+  totalDonatedCents: number;
+  donationCount: number;
+  campaignsSupported: number;
+  repeatDonor: boolean;
+  activeRecurringCount: number;
+}
+
+export interface DonorDonation {
+  id: string;
+  campaignId: string;
+  campaignTitle: string;
+  schoolName: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  method: 'CARD' | 'SEPA';
+  tribute?: string | null;
+  anonymous: boolean;
+  recurring: boolean;
+  createdAt: string;
+}
+
+export interface DonorHistory {
+  summary: DonorSummary;
+  donations: DonorDonation[];
+}
+
+export interface RecurringPledge {
+  id: string;
+  campaignId: string;
+  amountCents: number;
+  currency: string;
+  status: RecurringStatus;
+  chargesCount: number;
+  totalChargedCents: number;
+  nextRunAt: string;
+  lastChargedAt?: string | null;
+  createdAt: string;
+  campaign?: { title: string; studentProfile?: { fullName: string } | null };
+}
+
+export interface RecurringRunResult {
+  charged: { pledgeId: string; donationId: string; amountCents: number }[];
+  failed: string[];
+  cancelled: string[];
+}
+
+export interface SubscriptionItem {
+  campaignId: string;
+  campaignTitle: string;
+  createdAt: string;
+}

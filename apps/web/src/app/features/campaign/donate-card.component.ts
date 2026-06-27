@@ -1,8 +1,10 @@
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
+import { AuthService } from '../../core/auth.service';
 import { MoneyPipe } from '../../core/money.pipe';
-import { DonationResult, PublicDonation } from '../../core/models';
+import { DonationResult, PublicDonation, TributeType } from '../../core/models';
+import { tributeLine } from '../donor/tribute-display';
 
 /** Emitted when a card donation succeeds: the server result plus an optimistic donor row. */
 export interface DonationSuccess {
@@ -30,11 +32,19 @@ export interface DonationSuccess {
             </svg>
           </div>
           <h3 class="font-display text-xl font-semibold text-ink">Thank you!</h3>
-          <p class="text-sm text-slate2">
-            Your gift of
-            <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is on
-            its way to the school.
-          </p>
+          @if (startedMonthly()) {
+            <p class="text-sm text-slate2">
+              Your monthly gift of
+              <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is
+              set up. Manage it any time from your account.
+            </p>
+          } @else {
+            <p class="text-sm text-slate2">
+              Your gift of
+              <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is on
+              its way to the school.
+            </p>
+          }
           <button
             type="button"
             (click)="reset()"
@@ -149,6 +159,46 @@ export interface DonationSuccess {
             Donate anonymously
           </label>
 
+          <div>
+            <label for="donate-tribute" class="mb-1.5 block text-sm font-medium text-ink">
+              Dedicate this gift (optional)
+            </label>
+            <select
+              id="donate-tribute"
+              name="tributeType"
+              [(ngModel)]="tributeType"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-ink focus:border-brand-green focus:outline-none focus:ring-1 focus:ring-brand-green"
+            >
+              <option value="">No dedication</option>
+              <option value="HONOR">In honour of…</option>
+              <option value="MEMORY">In memory of…</option>
+            </select>
+            @if (tributeType) {
+              <input
+                name="tributeName"
+                type="text"
+                [(ngModel)]="tributeName"
+                placeholder="Name of the person"
+                class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-ink focus:border-brand-green focus:outline-none focus:ring-1 focus:ring-brand-green"
+              />
+              @if (tributePreview()) {
+                <p class="mt-1 text-xs italic text-slate2">{{ tributePreview() }}</p>
+              }
+            }
+          </div>
+
+          @if (isDonor()) {
+            <label class="flex items-center gap-2 text-sm text-ink">
+              <input
+                name="monthly"
+                type="checkbox"
+                [(ngModel)]="monthly"
+                class="h-4 w-4 rounded border-slate-300 text-brand-green focus:ring-brand-green"
+              />
+              Make this a monthly gift (Sponsor a Student)
+            </label>
+          }
+
           @if (errorMsg()) {
             <p class="rounded-lg bg-brand-orange/10 px-3 py-2 text-sm text-brand-orange">
               {{ errorMsg() }}
@@ -162,6 +212,8 @@ export interface DonationSuccess {
           >
             @if (submitting()) {
               Processing…
+            } @else if (monthly && isDonor()) {
+              Start monthly gift of {{ amountCents | money: true }}
             } @else {
               Donate {{ amountCents | money: true }}
             }
@@ -173,6 +225,7 @@ export interface DonationSuccess {
 })
 export class DonateCardComponent {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
 
   @Input({ required: true }) campaignId!: string;
   @Output() donated = new EventEmitter<DonationSuccess>();
@@ -184,11 +237,23 @@ export class DonateCardComponent {
   donorName = '';
   message = '';
   anonymous = false;
+  tributeType: '' | TributeType = '';
+  tributeName = '';
+  monthly = false;
 
   readonly submitting = signal(false);
   readonly errorMsg = signal<string | null>(null);
   readonly success = signal(false);
+  readonly startedMonthly = signal(false);
   readonly lastAmountCents = signal(0);
+
+  isDonor(): boolean {
+    return this.auth.role() === 'DONOR';
+  }
+
+  tributePreview(): string | null {
+    return tributeLine(this.tributeType || null, this.tributeName);
+  }
 
   selectPreset(value: number): void {
     this.amountEur = value;
@@ -217,10 +282,22 @@ export class DonateCardComponent {
     this.submitting.set(true);
 
     const amountCents = this.amountCents;
+
+    if (this.monthly && this.isDonor()) {
+      this.startMonthly(amountCents);
+      return;
+    }
+
     const tipCents = this.tipCents;
     const donorName = this.donorName.trim();
     const message = this.message.trim();
     const anonymous = this.anonymous;
+    const tribute = this.tributePreview()
+      ? {
+          tributeType: this.tributeType as TributeType,
+          tributeName: this.tributeName.trim(),
+        }
+      : {};
 
     this.api
       .donateCard(this.campaignId, {
@@ -229,6 +306,7 @@ export class DonateCardComponent {
         message: message || undefined,
         anonymous,
         donorName: donorName || undefined,
+        ...tribute,
       })
       .subscribe({
         next: (result) => {
@@ -259,13 +337,35 @@ export class DonateCardComponent {
       });
   }
 
+  private startMonthly(amountCents: number): void {
+    this.api.createRecurring({ campaignId: this.campaignId, amountCents }).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.lastAmountCents.set(amountCents);
+        this.startedMonthly.set(true);
+        this.success.set(true);
+      },
+      error: (err) => {
+        this.errorMsg.set(
+          err?.error?.error?.message ?? 'Could not set up monthly giving',
+        );
+        this.submitting.set(false);
+      },
+    });
+  }
+
   reset(): void {
     this.success.set(false);
+    this.startedMonthly.set(false);
     this.errorMsg.set(null);
     this.amountEur = 50;
     this.tipEur = null;
     this.donorName = '';
     this.message = '';
     this.anonymous = false;
+    this.tributeType = '';
+    this.tributeName = '';
+    this.monthly = false;
   }
 }
+

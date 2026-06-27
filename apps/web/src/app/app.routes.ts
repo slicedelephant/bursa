@@ -32,6 +32,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/sponsor/sponsor.page').then((m) => m.SponsorPage),
   },
   {
+    path: 'donor',
+    canActivate: [authGuard],
+    data: { roles: ['DONOR'] },
+    loadComponent: () => import('./features/donor/donor.page').then((m) => m.DonorPage),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard],
     data: { roles: ['ADMIN'] },

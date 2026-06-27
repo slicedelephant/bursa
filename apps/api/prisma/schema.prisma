@@ -63,6 +63,30 @@ enum UpdateType {
   SYSTEM
 }
 
+enum TributeType {
+  HONOR
+  MEMORY
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+enum NotificationType {
+  THANK_YOU
+  MILESTONE
+  IMPACT_UPDATE
+  GOAL_REACHED
+  RECURRING_CHARGE
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -77,6 +101,9 @@ model User {
   donations        Donation[]            @relation("DonorDonations")
   updates          CampaignUpdate[]
   verifications    AdmissionVerification[] @relation("VerifiedBy")
+  recurringPledges RecurringPledge[]     @relation("DonorRecurring")
+  subscriptions    UpdateSubscription[]  @relation("DonorSubscriptions")
+  notifications    Notification[]
 }
 
 model School {
@@ -134,6 +161,9 @@ model Campaign {
   donations      Donation[]
   updates        CampaignUpdate[]
   payout         Payout?
+  recurringPledges RecurringPledge[]
+  subscriptions    UpdateSubscription[]
+  notifications    Notification[]
 
   @@index([status])
   @@index([schoolId])
@@ -170,13 +200,73 @@ model Donation {
   message            String?
   anonymous          Boolean        @default(false)
   donorName          String?
+  recurringPledgeId  String?
+  tributeType        TributeType?
+  tributeName        String?
   createdAt          DateTime       @default(now())
 
   campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   donorUser        User?             @relation("DonorDonations", fields: [donorUserId], references: [id])
   corporateProfile CorporateProfile? @relation(fields: [corporateProfileId], references: [id])
+  recurringPledge  RecurringPledge?  @relation(fields: [recurringPledgeId], references: [id])
 
   @@index([campaignId])
+  @@index([donorUserId])
+  @@index([recurringPledgeId])
+}
+
+model RecurringPledge {
+  id                String          @id @default(cuid())
+  donorUserId       String
+  campaignId        String
+  amountCents       Int
+  currency          String          @default("EUR")
+  status            RecurringStatus @default(ACTIVE)
+  chargesCount      Int             @default(0)
+  totalChargedCents Int             @default(0)
+  nextRunAt         DateTime
+  lastChargedAt     DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  donorUser User       @relation("DonorRecurring", fields: [donorUserId], references: [id], onDelete: Cascade)
+  campaign  Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donations Donation[]
+
+  @@index([donorUserId])
+  @@index([campaignId])
+  @@index([status, nextRunAt])
+}
+
+model UpdateSubscription {
+  id          String   @id @default(cuid())
+  donorUserId String
+  campaignId  String
+  createdAt   DateTime @default(now())
+
+  donorUser User     @relation("DonorSubscriptions", fields: [donorUserId], references: [id], onDelete: Cascade)
+  campaign  Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([donorUserId, campaignId])
+  @@index([campaignId])
+}
+
+model Notification {
+  id          String              @id @default(cuid())
+  userId      String
+  type        NotificationType
+  channel     NotificationChannel @default(IN_APP)
+  title       String
+  body        String
+  campaignId  String?
+  emailLogged Boolean             @default(false)
+  readAt      DateTime?
+  createdAt   DateTime            @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
 }
 
 model CorporateProfile {

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { CurrentUser } from '../common/current-user.decorator';
 import { Roles } from '../common/roles.decorator';
 import { RolesGuard } from '../common/roles.guard';
@@ -18,8 +19,13 @@ export class DonationsController {
   }
 
   @Post('card')
-  card(@Param('campaignId') campaignId: string, @Body() dto: CardDonationDto) {
-    return this.donations.donateCard(campaignId, dto);
+  @UseGuards(OptionalJwtAuthGuard)
+  card(
+    @Param('campaignId') campaignId: string,
+    @Body() dto: CardDonationDto,
+    @CurrentUser('id') donorUserId?: string,
+  ) {
+    return this.donations.donateCard(campaignId, dto, donorUserId);
   }
 
   @Post('sepa')

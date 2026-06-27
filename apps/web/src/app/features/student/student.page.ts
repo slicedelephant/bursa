@@ -4,13 +4,19 @@ import { AuthService } from '../../core/auth.service';
 import { StudentMe } from '../../core/models';
 import { CampaignWizardComponent } from './campaign-wizard.component';
 import { StudentCampaignStatus } from './campaign-status.component';
+import { ImpactUpdateFormComponent } from './impact-update-form.component';
 import { StudentProfileForm } from './profile-form.component';
 
 /** Student dashboard: profile → campaign → status state machine driven by `studentMe()`. */
 @Component({
   selector: 'app-student-page',
   standalone: true,
-  imports: [StudentProfileForm, CampaignWizardComponent, StudentCampaignStatus],
+  imports: [
+    StudentProfileForm,
+    CampaignWizardComponent,
+    StudentCampaignStatus,
+    ImpactUpdateFormComponent,
+  ],
   template: `
     <section class="mx-auto max-w-2xl px-4 py-10">
       <header class="mb-8">
@@ -78,6 +84,9 @@ import { StudentProfileForm } from './profile-form.component';
             [studentName]="data.profile.fullName"
             (changed)="load()"
           />
+          @if (isLive(data.campaign.status)) {
+            <app-impact-update-form [campaignId]="data.campaign.id" />
+          }
         }
       }
     </section>
@@ -130,5 +139,9 @@ export class StudentPage implements OnInit {
     if (current > n) return 'bg-brand-green text-white';
     if (current === n) return 'bg-brand-green text-white ring-4 ring-brand-green/15';
     return 'bg-slate-100 text-slate2';
+  }
+
+  isLive(status: string): boolean {
+    return status === 'LIVE' || status === 'FUNDED' || status === 'DISBURSED';
   }
 }
