@@ -2,10 +2,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { MoneyPipe } from '../../core/money.pipe';
 import { CampaignDetail, DonationResult } from '../../core/models';
-import { ProgressBarComponent } from '../../shared/progress-bar.component';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
+import { CampaignProgressComponent } from './campaign-progress.component';
 import { DonateCardComponent, DonationSuccess } from './donate-card.component';
 import { PayoutProofComponent } from './payout-proof.component';
 import { RecentDonorsComponent } from './recent-donors.component';
@@ -18,10 +17,9 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
   standalone: true,
   imports: [
     RouterLink,
-    MoneyPipe,
-    ProgressBarComponent,
     VerifiedBadgeComponent,
     DonateCardComponent,
+    CampaignProgressComponent,
     SepaPledgeComponent,
     UpdatesTimelineComponent,
     RecentDonorsComponent,
@@ -126,18 +124,16 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
           <!-- RIGHT / STICKY -->
           <div class="lg:col-span-1">
             <div class="space-y-6 lg:sticky lg:top-6">
-              <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
-                <app-progress-bar [percent]="c.percent" />
-                <div class="mt-3 flex items-baseline justify-between">
-                  <span class="font-display text-2xl font-semibold text-ink">{{
-                    c.raisedCents | money
-                  }}</span>
-                  <span class="text-sm text-slate2">raised of {{ c.goalCents | money }}</span>
-                </div>
-                <p class="mt-1 text-sm text-slate2">
-                  {{ c.donorCount }} supporter{{ c.donorCount === 1 ? '' : 's' }}
-                </p>
-              </div>
+              <app-campaign-progress
+                [raisedCents]="c.raisedCents"
+                [goalCents]="c.goalCents"
+                [currency]="c.currency"
+                [status]="c.status"
+                [deadline]="c.deadline ?? null"
+              />
+              <p class="px-1 text-sm text-slate2">
+                {{ c.donorCount }} supporter{{ c.donorCount === 1 ? '' : 's' }}
+              </p>
 
               <app-payout-proof [proof]="c.payoutProof ?? null" />
 

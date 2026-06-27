@@ -42,11 +42,7 @@ export class TrustBadgesComponent {
   get badges(): TrustBadge[] {
     const t = this.trust;
     const all: ReadonlyArray<readonly [boolean, string, string]> = [
-      [
-        t.identityChecked,
-        'Identity checked',
-        'The student’s identity has been checked by Bursa.',
-      ],
+      [t.identityChecked, 'Identity checked', 'The student’s identity has been checked by Bursa.'],
       [
         t.admissionVerified,
         'Admission verified',
@@ -58,8 +54,6 @@ export class TrustBadgesComponent {
         'The receiving school is a confirmed, payout-verified institution.',
       ],
     ];
-    return all
-      .filter(([active]) => active)
-      .map(([, label, tooltip]) => ({ label, tooltip }));
+    return all.filter(([active]) => active).map(([, label, tooltip]) => ({ label, tooltip }));
   }
 }

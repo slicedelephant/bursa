@@ -130,7 +130,7 @@ export class CampaignsService {
         verification: true,
         payout: true,
         donations: {
-          where: { status: 'SUCCEEDED' },
+          where: { status: { in: ['SUCCEEDED', 'PLEDGED', 'CAPTURED'] } },
           orderBy: { createdAt: 'desc' },
           include: { corporateProfile: { select: { companyName: true } } },
         },

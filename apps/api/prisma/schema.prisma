@@ -45,8 +45,11 @@ enum DonationType {
 
 enum DonationStatus {
   PENDING
+  PLEDGED
+  CAPTURED
   SUCCEEDED
   FAILED
+  EXPIRED
 }
 
 enum PayoutStatus {
@@ -158,6 +161,8 @@ model Donation {
   type               DonationType
   status             DonationStatus @default(PENDING)
   providerRef        String?
+  pledgeRef          String?
+  capturedAt         DateTime?
   message            String?
   anonymous          Boolean        @default(false)
   donorName          String?

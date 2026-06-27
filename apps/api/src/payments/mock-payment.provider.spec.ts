@@ -32,14 +32,56 @@ describe('MockPaymentProvider', () => {
     expect(r.status).toBe('SUCCEEDED');
   });
 
-  it('always sends payouts', async () => {
-    const r = await provider.createPayout({
+  it('authorizes a pledge without charging (savePledge)', async () => {
+    const r = await provider.savePledge({
+      amountCents: 5000,
+      currency: 'EUR',
+      method: 'CARD',
+    });
+    expect(r.status).toBe('AUTHORIZED');
+    expect(r.pledgeRef).toContain('mock_pledge_');
+  });
+
+  it('fails to authorize a pledge for the .13 sentinel', async () => {
+    const r = await provider.savePledge({
+      amountCents: 1013,
+      currency: 'EUR',
+      method: 'CARD',
+    });
+    expect(r.status).toBe('FAILED');
+    expect(r.failureReason).toBeTruthy();
+  });
+
+  it('captures a saved pledge once the goal is reached', async () => {
+    const r = await provider.captureOnGoalReached({
+      pledgeRef: 'mock_pledge_x',
+      amountCents: 5000,
+      currency: 'EUR',
+    });
+    expect(r.status).toBe('SUCCEEDED');
+    expect(r.reference).toContain('mock_capture_');
+  });
+
+  it('fails capture for the .13 sentinel', async () => {
+    const r = await provider.captureOnGoalReached({
+      pledgeRef: 'mock_pledge_x',
+      amountCents: 1013,
+      currency: 'EUR',
+    });
+    expect(r.status).toBe('FAILED');
+  });
+
+  it('always sends payouts (legacy + payoutToSchool)', async () => {
+    const input = {
       amountCents: 100_000,
       currency: 'EUR',
       schoolName: 'ESMT Berlin',
       accountRef: 'DE89-MOCK',
-    });
-    expect(r.status).toBe('SENT');
-    expect(r.reference).toContain('mock_payout_');
+    };
+    const legacy = await provider.createPayout(input);
+    const direct = await provider.payoutToSchool(input);
+    expect(legacy.status).toBe('SENT');
+    expect(direct.status).toBe('SENT');
+    expect(direct.reference).toContain('mock_payout_');
   });
 });
