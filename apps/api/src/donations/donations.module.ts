@@ -7,5 +7,6 @@ import { DonationsService } from './donations.service';
   imports: [NotificationsModule],
   controllers: [DonationsController],
   providers: [DonationsService],
+  exports: [DonationsService],
 })
 export class DonationsModule {}

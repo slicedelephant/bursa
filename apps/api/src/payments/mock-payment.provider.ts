@@ -27,6 +27,10 @@ export class MockPaymentProvider implements PaymentProvider {
     return this.charge(input.amountCents, 'sepa');
   }
 
+  async chargeImmediately(input: ChargeInput): Promise<PaymentResult> {
+    return this.charge(input.amountCents, 'charge');
+  }
+
   async savePledge(input: ChargeInput): Promise<PledgeResult> {
     const pledgeRef = `mock_pledge_${randomUUID()}`;
     if (this.fails(input.amountCents)) {

@@ -63,6 +63,14 @@ export interface PaymentProvider {
   /** Disburse funds to a school's verified account. Never to a student. */
   createPayout(input: PayoutInput): Promise<PayoutResult>;
 
+  /**
+   * Corporate full-tuition path: charge the sponsor immediately (automatic
+   * capture). Used when a 100% sponsorship closes the goal in one transaction,
+   * so there is no all-or-nothing wait. Maps to a Stripe automatic-capture
+   * PaymentIntent; in the mock it succeeds unless the .13 sentinel applies.
+   */
+  chargeImmediately(input: ChargeInput): Promise<PaymentResult>;
+
   /** All-or-Nothing: save the payment method + capture SCA now, charge nothing. */
   savePledge(input: ChargeInput): Promise<PledgeResult>;
   /** All-or-Nothing: charge a saved pledge off_session once the goal is reached. */

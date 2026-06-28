@@ -153,6 +153,12 @@ export class CampaignsService {
           include: { corporateProfile: { select: { companyName: true } } },
         },
         updates: { orderBy: { createdAt: 'desc' } },
+        sponsorships: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            corporateProfile: { select: { companyName: true, logoUrl: true } },
+          },
+        },
       },
     });
     if (

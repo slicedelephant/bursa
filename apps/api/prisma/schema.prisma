@@ -87,6 +87,30 @@ enum NotificationChannel {
   EMAIL
 }
 
+enum SponsorshipTier {
+  SEMESTER
+  YEAR
+  FULL
+  CUSTOM
+}
+
+enum RecognitionKind {
+  ANONYMOUS
+  LOGO
+  NAMED
+}
+
+enum InvoiceDocType {
+  DONATION
+  SPONSORING
+}
+
+enum InvoiceStatus {
+  ISSUED
+  PENDING
+  PAID
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -164,6 +188,7 @@ model Campaign {
   recurringPledges RecurringPledge[]
   subscriptions    UpdateSubscription[]
   notifications    Notification[]
+  sponsorships     CorporateSponsorship[]
 
   @@index([status])
   @@index([schoolId])
@@ -209,6 +234,7 @@ model Donation {
   donorUser        User?             @relation("DonorDonations", fields: [donorUserId], references: [id])
   corporateProfile CorporateProfile? @relation(fields: [corporateProfileId], references: [id])
   recurringPledge  RecurringPledge?  @relation(fields: [recurringPledgeId], references: [id])
+  sponsorship      CorporateSponsorship?
 
   @@index([campaignId])
   @@index([donorUserId])
@@ -278,8 +304,9 @@ model CorporateProfile {
   logoUrl     String?
   createdAt   DateTime @default(now())
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  donations Donation[]
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  donations    Donation[]
+  sponsorships CorporateSponsorship[]
 }
 
 model Payout {
@@ -311,4 +338,46 @@ model CampaignUpdate {
   author   User?    @relation(fields: [authorId], references: [id])
 
   @@index([campaignId])
+}
+
+model CorporateSponsorship {
+  id                 String          @id @default(cuid())
+  donationId         String          @unique
+  corporateProfileId String
+  campaignId         String
+  tier               SponsorshipTier
+  fullTuition        Boolean         @default(false)
+  scholarshipName    String?
+  logoRecognition    Boolean         @default(false)
+  recognitionKind    RecognitionKind @default(ANONYMOUS)
+  impactReportOptIn  Boolean         @default(false)
+  poNumber           String?
+  vatId              String?
+  createdAt          DateTime        @default(now())
+
+  donation         Donation         @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  corporateProfile CorporateProfile @relation(fields: [corporateProfileId], references: [id], onDelete: Cascade)
+  campaign         Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  invoice          Invoice?
+
+  @@index([corporateProfileId])
+  @@index([campaignId])
+}
+
+model Invoice {
+  id            String         @id @default(cuid())
+  sponsorshipId String         @unique
+  invoiceNo     String         @unique
+  documentType  InvoiceDocType
+  netCents      Int
+  vatCents      Int
+  grossCents    Int
+  currency      String         @default("EUR")
+  vatId         String?
+  poNumber      String?
+  status        InvoiceStatus  @default(ISSUED)
+  settledAt     DateTime?
+  issuedAt      DateTime       @default(now())
+
+  sponsorship CorporateSponsorship @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
 }

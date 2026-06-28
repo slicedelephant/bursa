@@ -86,6 +86,10 @@ export class StripePaymentProvider implements PaymentProvider {
     return this.chargeNow(input);
   }
 
+  async chargeImmediately(input: ChargeInput): Promise<PaymentResult> {
+    return this.chargeNow(input);
+  }
+
   async createPayout(input: PayoutInput): Promise<PayoutResult> {
     return this.payout(input);
   }

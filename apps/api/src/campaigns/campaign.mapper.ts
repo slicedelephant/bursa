@@ -7,6 +7,7 @@ import {
   School,
   StudentProfile,
 } from '@prisma/client';
+import { SponsorshipForRecognition, toRecognition } from './recognition.util';
 
 /** Statuses that may appear publicly (always combined with a VERIFIED admission). */
 export const VISIBLE_STATUSES = ['LIVE', 'FUNDED', 'DISBURSED'] as const;
@@ -30,6 +31,7 @@ type CampaignFull = CampaignWithBasics & {
   donations: DonationWithCorp[];
   updates: CampaignUpdate[];
   payout?: Payout | null;
+  sponsorships?: SponsorshipForRecognition[];
 };
 
 /** Public trust signals derived from existing verification/school data. */
@@ -117,5 +119,6 @@ export function toDetail(c: CampaignFull) {
     })),
     trust: toTrust(c),
     payoutProof: toPayoutProof(c),
+    recognition: toRecognition(c.sponsorships),
   };
 }
