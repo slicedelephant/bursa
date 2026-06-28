@@ -107,6 +107,10 @@ export class ApiService {
     story: string;
     goalCents: number;
     deadline?: string;
+    videoUrl?: string;
+    storyBackground?: string;
+    storyChallenge?: string;
+    storyVision?: string;
   }): Observable<OwnerCampaign> {
     return this.unwrap(this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/campaigns`, body));
   }

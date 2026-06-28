@@ -85,6 +85,8 @@ export interface PayoutProof {
 
 export interface CampaignDetail extends CampaignCard {
   story: string;
+  /** Optional pitch video as an embeddable YouTube/Vimeo link. */
+  videoUrl?: string | null;
   recommendation?: string | null;
   deadline?: string | null;
   tipsCents: number;
@@ -128,6 +130,10 @@ export interface OwnerCampaign {
   title: string;
   programName: string;
   story: string;
+  storyBackground?: string | null;
+  storyChallenge?: string | null;
+  storyVision?: string | null;
+  videoUrl?: string | null;
   goalCents: number;
   raisedCents: number;
   tipsCents: number;
