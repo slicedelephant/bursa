@@ -385,3 +385,67 @@ export interface EsgDashboard {
   metrics: EsgMetrics;
   rows: EsgRow[];
 }
+
+// ---- Observability & funnel analytics (E7) ----
+
+export interface FunnelStep {
+  key: string;
+  label: string;
+  count: number;
+  conversionPct: number;
+  dropOffPct: number;
+}
+
+export interface FunnelReport {
+  steps: FunnelStep[];
+  overallConversionPct: number;
+}
+
+export interface ObsFunnel {
+  donation: FunnelReport;
+  onboarding: FunnelReport;
+}
+
+export interface ObsMetrics {
+  totalRequests: number;
+  errorCount: number;
+  errorRatePct: number;
+  p50Ms: number;
+  p95Ms: number;
+  paymentTotal: number;
+  paymentFailed: number;
+  paymentFailureRatePct: number;
+}
+
+export interface SloWindow {
+  windowLabel: string;
+  sliPct: number;
+  burnRate: number;
+  budgetConsumedPct: number;
+}
+
+export interface SloReport {
+  objectivePct: number;
+  errorBudgetPct: number;
+  windows: SloWindow[];
+  alert: 'none' | 'ticket' | 'page';
+}
+
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+
+export interface PaymentAlert {
+  kind: string;
+  severity: AlertSeverity;
+  message: string;
+  value: number;
+}
+
+export interface PaymentAlerts {
+  alerts: PaymentAlert[];
+}
+
+export interface HealthReport {
+  status: 'ok' | 'degraded';
+  uptimeSeconds: number;
+  checks: { db: boolean };
+}

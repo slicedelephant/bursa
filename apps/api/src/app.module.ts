@@ -15,6 +15,7 @@ import { RecurringModule } from './recurring/recurring.module';
 import { DonorsModule } from './donors/donors.module';
 import { CorporateModule } from './corporate/corporate.module';
 import { SecurityModule } from './security/security.module';
+import { ObservabilityModule } from './observability/observability.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SecurityModule } from './security/security.module';
     DonorsModule,
     CorporateModule,
     SecurityModule,
+    ObservabilityModule,
   ],
 })
 export class AppModule {}

@@ -150,6 +150,27 @@ model AuditLog {
   @@index([actorUserId])
 }
 
+/// Privacy-aware product/funnel analytics (E7). visitorId is an anonymous,
+/// client-generated id (never IP, no PII). metadata is PII-redacted before it is
+/// persisted (see ObservabilityModule/AnalyticsService). Soft references only
+/// (no FK constraints) so analytics never blocks a business operation.
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  type       String
+  visitorId  String?
+  sessionId  String?
+  userId     String?
+  campaignId String?
+  path       String?
+  step       String?
+  requestId  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([campaignId])
+}
+
 model School {
   id               String   @id @default(cuid())
   name             String

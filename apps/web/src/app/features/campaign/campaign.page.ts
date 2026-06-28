@@ -1,7 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AnalyticsService } from '../../core/analytics.service';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { campaignViewEvent } from '../../core/funnel-events';
 import { CampaignDetail, CorporateSponsorshipResult, DonationResult } from '../../core/models';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
 import { CorporateSponsorBoxComponent } from '../corporate/corporate-sponsor-box.component';
@@ -188,6 +190,8 @@ export class CampaignPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly auth = inject(AuthService);
 
+  private readonly analytics = inject(AnalyticsService);
+
   readonly detail = signal<CampaignDetail | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -200,6 +204,7 @@ export class CampaignPage implements OnInit {
       return;
     }
 
+    this.analytics.track(campaignViewEvent(id));
     this.api.campaign(id).subscribe({
       next: (campaign) => {
         this.detail.set(campaign);

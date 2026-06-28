@@ -25,12 +25,20 @@ type AdminTab = 'verify' | 'schools' | 'payouts';
             Verify campaigns, gate schools on payout accounts, and disburse funded campaigns.
           </p>
         </div>
-        <a
-          routerLink="/campaigns"
-          class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
-        >
-          View public gallery
-        </a>
+        <div class="flex gap-2">
+          <a
+            routerLink="/admin/observability"
+            class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
+          >
+            Observability
+          </a>
+          <a
+            routerLink="/campaigns"
+            class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
+          >
+            View public gallery
+          </a>
+        </div>
       </header>
 
       <div
