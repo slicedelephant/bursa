@@ -5,12 +5,15 @@ import {
   type PaymentProvider,
 } from '../payments/payment-provider.interface';
 import { PrismaService } from '../prisma/prisma.service';
+import { buildPayoutSentEvent } from '../schools/school-webhook-events';
+import { SchoolWebhookService } from '../schools/school-webhook.service';
 
 @Injectable()
 export class PayoutsService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_PROVIDER) private readonly payments: PaymentProvider,
+    private readonly schoolWebhooks: SchoolWebhookService,
   ) {}
 
   async disburse(campaignId: string) {
@@ -51,8 +54,8 @@ export class PayoutsService {
       description: `Tuition disbursement for campaign ${campaign.id}`,
     });
 
-    return this.prisma.$transaction(async (tx) => {
-      const payout = await tx.payout.create({
+    const payout = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.payout.create({
         data: {
           campaignId: campaign.id,
           schoolId: campaign.schoolId,
@@ -78,8 +81,21 @@ export class PayoutsService {
         },
       });
 
-      return payout;
+      return created;
     });
+
+    // E8: notify the school of the payout. Fire-and-forget — a webhook log must
+    // never break the disbursement (the emitter swallows its own errors).
+    await this.schoolWebhooks.emit(
+      buildPayoutSentEvent(campaign.schoolId, {
+        id: payout.id,
+        campaignId: payout.campaignId,
+        amountCents: payout.amountCents,
+        reference: payout.reference,
+      }),
+    );
+
+    return payout;
   }
 
   listPayouts() {

@@ -15,6 +15,17 @@ enum Role {
   DONOR
   SPONSOR
   ADMIN
+  SCHOOL_ADMIN
+}
+
+/// Self-serve onboarding state machine for a partner school (E8). The transitions
+/// are owned by the pure `onboarding-status.ts` util; a school can only approve
+/// campaigns and receive payouts once it reaches ACTIVE.
+enum SchoolOnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  ACTIVE
 }
 
 enum CampaignStatus {
@@ -130,6 +141,8 @@ model User {
   subscriptions    UpdateSubscription[]  @relation("DonorSubscriptions")
   notifications    Notification[]
   auditLogs        AuditLog[]            @relation("AuditActor")
+  schoolAdmin        SchoolAdmin?
+  reviewedAdmissions AdmissionRecord[]  @relation("AdmissionReviewer")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -178,12 +191,98 @@ model School {
   city             String?
   website          String?
   logoUrl          String?
+  /// URL-safe handle for the branded school-admin portal (E8). Optional/unique.
+  slug             String?  @unique
   payoutVerified   Boolean  @default(false)
   payoutAccountRef String?
   createdAt        DateTime @default(now())
 
-  campaigns Campaign[]
-  payouts   Payout[]
+  // ---- E8: self-serve onboarding + payout data ----
+  onboardingStatus    SchoolOnboardingStatus @default(NOT_STARTED)
+  bankAccountName     String?
+  iban                String?
+  bic                 String?
+  taxId               String?
+  contactName         String?
+  contactEmail        String?
+  /// Mock e-signature audit fields (no real DocuSign call — see EsignatureProvider).
+  agreementSignedAt   DateTime?
+  agreementSignerName String?
+  agreementRef        String?
+
+  campaigns        Campaign[]
+  payouts          Payout[]
+  admins           SchoolAdmin[]
+  admissionRecords AdmissionRecord[]
+  onboardingTokens SchoolOnboardingToken[]
+  webhookEvents    SchoolWebhookEvent[]
+}
+
+/// Binds a User (role SCHOOL_ADMIN) to exactly one School (E8). One user admins
+/// one school in the prototype; a school may have several admins.
+model SchoolAdmin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  schoolId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+}
+
+/// A row from an imported admission list (E8). A VERIFIED admission is the
+/// trust anchor that lets a matching student campaign go live (Constitution II).
+model AdmissionRecord {
+  id           String             @id @default(cuid())
+  schoolId     String
+  studentEmail String
+  studentName  String
+  programName  String
+  admissionRef String
+  status       VerificationStatus @default(PENDING)
+  note         String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  school     School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  reviewedBy User?  @relation("AdmissionReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([schoolId, admissionRef])
+  @@index([schoolId, status])
+}
+
+/// Single-use, hashed onboarding link token for the hosted registration flow
+/// (E8, à la Stripe Connect). Only the SHA-256 hash is stored, never the raw token.
+model SchoolOnboardingToken {
+  id        String    @id @default(cuid())
+  schoolId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+}
+
+/// Logged outbound school webhook event (E8). The prototype emitter only persists
+/// + structured-logs the event; real HTTP delivery/retries are out of scope.
+model SchoolWebhookEvent {
+  id        String   @id @default(cuid())
+  schoolId  String
+  type      String
+  status    String   @default("LOGGED")
+  payload   Json
+  createdAt DateTime @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId, createdAt])
 }
 
 model StudentProfile {
@@ -266,6 +365,9 @@ model Donation {
   message            String?
   anonymous          Boolean        @default(false)
   donorName          String?
+  /// Optional self-declared donor country, used only for the school dashboard's
+  /// donor-geography breakdown (E8). Never required, never PII-linked.
+  donorCountry       String?
   recurringPledgeId  String?
   tributeType        TributeType?
   tributeName        String?

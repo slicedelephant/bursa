@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createOnboardingToken } from '../src/schools/onboarding-token';
 
 const prisma = new PrismaClient();
 
@@ -379,11 +380,31 @@ async function clearDatabase(): Promise<void> {
   await prisma.donation.deleteMany();
   await prisma.recurringPledge.deleteMany();
   await prisma.admissionVerification.deleteMany();
+  // E8 (delete before campaign/school/user)
+  await prisma.schoolWebhookEvent.deleteMany();
+  await prisma.schoolOnboardingToken.deleteMany();
+  await prisma.admissionRecord.deleteMany();
+  await prisma.schoolAdmin.deleteMany();
   await prisma.campaign.deleteMany();
   await prisma.studentProfile.deleteMany();
   await prisma.corporateProfile.deleteMany();
   await prisma.school.deleteMany();
   await prisma.user.deleteMany();
+}
+
+// E8: deterministic donor-country attribution for the school dashboard geography.
+const DONOR_COUNTRIES = [
+  'Germany',
+  'United States',
+  'United Kingdom',
+  'France',
+  'Nigeria',
+  'Kenya',
+];
+function donorCountryFor(name: string): string {
+  let sum = 0;
+  for (const ch of name) sum += ch.charCodeAt(0);
+  return DONOR_COUNTRIES[sum % DONOR_COUNTRIES.length];
 }
 
 async function main(): Promise<void> {
@@ -407,10 +428,23 @@ async function main(): Promise<void> {
         country: s.country,
         city: s.city,
         website: s.website,
+        slug: s.key,
         payoutVerified: s.verified,
         payoutAccountRef: s.verified
           ? `DE89 3704 ${Math.floor(1000 + Math.random() * 8999)} ${s.key.toUpperCase()}`
           : null,
+        // E8: verified schools are fully self-serve-onboarded (ACTIVE); the
+        // unverified one (RSM) gets a hosted onboarding link below.
+        onboardingStatus: s.verified ? 'ACTIVE' : 'NOT_STARTED',
+        bankAccountName: s.verified ? `${s.name} gGmbH` : null,
+        iban: s.verified ? 'DE89370400440532013000' : null,
+        bic: s.verified ? 'COBADEFFXXX' : null,
+        taxId: s.verified ? `DE-${s.key.toUpperCase()}-TAX` : null,
+        contactName: s.verified ? 'School Bursar' : null,
+        contactEmail: s.verified ? `bursar@${s.key}.test` : null,
+        agreementSignedAt: s.verified ? new Date() : null,
+        agreementSignerName: s.verified ? 'School Bursar' : null,
+        agreementRef: s.verified ? `mock_esign_seed_${s.key}` : null,
       },
     });
     schoolByKey[s.key] = created.id;
@@ -449,6 +483,19 @@ async function main(): Promise<void> {
       sector: 'Venture Capital',
       contactName: 'Jordan Reyes',
     },
+  });
+
+  // E8: a school-admin for ESMT Berlin (self-serve portal demo account).
+  const schoolAdminUser = await prisma.user.create({
+    data: {
+      email: 'schooladmin@bursa.test',
+      passwordHash,
+      displayName: 'ESMT Berlin Admin',
+      role: 'SCHOOL_ADMIN',
+    },
+  });
+  await prisma.schoolAdmin.create({
+    data: { userId: schoolAdminUser.id, schoolId: schoolByKey['esmt'] },
   });
   // Generate portraits (batched concurrency; one-off seed)
   console.log('Generating portraits…');
@@ -541,6 +588,7 @@ async function main(): Promise<void> {
           message: d.message,
           anonymous: d.anonymous ?? false,
           donorName: d.anonymous ? null : d.name,
+          donorCountry: donorCountryFor(d.name),
         },
       });
     }
@@ -832,9 +880,45 @@ async function main(): Promise<void> {
     `Created observability funnel demo data (${funnelEvents.length} events).`,
   );
 
+  // --------------------------------------------------------------------------
+  // E8 — School portal demo data for schooladmin@bursa.test (ESMT Berlin):
+  // imported admission list (verified + pending), a webhook event log, and a
+  // hosted onboarding link for the not-yet-onboarded school (RSM).
+  // --------------------------------------------------------------------------
+  const esmtId = schoolByKey['esmt'];
+  await prisma.admissionRecord.createMany({
+    data: [
+      { schoolId: esmtId, studentEmail: 'amara@bursa.test', studentName: 'Amara Okonkwo', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-AMARA-OKONKWO', status: 'VERIFIED', reviewedById: schoolAdminUser.id, reviewedAt: new Date() },
+      { schoolId: esmtId, studentEmail: 'aisha@bursa.test', studentName: 'Aisha Bello', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-AISHA-BELLO', status: 'VERIFIED', reviewedById: schoolAdminUser.id, reviewedAt: new Date() },
+      { schoolId: esmtId, studentEmail: 'grace@students.bursa.test', studentName: 'Grace Achieng', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-GRACE-ACHIENG', status: 'VERIFIED', reviewedById: schoolAdminUser.id, reviewedAt: new Date() },
+      { schoolId: esmtId, studentEmail: 'noor@students.bursa.test', studentName: 'Noor Hassan', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-NOOR-HASSAN', status: 'PENDING' },
+      { schoolId: esmtId, studentEmail: 'david@students.bursa.test', studentName: 'David Kone', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-DAVID-KONE', status: 'PENDING' },
+    ],
+    skipDuplicates: true,
+  });
+
+  const nowIso = new Date().toISOString();
+  await prisma.schoolWebhookEvent.createMany({
+    data: [
+      { schoolId: esmtId, type: 'student.reported', status: 'LOGGED', payload: { type: 'student.reported', schoolId: esmtId, occurredAt: nowIso, data: { studentName: 'Aisha Bello', admissionRef: 'ADM-AISHA-BELLO', status: 'VERIFIED' } } },
+      { schoolId: esmtId, type: 'campaign.approved', status: 'LOGGED', payload: { type: 'campaign.approved', schoolId: esmtId, occurredAt: nowIso, data: { title: 'Closing the SME credit gap', goalCents: eur(40000) } } },
+    ],
+  });
+
+  const rsmToken = createOnboardingToken();
+  await prisma.schoolOnboardingToken.create({
+    data: {
+      schoolId: schoolByKey['rsm'],
+      tokenHash: rsmToken.tokenHash,
+      expiresAt: rsmToken.expiresAt,
+    },
+  });
+  console.log('Created E8 school-portal demo data (admissions, webhooks, onboarding link).');
+  console.log(`  Hosted onboarding demo (RSM): /school/onboarding/${rsmToken.token}`);
+
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(
-    '  admin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test',
+    '  admin@bursa.test · schooladmin@bursa.test · sponsor@acme.test · donor@bursa.test · amara@bursa.test',
   );
   console.log('Done.');
 }
