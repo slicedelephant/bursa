@@ -35,6 +35,16 @@ import {
   StudentProfile,
   SubscriptionItem,
   TributeType,
+  AdmissionImportResult,
+  AdmissionRecord,
+  OnboardingCompleteResult,
+  OnboardingTokenState,
+  PayoutFormBody,
+  SchoolCampaignForApproval,
+  SchoolDashboard,
+  SchoolPortalProfile,
+  SchoolWebhookLogItem,
+  VerificationStatus,
 } from './models';
 
 export interface TrackEventBody {
@@ -451,4 +461,95 @@ export class ApiService {
       ),
     );
   }
+
+  // ---- E8: School Self-Serve Portal ----
+  schoolMe(): Observable<SchoolPortalProfile> {
+    return this.unwrap(this.http.get<Envelope<SchoolPortalProfile>>(`${API_BASE}/school/me`));
+  }
+
+  schoolDashboard(): Observable<SchoolDashboard> {
+    return this.unwrap(this.http.get<Envelope<SchoolDashboard>>(`${API_BASE}/school/dashboard`));
+  }
+
+  schoolSavePayout(body: PayoutFormBody): Observable<SchoolProfileRaw> {
+    return this.unwrap(this.http.put<Envelope<SchoolProfileRaw>>(`${API_BASE}/school/payout`, body));
+  }
+
+  schoolSignAgreement(body: { signerName: string }): Observable<SchoolProfileRaw> {
+    return this.unwrap(
+      this.http.post<Envelope<SchoolProfileRaw>>(`${API_BASE}/school/agreement/sign`, body),
+    );
+  }
+
+  schoolImportAdmissions(csv: string): Observable<AdmissionImportResult> {
+    return this.unwrap(
+      this.http.post<Envelope<AdmissionImportResult>>(`${API_BASE}/school/admissions/import`, { csv }),
+    );
+  }
+
+  schoolAdmissions(status?: VerificationStatus): Observable<AdmissionRecord[]> {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    return this.unwrap(
+      this.http.get<Envelope<AdmissionRecord[]>>(`${API_BASE}/school/admissions`, { params }),
+    );
+  }
+
+  schoolVerifyAdmission(id: string): Observable<AdmissionRecord> {
+    return this.unwrap(
+      this.http.post<Envelope<AdmissionRecord>>(`${API_BASE}/school/admissions/${id}/verify`, {}),
+    );
+  }
+
+  schoolRejectAdmission(id: string, note: string): Observable<AdmissionRecord> {
+    return this.unwrap(
+      this.http.post<Envelope<AdmissionRecord>>(`${API_BASE}/school/admissions/${id}/reject`, { note }),
+    );
+  }
+
+  schoolCampaigns(): Observable<SchoolCampaignForApproval[]> {
+    return this.unwrap(
+      this.http.get<Envelope<SchoolCampaignForApproval[]>>(`${API_BASE}/school/campaigns`),
+    );
+  }
+
+  schoolApproveCampaign(id: string): Observable<OwnerCampaign> {
+    return this.unwrap(
+      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/school/campaigns/${id}/approve`, {}),
+    );
+  }
+
+  schoolRejectCampaign(id: string, note: string): Observable<OwnerCampaign> {
+    return this.unwrap(
+      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/school/campaigns/${id}/reject`, { note }),
+    );
+  }
+
+  schoolWebhooks(): Observable<SchoolWebhookLogItem[]> {
+    return this.unwrap(
+      this.http.get<Envelope<SchoolWebhookLogItem[]>>(`${API_BASE}/school/webhooks`),
+    );
+  }
+
+  // Hosted onboarding flow (public, token-gated).
+  onboardingState(token: string): Observable<OnboardingTokenState> {
+    return this.unwrap(
+      this.http.get<Envelope<OnboardingTokenState>>(`${API_BASE}/school/onboarding/${token}`),
+    );
+  }
+
+  completeOnboarding(
+    token: string,
+    body: PayoutFormBody & { signerName: string },
+  ): Observable<OnboardingCompleteResult> {
+    return this.unwrap(
+      this.http.post<Envelope<OnboardingCompleteResult>>(
+        `${API_BASE}/school/onboarding/${token}/complete`,
+        body,
+      ),
+    );
+  }
 }
+
+/** Raw school row returned by payout/agreement mutations (not the portal envelope). */
+type SchoolProfileRaw = School & { onboardingStatus: string; payoutVerified: boolean };

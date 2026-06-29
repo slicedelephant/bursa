@@ -1,6 +1,6 @@
 // API response models for Bursa (mirror specs/001-bursa-funding-platform/contracts/api.md).
 
-export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN';
+export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
   'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
@@ -448,4 +448,128 @@ export interface HealthReport {
   status: 'ok' | 'degraded';
   uptimeSeconds: number;
   checks: { db: boolean };
+}
+
+// ---- E8: School Self-Serve Portal & Partner Onboarding ----
+
+export type SchoolOnboardingStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED' | 'ACTIVE';
+export type StudentPayoutStatus = 'NONE' | 'AWAITING_FUNDING' | 'READY' | 'SENT' | 'CONFIRMED';
+
+export interface SchoolProfile {
+  id: string;
+  name: string;
+  country: string;
+  city?: string | null;
+  website?: string | null;
+  logoUrl?: string | null;
+  slug?: string | null;
+  onboardingStatus: SchoolOnboardingStatus;
+  payoutVerified: boolean;
+  bankAccountName?: string | null;
+  ibanMasked?: string | null;
+  bic?: string | null;
+  taxId?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+}
+
+export interface OnboardingChecklistStep {
+  key: string;
+  label: string;
+  done: boolean;
+}
+
+export interface SchoolPortalProfile {
+  school: SchoolProfile;
+  onboarding: {
+    status: SchoolOnboardingStatus;
+    progressPct: number;
+    checklist: OnboardingChecklistStep[];
+    agreementSignedAt?: string | null;
+    agreementSignerName?: string | null;
+  };
+}
+
+export interface PayoutFormBody {
+  bankAccountName: string;
+  iban: string;
+  bic?: string;
+  taxId: string;
+  contactName: string;
+  contactEmail: string;
+}
+
+export interface AdmissionRecord {
+  id: string;
+  schoolId: string;
+  studentEmail: string;
+  studentName: string;
+  programName: string;
+  admissionRef: string;
+  status: VerificationStatus;
+  note?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+}
+
+export interface AdmissionImportResult {
+  imported: number;
+  duplicates: number;
+  errors: { line: number; message: string }[];
+}
+
+export interface SchoolDashboardStudent {
+  campaignId: string;
+  studentName: string;
+  title: string;
+  goalCents: number;
+  raisedCents: number;
+  progressPct: number;
+  payoutStatus: StudentPayoutStatus;
+}
+
+export interface SchoolDashboard {
+  totals: {
+    totalStudents: number;
+    liveCampaigns: number;
+    fundedCampaigns: number;
+    totalGoalCents: number;
+    totalRaisedCents: number;
+    totalPaidOutCents: number;
+    pendingPayoutCents: number;
+  };
+  students: SchoolDashboardStudent[];
+  donorGeography: { country: string; donationCount: number; amountCents: number }[];
+}
+
+export interface SchoolCampaignForApproval {
+  id: string;
+  title: string;
+  programName: string;
+  goalCents: number;
+  status: CampaignStatus;
+  createdAt: string;
+  studentProfile?: { fullName: string; country: string } | null;
+  verification?: { status: VerificationStatus } | null;
+}
+
+export interface SchoolWebhookLogItem {
+  id: string;
+  type: string;
+  status: string;
+  payload: unknown;
+  createdAt: string;
+}
+
+export interface OnboardingTokenState {
+  schoolId: string;
+  schoolName: string;
+  country: string;
+  onboardingStatus: SchoolOnboardingStatus;
+}
+
+export interface OnboardingCompleteResult {
+  schoolId: string;
+  schoolName: string;
+  onboardingStatus: SchoolOnboardingStatus;
 }

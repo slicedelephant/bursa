@@ -57,5 +57,17 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),
   },
+  {
+    // Public hosted onboarding flow (token-gated) — declared before /school.
+    path: 'school/onboarding/:token',
+    loadComponent: () =>
+      import('./features/school/onboarding.page').then((m) => m.SchoolOnboardingPage),
+  },
+  {
+    path: 'school',
+    canActivate: [authGuard],
+    data: { roles: ['SCHOOL_ADMIN'] },
+    loadComponent: () => import('./features/school/school.page').then((m) => m.SchoolPage),
+  },
   { path: '**', redirectTo: 'campaigns' },
 ];

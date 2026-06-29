@@ -279,5 +279,24 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E8 — School Self-Serve Portal (pure helpers, held to >= 80%).
+    './src/app/features/school/onboarding-progress.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/school/admission-status.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/school/school-dashboard-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };
