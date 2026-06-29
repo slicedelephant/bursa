@@ -4,7 +4,11 @@
 
 ## Freigabe-Status (Stand 29.06.2026)
 
-- **Welle A (E8, E9, E10): FREIGEGEBEN** -> bereit fuer spec-kit-Dev-Flow (je Epic ein Agent, alle Schritte, Report an Main-Thread).
+- **Welle A (E8, E9, E10): UMGESETZT und gemerged** -> autonom ueber spec-kit gebaut, je Epic ein Agent + eigener PR.
+  - E8 School-Self-Serve-Portal: branch `009-school-portal`, PR #8, gemerged (API 440 / Web 238 Tests).
+  - E9 Trust-and-Safety Console: branch `010-trust-safety`, PR #9, gemerged (API 548 / Web 252 Tests).
+  - E10 AI Fundraising Coach: branch `011-ai-coach`, PR #10, gemerged (API 620 / Web 270 Tests).
+  - Finaler `main` (e8c8a16): beide Builds gruen, Seed laeuft, alle Migrationen sauber.
 - **Welle B (E11-E17): zurueckgestellt** -> Neubewertung nach Welle A.
 - **Welle C (E18-E21): zurueckgestellt** -> XL-Brocken (E11/E19/E20) erst nach Kapazitaetsklaerung.
 
