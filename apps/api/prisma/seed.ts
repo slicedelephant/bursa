@@ -377,6 +377,9 @@ async function clearDatabase(): Promise<void> {
   await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
   await prisma.payout.deleteMany();
+  // E10 (delete before user — cascade off User, but explicit for clarity)
+  await prisma.aiGeneration.deleteMany();
+  await prisma.aiTokenBudget.deleteMany();
   // E9 (delete before campaign/donation/user — soft refs + campaign cascade)
   await prisma.fraudSignal.deleteMany();
   await prisma.chargeback.deleteMany();
@@ -521,6 +524,7 @@ async function main(): Promise<void> {
   // Students + campaigns
   let liveCount = 0;
   const campaignBySlug: Record<string, string> = {};
+  const userIdBySlug: Record<string, string> = {};
   for (const st of STUDENTS) {
     const user = await prisma.user.create({
       data: {
@@ -562,6 +566,7 @@ async function main(): Promise<void> {
       },
     });
     campaignBySlug[st.slug] = campaign.id;
+    userIdBySlug[st.slug] = user.id;
 
     // Verification
     await prisma.admissionVerification.create({
@@ -650,6 +655,29 @@ async function main(): Promise<void> {
   console.log(
     `Created ${STUDENTS.length} students/campaigns (${liveCount} live).`,
   );
+
+  // E10 — AI Fundraising Coach: give the demo student a visible token budget so
+  // the coach panel in the wizard shows remaining tokens out of the box. A
+  // little usage is pre-recorded so the counter is non-zero.
+  const amaraUserId = userIdBySlug['amara-okonkwo'];
+  if (amaraUserId) {
+    await prisma.aiTokenBudget.create({
+      data: {
+        userId: amaraUserId,
+        limitTokens: 20000,
+        usedTokens: 1200,
+        generations: 3,
+      },
+    });
+    await prisma.aiGeneration.createMany({
+      data: [
+        { userId: amaraUserId, kind: 'TITLE', locale: 'en', provider: 'mock', tokensCharged: 400, variantCount: 3 },
+        { userId: amaraUserId, kind: 'STORY', locale: 'en', provider: 'mock', tokensCharged: 600, variantCount: 2 },
+        { userId: amaraUserId, kind: 'SHARE', channel: 'whatsapp', locale: 'en', provider: 'mock', tokensCharged: 200, variantCount: 3 },
+      ],
+    });
+    console.log('Created E10 AI-coach demo data (token budget + generation log for amara).');
+  }
 
   // --------------------------------------------------------------------------
   // E4 — Donor Retention demo data for donor@bursa.test

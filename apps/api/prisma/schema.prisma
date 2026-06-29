@@ -166,6 +166,13 @@ enum FlagStatus {
   DISMISSED
 }
 
+/// E10 AI Coach: which kind of text a coach generation produced.
+enum AiGenerationKind {
+  TITLE
+  STORY
+  SHARE
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -198,6 +205,10 @@ model User {
   fraudSignals      FraudSignal[]    @relation("DonorFraud")
   moderationReviews ModerationCase[] @relation("ModerationReviewer")
   campaignFlags     CampaignFlag[]   @relation("FlagReporter")
+
+  // ---- E10: AI fundraising coach (per-user token budget + generation log) ----
+  aiTokenBudget AiTokenBudget?
+  aiGenerations AiGeneration[]
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -674,4 +685,39 @@ model CampaignFlag {
 
   @@index([campaignId, createdAt])
   @@index([status])
+}
+
+/// E10 AI Coach: per-user AI token budget. A simple counter (estimated tokens),
+/// NOT real billing — it just stops any one user from running unbounded
+/// generations. Anchored to User; never touches the money path.
+model AiTokenBudget {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  limitTokens Int      @default(20000)
+  usedTokens  Int      @default(0)
+  generations Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// E10 AI Coach: a thin, optional log of a coach generation (traceability /
+/// analytics). Soft reference to the user; never touches the money path.
+model AiGeneration {
+  id            String           @id @default(cuid())
+  userId        String
+  kind          AiGenerationKind
+  channel       String?
+  locale        String
+  provider      String
+  tokensCharged Int
+  variantCount  Int
+  createdAt     DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

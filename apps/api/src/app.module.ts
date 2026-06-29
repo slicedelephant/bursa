@@ -17,6 +17,7 @@ import { CorporateModule } from './corporate/corporate.module';
 import { SecurityModule } from './security/security.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { TrustSafetyModule } from './trust-safety/trust-safety.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { TrustSafetyModule } from './trust-safety/trust-safety.module';
     SecurityModule,
     ObservabilityModule,
     TrustSafetyModule,
+    AiModule,
   ],
 })
 export class AppModule {}
