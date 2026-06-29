@@ -10,8 +10,9 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
-import { School } from '../../core/models';
+import { AiStoryParts, School } from '../../core/models';
 import { CampaignVideoComponent } from '../campaign/campaign-video.component';
+import { AiCoachPanelComponent } from './ai-coach-panel.component';
 import {
   STORY_PROMPTS,
   composeStory,
@@ -33,7 +34,7 @@ import {
 @Component({
   selector: 'app-student-campaign-wizard',
   standalone: true,
-  imports: [FormsModule, MoneyPipe, CampaignVideoComponent],
+  imports: [FormsModule, MoneyPipe, CampaignVideoComponent, AiCoachPanelComponent],
   template: `
     <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
       <div class="mb-6">
@@ -125,6 +126,19 @@ import {
               Add a little more — your story needs at least a couple of sentences.
             </p>
           }
+
+          <div class="mt-5">
+            <app-ai-coach-panel
+              [country]="''"
+              [school]="schoolName()"
+              [program]="programName()"
+              [goalEur]="goalEur() ?? 0"
+              [currentTitle]="title()"
+              [currentBackground]="background()"
+              (applyTitle)="onApplyTitle($event)"
+              (applyStory)="onApplyStory($event)"
+            />
+          </div>
         }
 
         @case (3) {
@@ -221,6 +235,11 @@ export class CampaignWizardComponent implements OnInit {
       this.goalCents() >= 1000,
   );
 
+  /** Resolve the selected school's name for the coach context (best-effort). */
+  readonly schoolName = computed(
+    () => this.schools().find((s) => s.id === this.schoolId())?.name ?? '',
+  );
+
   readonly storyParts = computed(() => ({
     background: this.background(),
     challenge: this.challenge(),
@@ -289,6 +308,18 @@ export class CampaignWizardComponent implements OnInit {
 
   setStory(key: 'background' | 'challenge' | 'vision', value: string): void {
     this[key].set(value);
+  }
+
+  /** Apply an AI-suggested title (deliberate user action, never automatic). */
+  onApplyTitle(title: string): void {
+    this.title.set(title);
+  }
+
+  /** Apply an AI-suggested story draft into the three guided parts. */
+  onApplyStory(parts: AiStoryParts): void {
+    if (parts.background) this.background.set(parts.background);
+    if (parts.challenge) this.challenge.set(parts.challenge);
+    if (parts.vision) this.vision.set(parts.vision);
   }
 
   next(): void {

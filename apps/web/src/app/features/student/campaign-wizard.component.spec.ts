@@ -18,6 +18,19 @@ function setup(createImpl = of({ id: 'c1' })) {
   const api = {
     listSchools: jest.fn().mockReturnValue(of([school])),
     createCampaign: jest.fn().mockReturnValue(createImpl),
+    // E10: the embedded AI coach panel reads the budget on init.
+    aiBudget: jest.fn().mockReturnValue(
+      of({
+        limitTokens: 20000,
+        usedTokens: 0,
+        remainingTokens: 20000,
+        generations: 0,
+        exhausted: false,
+      }),
+    ),
+    aiTitle: jest.fn(),
+    aiStory: jest.fn(),
+    aiShare: jest.fn(),
   };
   TestBed.configureTestingModule({
     imports: [CampaignWizardComponent],
@@ -173,5 +186,43 @@ describe('CampaignWizardComponent', () => {
     comp.create();
     expect(comp.error()).toBe('Boom');
     expect(comp.submitting()).toBe(false);
+  });
+
+  it('resolves the selected school name for the coach context', () => {
+    const { comp } = setup();
+    comp.schoolId.set('s1');
+    expect(comp.schoolName()).toBe('ESMT Berlin');
+    comp.schoolId.set('missing');
+    expect(comp.schoolName()).toBe('');
+  });
+
+  it('applies an AI-suggested title on a deliberate action', () => {
+    const { comp } = setup();
+    comp.title.set('manual title');
+    comp.onApplyTitle('AI generated title');
+    expect(comp.title()).toBe('AI generated title');
+  });
+
+  it('applies an AI story draft into the three guided parts', () => {
+    const { comp } = setup();
+    comp.onApplyStory({
+      background: 'AI background',
+      challenge: 'AI challenge',
+      vision: 'AI vision',
+    });
+    expect(comp.background()).toBe('AI background');
+    expect(comp.challenge()).toBe('AI challenge');
+    expect(comp.vision()).toBe('AI vision');
+  });
+
+  it('never wipes existing parts with empty AI fields', () => {
+    const { comp } = setup();
+    comp.background.set('kept background');
+    comp.challenge.set('kept challenge');
+    comp.vision.set('kept vision');
+    comp.onApplyStory({ background: 'new background', challenge: '', vision: '' });
+    expect(comp.background()).toBe('new background');
+    expect(comp.challenge()).toBe('kept challenge');
+    expect(comp.vision()).toBe('kept vision');
   });
 });

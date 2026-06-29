@@ -54,6 +54,12 @@ import {
   CampaignFlagItem,
   CreateFlagBody,
   CampaignFlagResult,
+  AiBudgetView,
+  AiTitleResult,
+  AiStoryResult,
+  AiShareResult,
+  AiShareChannel,
+  CoachLocale,
 } from './models';
 
 export interface TrackEventBody {
@@ -164,6 +170,40 @@ export class ApiService {
     return this.unwrap(
       this.http.patch<Envelope<OwnerCampaign>>(`${API_BASE}/campaigns/${id}`, body),
     );
+  }
+
+  // ---- AI Fundraising Coach (E10, STUDENT) ----
+  aiBudget(): Observable<AiBudgetView> {
+    return this.unwrap(this.http.get<Envelope<AiBudgetView>>(`${API_BASE}/ai/budget`));
+  }
+
+  aiTitle(body: {
+    country: string;
+    school: string;
+    program: string;
+    motivation: string;
+    locale?: CoachLocale;
+  }): Observable<AiTitleResult> {
+    return this.unwrap(this.http.post<Envelope<AiTitleResult>>(`${API_BASE}/ai/title`, body));
+  }
+
+  aiStory(body: {
+    school: string;
+    goalEur: number;
+    motivation: string;
+    background?: string;
+    locale?: CoachLocale;
+  }): Observable<AiStoryResult> {
+    return this.unwrap(this.http.post<Envelope<AiStoryResult>>(`${API_BASE}/ai/story`, body));
+  }
+
+  aiShare(body: {
+    channel: AiShareChannel;
+    title: string;
+    story: string;
+    locale?: CoachLocale;
+  }): Observable<AiShareResult> {
+    return this.unwrap(this.http.post<Envelope<AiShareResult>>(`${API_BASE}/ai/share`, body));
   }
 
   submitCampaign(id: string, body: { admissionRef?: string }): Observable<OwnerCampaign> {

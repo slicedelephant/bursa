@@ -713,3 +713,65 @@ export interface CampaignFlagResult {
   id: string;
   status: FlagStatus;
 }
+
+// ---- E10: AI Fundraising Coach ----
+export type CoachKind = 'TITLE' | 'STORY' | 'SHARE';
+export type AiShareChannel = 'whatsapp' | 'email' | 'linkedin';
+export type CoachLocale = 'de' | 'en';
+
+export interface AiVariant {
+  text: string;
+  length: number;
+  recommended: boolean;
+}
+
+export interface AiStoryParts {
+  background: string;
+  challenge: string;
+  vision: string;
+}
+
+export interface AiStoryVariant extends AiVariant {
+  parts: AiStoryParts;
+}
+
+export interface AiBudgetView {
+  limitTokens: number;
+  usedTokens: number;
+  remainingTokens: number;
+  generations: number;
+  exhausted: boolean;
+}
+
+export interface AiBudgetDelta {
+  remainingTokens: number;
+  exhausted: boolean;
+}
+
+export interface AiTitleResult {
+  kind: 'TITLE';
+  locale: CoachLocale;
+  provider: string;
+  variants: AiVariant[];
+  recommendedIndex: number;
+  budget: AiBudgetDelta;
+}
+
+export interface AiStoryResult {
+  kind: 'STORY';
+  locale: CoachLocale;
+  provider: string;
+  variants: AiStoryVariant[];
+  recommendedIndex: number;
+  budget: AiBudgetDelta;
+}
+
+export interface AiShareResult {
+  kind: 'SHARE';
+  channel: AiShareChannel;
+  locale: CoachLocale;
+  provider: string;
+  variants: AiVariant[];
+  recommendedIndex: number;
+  budget: AiBudgetDelta;
+}
