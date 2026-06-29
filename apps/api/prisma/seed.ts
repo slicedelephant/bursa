@@ -377,6 +377,11 @@ async function clearDatabase(): Promise<void> {
   await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
   await prisma.payout.deleteMany();
+  // E9 (delete before campaign/donation/user — soft refs + campaign cascade)
+  await prisma.fraudSignal.deleteMany();
+  await prisma.chargeback.deleteMany();
+  await prisma.campaignFlag.deleteMany();
+  await prisma.moderationCase.deleteMany();
   await prisma.donation.deleteMany();
   await prisma.recurringPledge.deleteMany();
   await prisma.admissionVerification.deleteMany();
@@ -915,6 +920,181 @@ async function main(): Promise<void> {
   });
   console.log('Created E8 school-portal demo data (admissions, webhooks, onboarding link).');
   console.log(`  Hosted onboarding demo (RSM): /school/onboarding/${rsmToken.token}`);
+
+  // --------------------------------------------------------------------------
+  // E9 — Trust-and-Safety demo data so /admin/trust-safety renders: an
+  // auto-flagged moderation case, community flags, demo chargebacks (one
+  // campaign auto-frozen at 3+), fraud signals across days, a donor risk score,
+  // and two moderation audit entries (reused E6 AuditLog) for the CSV export.
+  // --------------------------------------------------------------------------
+  const e9CampaignIds = Object.values(campaignBySlug);
+  const flaggedCampaignId =
+    campaignBySlug['kwame-mensah'] ?? e9CampaignIds[0] ?? null;
+  const frozenCampaignId =
+    campaignBySlug['amara-okonkwo'] ?? e9CampaignIds[1] ?? e9CampaignIds[0] ?? null;
+  const daysAgo = (d: number): Date => new Date(Date.now() - d * 86_400_000);
+
+  if (flaggedCampaignId) {
+    await prisma.moderationCase.create({
+      data: {
+        campaignId: flaggedCampaignId,
+        status: 'OPEN',
+        riskScore: 65,
+        riskLevel: 'HIGH',
+        reasons: ['suspicious_keyword:guaranteed return', 'community_flags:2'],
+        autoFlagged: true,
+      },
+    });
+    await prisma.campaignFlag.createMany({
+      data: [
+        {
+          campaignId: flaggedCampaignId,
+          reporterUserId: donor.id,
+          reason: 'SCAM',
+          note: 'Story looks copied from another campaign.',
+        },
+        {
+          campaignId: flaggedCampaignId,
+          visitorId: 'anon-seed-1',
+          reason: 'DUPLICATE',
+          note: 'Saw an identical campaign elsewhere.',
+        },
+      ],
+    });
+    await prisma.chargeback.create({
+      data: {
+        providerEventId: 'dp_seed_4',
+        campaignId: flaggedCampaignId,
+        amountCents: 1500,
+        currency: 'EUR',
+        reason: 'duplicate',
+        status: 'OPEN',
+      },
+    });
+  }
+
+  if (frozenCampaignId && frozenCampaignId !== flaggedCampaignId) {
+    // Three chargebacks → campaign auto-frozen (mirrors the auto-freeze rule).
+    await prisma.chargeback.createMany({
+      data: [
+        {
+          providerEventId: 'dp_seed_1',
+          campaignId: frozenCampaignId,
+          amountCents: 45000,
+          currency: 'EUR',
+          reason: 'fraudulent',
+          status: 'OPEN',
+        },
+        {
+          providerEventId: 'dp_seed_2',
+          campaignId: frozenCampaignId,
+          amountCents: 38000,
+          currency: 'EUR',
+          reason: 'fraudulent',
+          status: 'EVIDENCE_SUBMITTED',
+          evidenceNote: 'Disbursement proof + receipt attached.',
+        },
+        {
+          providerEventId: 'dp_seed_3',
+          campaignId: frozenCampaignId,
+          amountCents: 2000,
+          currency: 'EUR',
+          reason: 'product_not_received',
+          status: 'REFUND_OFFERED',
+          refundOffered: true,
+        },
+      ],
+    });
+    await prisma.campaign.update({
+      where: { id: frozenCampaignId },
+      data: {
+        frozen: true,
+        frozenAt: new Date(),
+        freezeReason: 'chargeback_threshold:3',
+      },
+    });
+    await prisma.moderationCase.create({
+      data: {
+        campaignId: frozenCampaignId,
+        status: 'ESCALATED',
+        riskScore: 80,
+        riskLevel: 'CRITICAL',
+        reasons: ['chargeback_pattern', 'community_flags:1'],
+        autoFlagged: true,
+        decisionNote: 'Escalated after 3 chargebacks.',
+        reviewedById: admin.id,
+        reviewedAt: new Date(),
+      },
+    });
+  }
+
+  await prisma.fraudSignal.createMany({
+    data: [
+      {
+        kind: 'CARD_TESTING',
+        score: 55,
+        riskLevel: 'HIGH',
+        reasons: ['failed_attempts:4', 'rapid_attempts:6'],
+        donorUserId: donor.id,
+        campaignId: flaggedCampaignId,
+        createdAt: daysAgo(0),
+      },
+      {
+        kind: 'HIGH_VALUE',
+        score: 60,
+        riskLevel: 'HIGH',
+        reasons: ['high_value'],
+        donorUserId: donor.id,
+        campaignId: frozenCampaignId,
+        createdAt: daysAgo(1),
+      },
+      {
+        kind: 'VELOCITY',
+        score: 35,
+        riskLevel: 'MEDIUM',
+        reasons: ['transaction_velocity:8'],
+        donorUserId: donor.id,
+        campaignId: flaggedCampaignId,
+        createdAt: daysAgo(2),
+      },
+      {
+        kind: 'DONOR_RISK',
+        score: 20,
+        riskLevel: 'LOW',
+        reasons: ['prepaid_card'],
+        donorUserId: donor.id,
+        campaignId: frozenCampaignId,
+        createdAt: daysAgo(3),
+      },
+    ],
+  });
+
+  await prisma.user.update({
+    where: { id: donor.id },
+    data: { riskScore: 55, riskLevel: 'HIGH' },
+  });
+
+  await prisma.auditLog.createMany({
+    data: [
+      {
+        action: 'moderation.escalate',
+        actorUserId: admin.id,
+        targetType: 'Campaign',
+        targetId: frozenCampaignId,
+        metadata: { result: 'ESCALATED', note: 'Escalated after 3 chargebacks.' },
+      },
+      {
+        action: 'moderation.approve',
+        actorUserId: admin.id,
+        targetType: 'Campaign',
+        targetId: flaggedCampaignId,
+        metadata: { result: 'APPROVED', note: 'Reviewed earlier, legitimate.' },
+      },
+    ],
+  });
+  console.log(
+    'Created E9 trust-safety demo data (moderation, flags, chargebacks, fraud signals).',
+  );
 
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(

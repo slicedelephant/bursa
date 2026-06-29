@@ -16,6 +16,7 @@ import { DonorsModule } from './donors/donors.module';
 import { CorporateModule } from './corporate/corporate.module';
 import { SecurityModule } from './security/security.module';
 import { ObservabilityModule } from './observability/observability.module';
+import { TrustSafetyModule } from './trust-safety/trust-safety.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ObservabilityModule } from './observability/observability.module';
     CorporateModule,
     SecurityModule,
     ObservabilityModule,
+    TrustSafetyModule,
   ],
 })
 export class AppModule {}

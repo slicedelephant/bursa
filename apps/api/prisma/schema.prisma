@@ -122,6 +122,50 @@ enum InvoiceStatus {
   PAID
 }
 
+/// E9 Trust-and-Safety: lifecycle of a campaign moderation case. Transitions are
+/// owned by the pure `moderation-rules.ts` (`decideModeration`); REJECT freezes
+/// the campaign.
+enum ModerationStatus {
+  OPEN
+  APPROVED
+  REJECTED
+  ESCALATED
+}
+
+/// E9 Trust-and-Safety: derived risk band for a numeric score (fraud-score.ts /
+/// donor-risk.ts). Drives queue sorting and heat-map colouring.
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// E9 Trust-and-Safety: dispute lifecycle. Transitions in `chargeback-rules.ts`.
+enum ChargebackStatus {
+  OPEN
+  EVIDENCE_SUBMITTED
+  REFUND_OFFERED
+  WON
+  LOST
+}
+
+/// E9 Trust-and-Safety: reason a community member reports a campaign.
+enum FlagReason {
+  SCAM
+  DUPLICATE
+  INAPPROPRIATE
+  MISLEADING
+  OTHER
+}
+
+/// E9 Trust-and-Safety: lifecycle of a community flag.
+enum FlagStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -132,17 +176,28 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  studentProfile   StudentProfile?
-  corporateProfile CorporateProfile?
-  donations        Donation[]            @relation("DonorDonations")
-  updates          CampaignUpdate[]
-  verifications    AdmissionVerification[] @relation("VerifiedBy")
-  recurringPledges RecurringPledge[]     @relation("DonorRecurring")
-  subscriptions    UpdateSubscription[]  @relation("DonorSubscriptions")
-  notifications    Notification[]
-  auditLogs        AuditLog[]            @relation("AuditActor")
+  studentProfile     StudentProfile?
+  corporateProfile   CorporateProfile?
+  donations          Donation[]              @relation("DonorDonations")
+  updates            CampaignUpdate[]
+  verifications      AdmissionVerification[] @relation("VerifiedBy")
+  recurringPledges   RecurringPledge[]       @relation("DonorRecurring")
+  subscriptions      UpdateSubscription[]    @relation("DonorSubscriptions")
+  notifications      Notification[]
+  auditLogs          AuditLog[]              @relation("AuditActor")
   schoolAdmin        SchoolAdmin?
-  reviewedAdmissions AdmissionRecord[]  @relation("AdmissionReviewer")
+  reviewedAdmissions AdmissionRecord[]       @relation("AdmissionReviewer")
+
+  // ---- E9: trust & safety (donor account freeze + risk score) ----
+  frozen       Boolean   @default(false)
+  frozenAt     DateTime?
+  freezeReason String?
+  riskScore    Int       @default(0)
+  riskLevel    RiskLevel @default(LOW)
+
+  fraudSignals      FraudSignal[]    @relation("DonorFraud")
+  moderationReviews ModerationCase[] @relation("ModerationReviewer")
+  campaignFlags     CampaignFlag[]   @relation("FlagReporter")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -319,16 +374,24 @@ model Campaign {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  studentProfile StudentProfile         @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  school         School                 @relation(fields: [schoolId], references: [id])
-  verification   AdmissionVerification?
-  donations      Donation[]
-  updates        CampaignUpdate[]
-  payout         Payout?
+  // ---- E9: trust & safety (freeze flags; never touches the money path) ----
+  frozen       Boolean   @default(false)
+  frozenAt     DateTime?
+  freezeReason String?
+
+  studentProfile   StudentProfile         @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  school           School                 @relation(fields: [schoolId], references: [id])
+  verification     AdmissionVerification?
+  donations        Donation[]
+  updates          CampaignUpdate[]
+  payout           Payout?
   recurringPledges RecurringPledge[]
   subscriptions    UpdateSubscription[]
   notifications    Notification[]
   sponsorships     CorporateSponsorship[]
+  moderationCase   ModerationCase?
+  flags            CampaignFlag[]
+  chargebacks      Chargeback[]
 
   @@index([status])
   @@index([schoolId])
@@ -373,11 +436,13 @@ model Donation {
   tributeName        String?
   createdAt          DateTime       @default(now())
 
-  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  donorUser        User?             @relation("DonorDonations", fields: [donorUserId], references: [id])
-  corporateProfile CorporateProfile? @relation(fields: [corporateProfileId], references: [id])
-  recurringPledge  RecurringPledge?  @relation(fields: [recurringPledgeId], references: [id])
+  campaign         Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donorUser        User?                 @relation("DonorDonations", fields: [donorUserId], references: [id])
+  corporateProfile CorporateProfile?     @relation(fields: [corporateProfileId], references: [id])
+  recurringPledge  RecurringPledge?      @relation(fields: [recurringPledgeId], references: [id])
   sponsorship      CorporateSponsorship?
+  fraudSignals     FraudSignal[]
+  chargebacks      Chargeback[]
 
   @@index([campaignId])
   @@index([donorUserId])
@@ -453,15 +518,15 @@ model CorporateProfile {
 }
 
 model Payout {
-  id          String       @id @default(cuid())
-  campaignId  String       @unique
+  id          String         @id @default(cuid())
+  campaignId  String         @unique
   schoolId    String
   amountCents Int
   method      DonationMethod @default(SEPA)
   reference   String
-  status      PayoutStatus @default(PENDING)
+  status      PayoutStatus   @default(PENDING)
   proofNote   String?
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime       @default(now())
   sentAt      DateTime?
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -523,4 +588,90 @@ model Invoice {
   issuedAt      DateTime       @default(now())
 
   sponsorship CorporateSponsorship @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
+}
+
+/// E9 Trust-and-Safety: one moderation case per campaign (unique campaignId →
+/// idempotent re-scan). The auto-flag score/level/reasons come from the pure
+/// `moderation-rules.ts`; the action history lives in the reused E6 AuditLog.
+model ModerationCase {
+  id           String           @id @default(cuid())
+  campaignId   String           @unique
+  status       ModerationStatus @default(OPEN)
+  riskScore    Int              @default(0)
+  riskLevel    RiskLevel        @default(LOW)
+  reasons      Json
+  autoFlagged  Boolean          @default(false)
+  decisionNote String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  reviewedBy User?    @relation("ModerationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status, riskScore])
+}
+
+/// E9 Trust-and-Safety: a logged fraud/risk signal for a transaction or donor.
+/// Soft references (SetNull) so a deleted row never breaks the signal trail.
+model FraudSignal {
+  id          String    @id @default(cuid())
+  kind        String
+  score       Int
+  riskLevel   RiskLevel @default(LOW)
+  reasons     Json
+  donationId  String?
+  donorUserId String?
+  campaignId  String?
+  createdAt   DateTime  @default(now())
+
+  donation  Donation? @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  donorUser User?     @relation("DonorFraud", fields: [donorUserId], references: [id], onDelete: SetNull)
+
+  @@index([donorUserId, createdAt])
+  @@index([kind, createdAt])
+  @@index([campaignId])
+}
+
+/// E9 Trust-and-Safety: a dispute fed by a (mocked) Stripe chargeback webhook
+/// event. Idempotent over providerEventId; never triggers a real refund.
+model Chargeback {
+  id              String           @id @default(cuid())
+  providerEventId String           @unique
+  donationId      String?
+  campaignId      String?
+  amountCents     Int
+  currency        String           @default("EUR")
+  reason          String
+  status          ChargebackStatus @default(OPEN)
+  evidenceNote    String?
+  refundOffered   Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  donation Donation? @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([campaignId])
+}
+
+/// E9 Trust-and-Safety: a community report from the campaign page. Optionally
+/// anonymous (visitorId, no PII/IP); raises the moderation risk score in bulk.
+model CampaignFlag {
+  id             String     @id @default(cuid())
+  campaignId     String
+  reporterUserId String?
+  visitorId      String?
+  reason         FlagReason @default(OTHER)
+  note           String?
+  status         FlagStatus @default(OPEN)
+  createdAt      DateTime   @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  reporter User?    @relation("FlagReporter", fields: [reporterUserId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId, createdAt])
+  @@index([status])
 }
