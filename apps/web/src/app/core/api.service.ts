@@ -45,6 +45,15 @@ import {
   SchoolPortalProfile,
   SchoolWebhookLogItem,
   VerificationStatus,
+  TrustDashboardData,
+  TrustHeatMap,
+  ModerationCaseItem,
+  ModerationDecisionBody,
+  ChargebackItem,
+  FraudSignalItem,
+  CampaignFlagItem,
+  CreateFlagBody,
+  CampaignFlagResult,
 } from './models';
 
 export interface TrackEventBody {
@@ -545,6 +554,103 @@ export class ApiService {
     return this.unwrap(
       this.http.post<Envelope<OnboardingCompleteResult>>(
         `${API_BASE}/school/onboarding/${token}/complete`,
+        body,
+      ),
+    );
+  }
+
+  // ---- E9: Trust & Safety Operations Console ----
+  trustDashboard(): Observable<TrustDashboardData> {
+    return this.unwrap(
+      this.http.get<Envelope<TrustDashboardData>>(`${API_BASE}/trust-safety/dashboard`),
+    );
+  }
+
+  trustHeatMap(): Observable<TrustHeatMap> {
+    return this.unwrap(
+      this.http.get<Envelope<TrustHeatMap>>(`${API_BASE}/trust-safety/heat-map`),
+    );
+  }
+
+  trustModeration(status?: string): Observable<ModerationCaseItem[]> {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    return this.unwrap(
+      this.http.get<Envelope<ModerationCaseItem[]>>(`${API_BASE}/trust-safety/moderation`, {
+        params,
+      }),
+    );
+  }
+
+  trustScanCampaign(campaignId: string): Observable<unknown> {
+    return this.unwrap(
+      this.http.post<Envelope<unknown>>(
+        `${API_BASE}/trust-safety/campaigns/${campaignId}/scan`,
+        {},
+      ),
+    );
+  }
+
+  trustDecideModeration(id: string, body: ModerationDecisionBody): Observable<unknown> {
+    return this.unwrap(
+      this.http.post<Envelope<unknown>>(`${API_BASE}/trust-safety/moderation/${id}/decide`, body),
+    );
+  }
+
+  trustChargebacks(status?: string): Observable<ChargebackItem[]> {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    return this.unwrap(
+      this.http.get<Envelope<ChargebackItem[]>>(`${API_BASE}/trust-safety/chargebacks`, {
+        params,
+      }),
+    );
+  }
+
+  trustSubmitEvidence(id: string, note: string): Observable<ChargebackItem> {
+    return this.unwrap(
+      this.http.post<Envelope<ChargebackItem>>(
+        `${API_BASE}/trust-safety/chargebacks/${id}/evidence`,
+        { note },
+      ),
+    );
+  }
+
+  trustOfferRefund(id: string): Observable<ChargebackItem> {
+    return this.unwrap(
+      this.http.post<Envelope<ChargebackItem>>(
+        `${API_BASE}/trust-safety/chargebacks/${id}/offer-refund`,
+        {},
+      ),
+    );
+  }
+
+  trustFraudSignals(query: { donorUserId?: string; kind?: string } = {}): Observable<
+    FraudSignalItem[]
+  > {
+    let params = new HttpParams();
+    for (const [k, v] of Object.entries(query)) {
+      if (v) params = params.set(k, v);
+    }
+    return this.unwrap(
+      this.http.get<Envelope<FraudSignalItem[]>>(`${API_BASE}/trust-safety/fraud-signals`, {
+        params,
+      }),
+    );
+  }
+
+  trustFlags(status?: string): Observable<CampaignFlagItem[]> {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    return this.unwrap(
+      this.http.get<Envelope<CampaignFlagItem[]>>(`${API_BASE}/trust-safety/flags`, { params }),
+    );
+  }
+
+  flagCampaign(campaignId: string, body: CreateFlagBody): Observable<CampaignFlagResult> {
+    return this.unwrap(
+      this.http.post<Envelope<CampaignFlagResult>>(
+        `${API_BASE}/campaigns/${campaignId}/flags`,
         body,
       ),
     );

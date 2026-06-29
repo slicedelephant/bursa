@@ -53,6 +53,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/trust-safety',
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./features/admin/trust-safety/trust-safety.page').then(
+        (m) => m.TrustSafetyPage,
+      ),
+  },
+  {
     path: 'account',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),

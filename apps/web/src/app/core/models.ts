@@ -573,3 +573,143 @@ export interface OnboardingCompleteResult {
   schoolName: string;
   onboardingStatus: SchoolOnboardingStatus;
 }
+
+// ---- E9: Trust-and-Safety Operations Console ----
+
+export type TrustRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type ModerationStatus = 'OPEN' | 'APPROVED' | 'REJECTED' | 'ESCALATED';
+export type ChargebackStatus =
+  | 'OPEN'
+  | 'EVIDENCE_SUBMITTED'
+  | 'REFUND_OFFERED'
+  | 'WON'
+  | 'LOST';
+export type FlagReason =
+  | 'SCAM'
+  | 'DUPLICATE'
+  | 'INAPPROPRIATE'
+  | 'MISLEADING'
+  | 'OTHER';
+export type FlagStatus = 'OPEN' | 'REVIEWED' | 'DISMISSED';
+export type ModerationAction = 'APPROVE' | 'REJECT' | 'ESCALATE';
+
+export interface ModerationCaseItem {
+  id: string;
+  campaignId: string;
+  campaignTitle: string | null;
+  campaignFrozen?: boolean;
+  status: ModerationStatus;
+  riskScore: number;
+  riskLevel: TrustRiskLevel;
+  reasons: string[];
+  autoFlagged: boolean;
+  decisionNote?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+}
+
+export interface ChargebackItem {
+  id: string;
+  providerEventId: string;
+  campaignId?: string | null;
+  donationId?: string | null;
+  amountCents: number;
+  currency: string;
+  reason: string;
+  status: ChargebackStatus;
+  evidenceNote?: string | null;
+  refundOffered: boolean;
+  createdAt: string;
+}
+
+export interface FraudSignalItem {
+  id: string;
+  kind: string;
+  score: number;
+  riskLevel: TrustRiskLevel;
+  reasons: string[];
+  donorUserId?: string | null;
+  campaignId?: string | null;
+  createdAt: string;
+}
+
+export interface CampaignFlagItem {
+  id: string;
+  campaignId: string;
+  reason: FlagReason;
+  note?: string | null;
+  status: FlagStatus;
+  reporterUserId?: string | null;
+  visitorId?: string | null;
+  createdAt: string;
+}
+
+export interface TrustCountRow {
+  key: string;
+  count: number;
+}
+
+export interface TrustTrendPoint {
+  date: string;
+  count: number;
+}
+
+export interface TrustDashboardData {
+  fraud: {
+    totalSignals: number;
+    highRiskSignals: number;
+    byKind: TrustCountRow[];
+    trend: TrustTrendPoint[];
+  };
+  chargebacks: {
+    open: number;
+    total: number;
+    chargebackRatePct: number;
+    refundOffered: number;
+    byStatus: TrustCountRow[];
+  };
+  moderation: {
+    backlog: number;
+    openCases: number;
+    escalated: number;
+    byLevel: TrustCountRow[];
+  };
+  flags: {
+    open: number;
+    total: number;
+    byReason: TrustCountRow[];
+  };
+  frozen: {
+    campaigns: number;
+    donors: number;
+  };
+}
+
+export interface HeatMapRowItem {
+  country: string;
+  donationCount: number;
+  signalCount: number;
+  chargebackCount: number;
+  riskScore: number;
+  riskLevel: TrustRiskLevel;
+}
+
+export interface TrustHeatMap {
+  rows: HeatMapRowItem[];
+}
+
+export interface CreateFlagBody {
+  reason: FlagReason;
+  note?: string;
+  visitorId?: string;
+}
+
+export interface ModerationDecisionBody {
+  action: ModerationAction;
+  note: string;
+}
+
+export interface CampaignFlagResult {
+  id: string;
+  status: FlagStatus;
+}

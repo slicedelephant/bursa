@@ -298,5 +298,24 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E9 — Trust-and-Safety console (pure helpers, held to >= 80%).
+    './src/app/features/admin/trust-safety/risk-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/trust-safety/moderation-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/trust-safety/chargeback-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

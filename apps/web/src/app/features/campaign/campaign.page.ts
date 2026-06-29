@@ -8,6 +8,7 @@ import { CampaignDetail, CorporateSponsorshipResult, DonationResult } from '../.
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
 import { CorporateSponsorBoxComponent } from '../corporate/corporate-sponsor-box.component';
 import { RecognitionBannerComponent } from '../corporate/recognition-banner.component';
+import { CampaignFlagComponent } from './campaign-flag.component';
 import { CampaignProgressComponent } from './campaign-progress.component';
 import { CampaignVideoComponent } from './campaign-video.component';
 import { DonateCardComponent, DonationSuccess } from './donate-card.component';
@@ -33,6 +34,7 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
     RecentDonorsComponent,
     TrustPanelComponent,
     PayoutProofComponent,
+    CampaignFlagComponent,
   ],
   template: `
     <section class="mx-auto max-w-6xl px-4 py-10">
@@ -178,6 +180,10 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
                     : ''
                 "
               />
+
+              <div class="px-1">
+                <app-campaign-flag [campaignId]="c.id" />
+              </div>
             </div>
           </div>
         </div>
