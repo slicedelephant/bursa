@@ -7,6 +7,7 @@ import { donateStartEvent, donateSuccessEvent } from '../../core/funnel-events';
 import { MoneyPipe } from '../../core/money.pipe';
 import { DonationResult, PublicDonation, TributeType } from '../../core/models';
 import { tributeLine } from '../donor/tribute-display';
+import { MatchOfferComponent } from '../matching/match-offer.component';
 
 /** Emitted when a card donation succeeds: the server result plus an optimistic donor row. */
 export interface DonationSuccess {
@@ -17,7 +18,7 @@ export interface DonationSuccess {
 @Component({
   selector: 'app-donate-card',
   standalone: true,
-  imports: [FormsModule, MoneyPipe],
+  imports: [FormsModule, MoneyPipe, MatchOfferComponent],
   template: `
     <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
       @if (success()) {
@@ -55,6 +56,16 @@ export interface DonationSuccess {
             Make another donation
           </button>
         </div>
+
+        @if (lastDonationId()) {
+          <div class="mt-6">
+            <app-match-offer
+              [campaignId]="campaignId"
+              [donationId]="lastDonationId()!"
+              [donationCents]="lastAmountCents()"
+            />
+          </div>
+        }
       } @else {
         <h3 class="font-display text-lg font-semibold text-ink">Make a donation</h3>
         <p class="mt-1 text-sm text-slate2">Every euro goes towards tuition.</p>
@@ -249,6 +260,8 @@ export class DonateCardComponent {
   readonly success = signal(false);
   readonly startedMonthly = signal(false);
   readonly lastAmountCents = signal(0);
+  /** The committed donation id, used to offer an employer match (card gifts only). */
+  readonly lastDonationId = signal<string | null>(null);
 
   isDonor(): boolean {
     return this.auth.role() === 'DONOR';
@@ -316,6 +329,7 @@ export class DonateCardComponent {
         next: (result) => {
           this.submitting.set(false);
           this.lastAmountCents.set(amountCents);
+          this.lastDonationId.set(result.donation.id);
           this.success.set(true);
           this.analytics.track(donateSuccessEvent(this.campaignId));
 
@@ -360,6 +374,7 @@ export class DonateCardComponent {
   reset(): void {
     this.success.set(false);
     this.startedMonthly.set(false);
+    this.lastDonationId.set(null);
     this.errorMsg.set(null);
     this.amountEur = 50;
     this.tipEur = null;

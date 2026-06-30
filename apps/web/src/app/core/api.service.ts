@@ -71,6 +71,10 @@ import {
   PayoutRowView,
   LedgerView,
   TransparencyView,
+  MatchOffer,
+  MatchClaimResult,
+  MatchBalance,
+  MatchLocale,
 } from './models';
 
 export interface TrackEventBody {
@@ -403,6 +407,30 @@ export class ApiService {
     return this.unwrap(
       this.http.get<Envelope<SubscriptionItem[]>>(`${API_BASE}/donors/me/subscriptions`),
     );
+  }
+
+  // ---- Employer matching (E13) ----
+  matchOffer(body: {
+    campaignId: string;
+    donationCents: number;
+    workEmail?: string;
+    locale?: MatchLocale;
+  }): Observable<MatchOffer> {
+    return this.unwrap(this.http.post<Envelope<MatchOffer>>(`${API_BASE}/matching/offer`, body));
+  }
+
+  matchClaim(body: {
+    donationId: string;
+    workEmail?: string;
+    locale?: MatchLocale;
+  }): Observable<MatchClaimResult> {
+    return this.unwrap(
+      this.http.post<Envelope<MatchClaimResult>>(`${API_BASE}/matching/claim`, body),
+    );
+  }
+
+  matchBalance(): Observable<MatchBalance> {
+    return this.unwrap(this.http.get<Envelope<MatchBalance>>(`${API_BASE}/matching/me/balance`));
   }
 
   // ---- Corporate channel (E5) ----

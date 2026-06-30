@@ -2,8 +2,16 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { MoneyPipe } from '../../core/money.pipe';
-import { DonorHistory, NotificationFeed, Receipt, RecurringPledge } from '../../core/models';
+import {
+  DonorHistory,
+  MatchBalance,
+  NotificationFeed,
+  Receipt,
+  RecurringPledge,
+} from '../../core/models';
 import { ReceiptPanelComponent } from '../sponsor/receipt-panel.component';
+import { ClaimHistoryComponent } from '../matching/claim-history.component';
+import { MatchBalanceComponent } from '../matching/match-balance.component';
 import { DonationHistoryComponent } from './donation-history.component';
 import { recurringLabel, repeatLabel, supportedLabel } from './donor-summary';
 import { NotificationsFeedComponent } from './notifications-feed.component';
@@ -19,6 +27,8 @@ import { RecurringListComponent } from './recurring-list.component';
     NotificationsFeedComponent,
     RecurringListComponent,
     ReceiptPanelComponent,
+    MatchBalanceComponent,
+    ClaimHistoryComponent,
   ],
   template: `
     <section class="mx-auto max-w-5xl px-4 py-10">
@@ -72,7 +82,11 @@ import { RecurringListComponent } from './recurring-list.component';
             />
           }
         </div>
-        <div>
+        <div class="space-y-6">
+          @if (matchBalance(); as b) {
+            <app-match-balance [balance]="b" />
+            <app-claim-history [claims]="b.claims" />
+          }
           @if (feed(); as f) {
             <app-notifications-feed [feed]="f" (read)="markRead($event)" />
           }
@@ -94,11 +108,13 @@ export class DonorPage implements OnInit {
   readonly recurring = signal<RecurringPledge[] | null>(null);
   readonly receipt = signal<Receipt | null>(null);
   readonly toast = signal<string | null>(null);
+  readonly matchBalance = signal<MatchBalance | null>(null);
 
   ngOnInit(): void {
     this.reloadHistory();
     this.reloadFeed();
     this.reloadRecurring();
+    this.reloadMatchBalance();
   }
 
   greeting(): string {
@@ -164,5 +180,9 @@ export class DonorPage implements OnInit {
 
   private reloadRecurring(): void {
     this.api.listRecurring().subscribe({ next: (r) => this.recurring.set(r) });
+  }
+
+  private reloadMatchBalance(): void {
+    this.api.matchBalance().subscribe({ next: (b) => this.matchBalance.set(b) });
   }
 }

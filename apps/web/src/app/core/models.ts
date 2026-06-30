@@ -281,6 +281,67 @@ export interface SubscriptionItem {
   createdAt: string;
 }
 
+// ---- E13: Employer Matching ----
+
+export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
+export type MatchClaimStatus =
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
+
+export interface MatchOfferLabels {
+  headline: string;
+  cta: string;
+  balance: string;
+}
+
+export interface MatchOffer {
+  eligible: boolean;
+  employerName?: string;
+  domain?: string;
+  matchRatio?: number;
+  matchCents?: number;
+  remainingAnnualCents?: number;
+  annualCapCents?: number;
+  integrationLevel?: EmployerIntegrationLevel;
+  capped?: boolean;
+  labels: MatchOfferLabels;
+}
+
+export interface MatchClaimResult {
+  id: string;
+  status: MatchClaimStatus;
+  statusLabel: string;
+  employerName: string;
+  matchCents: number;
+  campaignId: string;
+  applyUrl?: string;
+  hasPdf: boolean;
+  documentUrl?: string;
+  remainingAnnualCents?: number;
+  labels: { headline: string; status: string };
+}
+
+export interface MatchBalanceClaim {
+  id: string;
+  employerName: string;
+  matchCents: number;
+  status: MatchClaimStatus;
+  statusLabel: string;
+  campaignTitle: string;
+  schoolName: string;
+  createdAt: string;
+}
+
+export interface MatchBalance {
+  employerName?: string;
+  domain?: string;
+  year: number;
+  annualCapCents?: number;
+  usedCents: number;
+  remainingAnnualCents?: number;
+  claims: MatchBalanceClaim[];
+}
+
 // ---- E5: Corporate Channel ----
 
 export type SponsorshipTier = 'SEMESTER' | 'YEAR' | 'FULL' | 'CUSTOM';
