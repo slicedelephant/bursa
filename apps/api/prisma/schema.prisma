@@ -173,6 +173,41 @@ enum AiGenerationKind {
   SHARE
 }
 
+/// E11 KYC: who is being verified by a verification case.
+enum VerificationSubject {
+  STUDENT
+  SPONSOR
+}
+
+/// E11 KYC: status of a verification case. Transitions are owned by the pure
+/// `verification-state.ts`; any exception lands in MANUAL_REVIEW, never a silent
+/// pass.
+enum VerificationCaseStatus {
+  STARTED
+  LIVENESS_PASSED
+  DOCUMENT_VERIFIED
+  AML_CLEARED
+  VERIFIED
+  MANUAL_REVIEW
+  REJECTED
+}
+
+/// E11 KYC: status of a case in the manual-review queue (operator fallback).
+enum ReviewQueueStatus {
+  NOT_REQUIRED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// E11 KYC: outcome of an AML screening (pure `aml-decision.ts`). BLOCKED is a
+/// hard sanctioned-country block; HIT routes to manual review; CLEAR passes.
+enum AmlDecision {
+  CLEAR
+  HIT
+  BLOCKED
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -209,6 +244,10 @@ model User {
   // ---- E10: AI fundraising coach (per-user token budget + generation log) ----
   aiTokenBudget AiTokenBudget?
   aiGenerations AiGeneration[]
+
+  // ---- E11: KYC & verification (cases the user is subject of / reviewed) ----
+  verificationCases   VerificationCase[] @relation("VerificationSubject")
+  verificationReviews VerificationCase[] @relation("VerificationReviewer")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -314,8 +353,9 @@ model AdmissionRecord {
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
-  school     School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  reviewedBy User?  @relation("AdmissionReviewer", fields: [reviewedById], references: [id])
+  school            School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  reviewedBy        User?              @relation("AdmissionReviewer", fields: [reviewedById], references: [id])
+  verificationCases VerificationCase[]
 
   @@unique([schoolId, admissionRef])
   @@index([schoolId, status])
@@ -720,4 +760,85 @@ model AiGeneration {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+/// E11 KYC: the central verification case for a student or sponsor. The step
+/// results (liveness/document/aml) are 1:1 children; every decision is logged to
+/// the reused E6 AuditLog. riskLevel reuses the E9 RiskLevel band. Never touches
+/// the money path — money still flows only to the school.
+model VerificationCase {
+  id                String                 @id @default(cuid())
+  subjectType       VerificationSubject
+  subjectUserId     String
+  admissionRecordId String?
+  status            VerificationCaseStatus @default(STARTED)
+  reviewQueueStatus ReviewQueueStatus      @default(NOT_REQUIRED)
+  riskScore         Int                    @default(0)
+  riskLevel         RiskLevel              @default(LOW)
+  decisionNote      String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  user            User                  @relation("VerificationSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  reviewedBy      User?                 @relation("VerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  admissionRecord AdmissionRecord?      @relation(fields: [admissionRecordId], references: [id], onDelete: SetNull)
+  liveness        LivenessResult?
+  document        DocumentVerification?
+  aml             AmlScreening?
+
+  @@index([reviewQueueStatus, riskScore])
+  @@index([subjectUserId])
+}
+
+/// E11 KYC: result of the liveness (video-selfie) step. Confidence and pass/fail
+/// come from the pure `liveness-result.ts`; the provider only supplies the raw
+/// confidence. One row per case.
+model LivenessResult {
+  id         String   @id @default(cuid())
+  caseId     String   @unique
+  provider   String
+  confidence Int
+  passed     Boolean
+  reference  String
+  createdAt  DateTime @default(now())
+
+  case VerificationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+/// E11 KYC: result of the document/OCR step. The extracted fields come from the
+/// (mock) OCR provider; nameMatchScore/matched come from the pure `name-match.ts`
+/// against the E8 AdmissionRecord. One row per case.
+model DocumentVerification {
+  id                 String   @id @default(cuid())
+  caseId             String   @unique
+  provider           String
+  extractedName      String
+  extractedSchool    String?
+  extractedDegree    String?
+  nameMatchScore     Int
+  matched            Boolean
+  registrarConfirmed Boolean  @default(false)
+  reference          String
+  createdAt          DateTime @default(now())
+
+  case VerificationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+/// E11 KYC: result of the AML screening step for a sponsor above threshold. The
+/// decision comes from the pure `aml-decision.ts`; the sanctioned-country check
+/// reuses the static E9 list. One row per case.
+model AmlScreening {
+  id          String      @id @default(cuid())
+  caseId      String      @unique
+  provider    String
+  amountCents Int
+  country     String
+  decision    AmlDecision
+  reasons     Json
+  reference   String
+  createdAt   DateTime    @default(now())
+
+  case VerificationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
 }

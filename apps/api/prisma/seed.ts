@@ -377,6 +377,11 @@ async function clearDatabase(): Promise<void> {
   await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
   await prisma.payout.deleteMany();
+  // E11 (delete step children before the case, case before user/admission)
+  await prisma.livenessResult.deleteMany();
+  await prisma.documentVerification.deleteMany();
+  await prisma.amlScreening.deleteMany();
+  await prisma.verificationCase.deleteMany();
   // E10 (delete before user — cascade off User, but explicit for clarity)
   await prisma.aiGeneration.deleteMany();
   await prisma.aiTokenBudget.deleteMany();
@@ -1227,6 +1232,130 @@ async function main(): Promise<void> {
   });
   console.log(
     'Created E9 trust-safety demo data (moderation, flags, chargebacks, fraud signals).',
+  );
+
+  // --------------------------------------------------------------------------
+  // E11 — KYC & Verification Pipeline demo data:
+  //  - a VERIFIED student case (liveness passed + document matched), anchored to
+  //    Amara's E8 admission record;
+  //  - a MANUAL_REVIEW student case from an OCR/name mismatch (pending in the
+  //    operator queue);
+  //  - a sponsor AML check that produced a HIT (manual review).
+  // Two audit entries (reused E6 AuditLog) make the decisions traceable.
+  // --------------------------------------------------------------------------
+  const amaraAdmission = await prisma.admissionRecord.findUnique({
+    where: {
+      schoolId_admissionRef: {
+        schoolId: esmtId,
+        admissionRef: 'ADM-AMARA-OKONKWO',
+      },
+    },
+  });
+
+  const verifiedCase = await prisma.verificationCase.create({
+    data: {
+      subjectType: 'STUDENT',
+      subjectUserId: amaraUserId,
+      admissionRecordId: amaraAdmission?.id ?? null,
+      status: 'VERIFIED',
+      reviewQueueStatus: 'NOT_REQUIRED',
+      riskScore: 0,
+      riskLevel: 'LOW',
+      liveness: {
+        create: {
+          provider: 'mock',
+          confidence: 94,
+          passed: true,
+          reference: 'seed_liveness_amara',
+        },
+      },
+      document: {
+        create: {
+          provider: 'mock',
+          extractedName: 'Amara Okonkwo',
+          extractedSchool: 'ESMT Berlin',
+          extractedDegree: 'MBA',
+          nameMatchScore: 100,
+          matched: true,
+          registrarConfirmed: true,
+          reference: 'seed_document_amara',
+        },
+      },
+    },
+  });
+
+  await prisma.verificationCase.create({
+    data: {
+      subjectType: 'STUDENT',
+      subjectUserId: donor.id,
+      status: 'MANUAL_REVIEW',
+      reviewQueueStatus: 'PENDING',
+      riskScore: 25,
+      riskLevel: 'MEDIUM',
+      liveness: {
+        create: {
+          provider: 'mock',
+          confidence: 88,
+          passed: true,
+          reference: 'seed_liveness_review',
+        },
+      },
+      document: {
+        create: {
+          provider: 'mock',
+          extractedName: 'Someone Else Entirely',
+          extractedSchool: 'ESMT Berlin',
+          extractedDegree: 'MBA',
+          nameMatchScore: 20,
+          matched: false,
+          registrarConfirmed: false,
+          reference: 'seed_document_review',
+        },
+      },
+    },
+  });
+
+  const amlCase = await prisma.verificationCase.create({
+    data: {
+      subjectType: 'SPONSOR',
+      subjectUserId: sponsorUser.id,
+      status: 'MANUAL_REVIEW',
+      reviewQueueStatus: 'PENDING',
+      riskScore: 30,
+      riskLevel: 'MEDIUM',
+      aml: {
+        create: {
+          provider: 'mock',
+          amountCents: 600000,
+          country: 'NG',
+          decision: 'HIT',
+          reasons: ['Contribution from an elevated-risk country'],
+          reference: 'seed_aml_acme',
+        },
+      },
+    },
+  });
+
+  await prisma.auditLog.createMany({
+    data: [
+      {
+        action: 'kyc.case.verified',
+        actorUserId: admin.id,
+        targetType: 'VerificationCase',
+        targetId: verifiedCase.id,
+        metadata: { result: 'VERIFIED', nameMatchScore: 100 },
+      },
+      {
+        action: 'kyc.aml.hit',
+        actorUserId: sponsorUser.id,
+        targetType: 'VerificationCase',
+        targetId: amlCase.id,
+        metadata: { decision: 'HIT', country: 'NG' },
+      },
+    ],
+  });
+  console.log(
+    'Created E11 KYC demo data (verified case, manual-review queue, AML hit).',
   );
 
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
