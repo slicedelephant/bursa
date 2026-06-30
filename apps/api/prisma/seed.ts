@@ -9,6 +9,7 @@ import {
   nextPosition,
 } from '../src/ledger/ledger-entry';
 import { createOnboardingToken } from '../src/schools/onboarding-token';
+import { EMPLOYER_PROGRAMS } from '../src/matching/employer-programs.data';
 
 const prisma = new PrismaClient();
 
@@ -376,6 +377,9 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E13 (delete before donation/user/campaign: claim references donation + program)
+  await prisma.matchClaim.deleteMany();
+  await prisma.employerMatchProgram.deleteMany();
   await prisma.invoice.deleteMany();
   await prisma.corporateSponsorship.deleteMany();
   await prisma.notification.deleteMany();
@@ -825,6 +829,84 @@ async function main(): Promise<void> {
     ],
   });
   console.log('Created donor-retention demo data (history, recurring, feed).');
+
+  // --------------------------------------------------------------------------
+  // E13 — Employer Matching: seed the ~30 known employer programs, set the demo
+  // donor's detected employer (SAP), and a demo claim with a committed match
+  // donation so the balance + claim-history are visible in the account.
+  // --------------------------------------------------------------------------
+  for (const p of EMPLOYER_PROGRAMS) {
+    await prisma.employerMatchProgram.create({
+      data: {
+        domain: p.domain,
+        employerName: p.employerName,
+        matchRatio: p.matchRatio,
+        annualCapCents: p.annualCapCents,
+        minDonationCents: p.minDonationCents,
+        integrationLevel: p.integrationLevel,
+        applyUrlTemplate: p.applyUrlTemplate ?? null,
+        active: p.active,
+      },
+    });
+  }
+
+  const sapProgram = await prisma.employerMatchProgram.findUnique({
+    where: { domain: 'sap.com' },
+  });
+  const matchYear = new Date().getFullYear();
+  const demoMatchCents = eur(150); // 1:1 match of the donor's €150 gift to Amara
+
+  if (sapProgram) {
+    // The donor's own €150 gift to Amara (seeded above) is the triggering donation.
+    const triggerDonation = await prisma.donation.findFirst({
+      where: { donorUserId: donor.id, providerRef: 'mock_seed_donor_amara' },
+    });
+
+    await prisma.user.update({
+      where: { id: donor.id },
+      data: {
+        employerName: 'SAP',
+        employerDomain: 'sap.com',
+        matchYear,
+        matchUsedCents: demoMatchCents,
+      },
+    });
+
+    if (triggerDonation) {
+      const matchDonation = await prisma.donation.create({
+        data: {
+          campaignId: amaraId,
+          amountCents: demoMatchCents,
+          method: 'SEPA',
+          type: 'CORPORATE',
+          status: 'SUCCEEDED',
+          providerRef: `mock_match_${triggerDonation.id}`,
+          donorName: 'SAP',
+        },
+      });
+      await prisma.campaign.update({
+        where: { id: amaraId },
+        data: { raisedCents: { increment: demoMatchCents } },
+      });
+      await prisma.matchClaim.create({
+        data: {
+          donationId: triggerDonation.id,
+          matchDonationId: matchDonation.id,
+          programId: sapProgram.id,
+          donorUserId: donor.id,
+          campaignId: amaraId,
+          employerName: 'SAP',
+          matchCents: demoMatchCents,
+          status: 'CLAIMED',
+          applyUrl: `https://match.sap.example/apply?amount=150&employer=SAP`,
+          year: matchYear,
+        },
+      });
+    }
+  }
+  console.log(
+    `Created E13 employer-matching demo data (${EMPLOYER_PROGRAMS.length} programs, SAP claim).`,
+  );
 
   // --------------------------------------------------------------------------
   // E5 — Corporate channel demo: a named, logo-recognised SEPA sponsorship

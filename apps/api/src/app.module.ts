@@ -21,6 +21,7 @@ import { AiModule } from './ai/ai.module';
 import { KycModule } from './kyc/kyc.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
+import { MatchingModule } from './matching/matching.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ReconciliationModule } from './reconciliation/reconciliation.module';
     KycModule,
     LedgerModule,
     ReconciliationModule,
+    MatchingModule,
   ],
 })
 export class AppModule {}

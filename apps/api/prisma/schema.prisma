@@ -227,6 +227,29 @@ enum ReconciliationStatus {
   DISCREPANCY
 }
 
+/// E13 Employer-Matching: lifecycle of a donor's match claim. Transitions are owned
+/// by the pure `claim-status.ts`. A CLAIMED claim has already committed its match
+/// funds to the campaign (a normal CORPORATE donation); money still flows only to
+/// the school.
+enum MatchClaimStatus {
+  DETECTED
+  OFFERED
+  CLAIMED
+  SUBMITTED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+/// E13 Employer-Matching: how deeply an employer program integrates, which decides
+/// the claim artefact: a pre-filled application link (AUTO_SUBMIT / PORTAL) or a
+/// generated confirmation PDF (MANUAL, via the reused E5 buildSimplePdf).
+enum EmployerIntegrationLevel {
+  AUTO_SUBMIT
+  PORTAL
+  MANUAL
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -270,6 +293,18 @@ model User {
 
   // ---- E12: payout reconciliation (movements this user acted on) ----
   ledgerEntries LedgerEntry[] @relation("LedgerActor")
+
+  // ---- E13: employer matching (detected employer + remaining annual balance) ----
+  /// Detected employer + work-email domain (set on a logged-in DONOR after a
+  /// successful match detection). Never required, never on the money path.
+  employerName   String?
+  employerDomain String?
+  /// Calendar year the current match balance applies to (implicit yearly reset).
+  matchYear      Int?
+  /// Match euros (cents) already committed this `matchYear`. Reset when the year rolls.
+  matchUsedCents Int     @default(0)
+
+  matchClaims MatchClaim[] @relation("DonorMatchClaims")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -470,6 +505,7 @@ model Campaign {
   moderationCase   ModerationCase?
   flags            CampaignFlag[]
   chargebacks      Chargeback[]
+  matchClaims      MatchClaim[]
 
   @@index([status])
   @@index([schoolId])
@@ -521,6 +557,12 @@ model Donation {
   sponsorship      CorporateSponsorship?
   fraudSignals     FraudSignal[]
   chargebacks      Chargeback[]
+
+  // ---- E13: employer matching ----
+  /// When this donation triggered an employer-match claim (the donor's own gift).
+  triggeredClaim MatchClaim? @relation("TriggeringDonation")
+  /// When this donation IS the committed employer-match (a CORPORATE donation).
+  matchClaim     MatchClaim? @relation("MatchDonation")
 
   @@index([campaignId])
   @@index([donorUserId])
@@ -941,4 +983,53 @@ model Reconciliation {
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId, runAt])
+}
+
+/// E13 — A known employer matching program (à la Double the Donation). Static-ish:
+/// seeded into the DB and held in-memory by the MockEmployerMatchProvider for tests.
+/// `matchRatio` is ×100 (100 = 1:1, 200 = 2:1). The annual cap is per donor per year.
+model EmployerMatchProgram {
+  id               String                   @id @default(cuid())
+  domain           String                   @unique
+  employerName     String
+  matchRatio       Int
+  annualCapCents   Int
+  minDonationCents Int                      @default(0)
+  integrationLevel EmployerIntegrationLevel @default(PORTAL)
+  applyUrlTemplate String?
+  active           Boolean                  @default(true)
+  createdAt        DateTime                 @default(now())
+
+  claims MatchClaim[]
+}
+
+/// E13 — A donor's claim of an employer match against a triggering donation.
+/// Idempotent per `donationId`. A CLAIMED claim has already committed its match
+/// funds as a normal CORPORATE Donation (`matchDonationId`) to the same campaign —
+/// money still flows only to the school, never to the student.
+model MatchClaim {
+  id              String           @id @default(cuid())
+  donationId      String           @unique
+  matchDonationId String?          @unique
+  programId       String
+  donorUserId     String?
+  campaignId      String
+  employerName    String
+  matchCents      Int
+  status          MatchClaimStatus @default(CLAIMED)
+  applyUrl        String?
+  pdfRef          String?
+  year            Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  program       EmployerMatchProgram @relation(fields: [programId], references: [id])
+  donor         User?                @relation("DonorMatchClaims", fields: [donorUserId], references: [id], onDelete: SetNull)
+  campaign      Campaign             @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donation      Donation             @relation("TriggeringDonation", fields: [donationId], references: [id], onDelete: Cascade)
+  matchDonation Donation?            @relation("MatchDonation", fields: [matchDonationId], references: [id], onDelete: SetNull)
+
+  @@index([donorUserId, createdAt])
+  @@index([campaignId])
+  @@index([status])
 }
