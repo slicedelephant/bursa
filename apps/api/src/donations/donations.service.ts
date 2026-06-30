@@ -8,6 +8,7 @@ import {
   type PaymentProvider,
 } from '../payments/payment-provider.interface';
 import { PrismaService } from '../prisma/prisma.service';
+import { ReferralService } from '../referral/referral.service';
 import { splitContribution } from './contribution.util';
 import { CardDonationDto } from './dto/card-donation.dto';
 import { SepaDonationDto } from './dto/sepa-donation.dto';
@@ -20,6 +21,7 @@ export class DonationsService {
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_PROVIDER) private readonly payments: PaymentProvider,
     private readonly notifications: NotificationsService,
+    private readonly referral: ReferralService,
   ) {}
 
   /**
@@ -88,6 +90,12 @@ export class DonationsService {
       tributeType: dto.tributeType,
       tributeName: dto.tributeName,
     });
+
+    // E15: attribute the pledge to a referral/advocate code, if any. Money-free and
+    // never breaks the donation — ReferralService swallows its own errors.
+    if (dto.referralCode) {
+      await this.referral.attributeDonation(donation.id, dto.referralCode);
+    }
 
     await this.notifyDonation(
       campaign,

@@ -4,6 +4,11 @@ import type { PaymentProvider } from '../payments/payment-provider.interface';
 /** Notifications collaborator stub — donor-retention side-effects are tested separately. */
 const notif = () => ({ onDonation: jest.fn().mockResolvedValue(undefined) });
 
+/** Referral collaborator stub (E15) — attribution is tested in the referral suite. */
+const referral = () => ({
+  attributeDonation: jest.fn().mockResolvedValue(undefined),
+});
+
 /** Runs an action and returns the DomainException `code` it throws. */
 async function codeOf(action: () => Promise<unknown>): Promise<string> {
   try {
@@ -92,6 +97,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     const res = await service.donateCard('c1', { amountCents: 5000 });
 
@@ -145,6 +151,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     const res = await service.donateCard('c1', { amountCents: 5000 });
 
@@ -173,6 +180,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
 
     expect(
@@ -193,6 +201,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       provider(),
       notif() as never,
+      referral() as never,
     );
     expect(
       await codeOf(() => service.donateCard('missing', { amountCents: 5000 })),
@@ -207,6 +216,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       provider(),
       notif() as never,
+      referral() as never,
     );
     expect(await codeOf(() => service.captureCampaign('nope'))).toBe(
       'NOT_FOUND',
@@ -244,6 +254,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     const res = await service.donateSepa('c1', 'u1', { amountCents: 8000 });
 
@@ -270,6 +281,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     expect(
       await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 })),
@@ -285,6 +297,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       provider(),
       notif() as never,
+      referral() as never,
     );
     expect(
       await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 })),
@@ -309,6 +322,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     const summary = await service.captureCampaign('c1');
     expect(summary.capturedIds).toEqual([]);
@@ -347,6 +361,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     const res = await service.donateSepa('c1', 'u1', { amountCents: 8000 });
     expect(res.campaign.status).toBe('FUNDED');
@@ -363,6 +378,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       provider(),
       notif() as never,
+      referral() as never,
     );
     expect(
       await codeOf(() => service.donateCard('c1', { amountCents: 5000 })),
@@ -379,6 +395,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       provider(),
       notif() as never,
+      referral() as never,
     );
     expect(
       await codeOf(() => service.donateCard('c1', { amountCents: 5000 })),
@@ -411,6 +428,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notifications as never,
+      referral() as never,
     );
     await service.donateCard('c1', { amountCents: 5000 }, 'donor-1');
 
@@ -449,6 +467,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notif() as never,
+      referral() as never,
     );
     await service.donateCard('c1', {
       amountCents: 5000,
@@ -492,6 +511,7 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       prisma as never,
       pay,
       notifications as never,
+      referral() as never,
     );
     await service.donateCard('c1', { amountCents: 5000 });
 

@@ -43,6 +43,16 @@ export class CardDonationDto {
   donorEmail?: string;
 
   /**
+   * Optional referral/advocate code (E15). When the donation succeeds, it is
+   * attributed to that referrer/advocate. Money-free: never changes the amount or
+   * recipient — funds still flow to the school.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  referralCode?: string;
+
+  /**
    * Tribute / dedication. Type and name belong together: setting one without the
    * other is rejected at the boundary (cross-`@ValidateIf`).
    */

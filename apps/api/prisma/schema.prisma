@@ -79,6 +79,17 @@ enum TributeType {
   MEMORY
 }
 
+// ---- E15: referral & advocate engine ----
+enum ReferralKind {
+  REFERRAL // donor invites a friend (E4 donor account)
+  ADVOCATE // student invites advocates to promote a campaign
+}
+
+enum AdvocateInviteStatus {
+  ACTIVE
+  REVOKED
+}
+
 enum RecurringStatus {
   ACTIVE
   PAUSED
@@ -338,6 +349,9 @@ model User {
   esgTags       EsgTag[]             @relation("EsgTagTagger")
   esgReports    EsgReport[]          @relation("EsgReportCreator")
   auditorGrants AuditorAccessGrant[] @relation("AuditorGrantCreator")
+
+  // ---- E15: referral & advocate engine (one referral link per donor) ----
+  referralLink ReferralLink? @relation("DonorReferralLink")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -545,6 +559,9 @@ model Campaign {
   chargebacks      Chargeback[]
   matchClaims      MatchClaim[]
 
+  // ---- E15: referral & advocate engine ----
+  advocateInvites AdvocateInvite[]
+
   @@index([status])
   @@index([schoolId])
 }
@@ -601,6 +618,9 @@ model Donation {
   triggeredClaim MatchClaim? @relation("TriggeringDonation")
   /// When this donation IS the committed employer-match (a CORPORATE donation).
   matchClaim     MatchClaim? @relation("MatchDonation")
+
+  // ---- E15: referral attribution (money-free; a donation counts at most once) ----
+  referralAttribution ReferralAttribution? @relation("DonationReferral")
 
   @@index([campaignId])
   @@index([donorUserId])
@@ -1125,4 +1145,58 @@ model AuditorAccessGrant {
   createdBy User? @relation("AuditorGrantCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([expiresAt])
+}
+
+/// E15 referral engine — a donor's own referral link. The link is the donor's own
+/// shareable asset (not an authorization token), so a displayable `code` is stored
+/// alongside the `codeHash` used for timing-safe lookup when attributing a donation.
+/// Exactly one per donor.
+model ReferralLink {
+  id               String   @id @default(cuid())
+  donorUserId      String   @unique
+  code             String   @unique
+  codeHash         String   @unique
+  optInLeaderboard Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  donorUser    User                  @relation("DonorReferralLink", fields: [donorUserId], references: [id], onDelete: Cascade)
+  attributions ReferralAttribution[]
+}
+
+/// E15 referral engine — an advocate a student invited to promote their campaign.
+/// Strictly hash-only (the raw share link is shown once at creation, E8 pattern).
+/// Up to 15 ACTIVE invites per campaign (enforced in the service).
+model AdvocateInvite {
+  id         String               @id @default(cuid())
+  campaignId String
+  name       String
+  email      String?
+  codeHash   String               @unique
+  status     AdvocateInviteStatus @default(ACTIVE)
+  createdAt  DateTime             @default(now())
+
+  campaign     Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  attributions ReferralAttribution[]
+
+  @@index([campaignId])
+}
+
+/// E15 referral engine — links a code (referral OR advocate) to exactly one donation.
+/// `donationId @unique` is the dedupe guarantee: a donation counts at most once.
+/// Money-free: carries no amount and no recipient — attribution never touches the
+/// money path, funds still flow to the school.
+model ReferralAttribution {
+  id               String       @id @default(cuid())
+  kind             ReferralKind
+  referralLinkId   String?
+  advocateInviteId String?
+  donationId       String       @unique
+  convertedAt      DateTime     @default(now())
+
+  referralLink   ReferralLink?   @relation(fields: [referralLinkId], references: [id], onDelete: Cascade)
+  advocateInvite AdvocateInvite? @relation(fields: [advocateInviteId], references: [id], onDelete: Cascade)
+  donation       Donation        @relation("DonationReferral", fields: [donationId], references: [id], onDelete: Cascade)
+
+  @@index([referralLinkId])
+  @@index([advocateInviteId])
 }

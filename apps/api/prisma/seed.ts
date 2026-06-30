@@ -16,6 +16,7 @@ import {
   nextPosition,
 } from '../src/ledger/ledger-entry';
 import { createOnboardingToken } from '../src/schools/onboarding-token';
+import { createReferralCode } from '../src/referral/referral-code.util';
 import { EMPLOYER_PROGRAMS } from '../src/matching/employer-programs.data';
 import { buildEsgAggregate } from '../src/esg/esg-aggregate';
 import { mapToStandard } from '../src/esg/esg-standard-mapper';
@@ -388,6 +389,10 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E15 (delete before donation/campaign/user — referral attribution + links)
+  await prisma.referralAttribution.deleteMany();
+  await prisma.advocateInvite.deleteMany();
+  await prisma.referralLink.deleteMany();
   // E14 (delete before ledgerEntry/user: EsgTag references a ledger entry)
   await prisma.esgTag.deleteMany();
   await prisma.esgReport.deleteMany();
@@ -1854,6 +1859,136 @@ async function main(): Promise<void> {
       `${taggableEntries.length} ESG tags, 1 GRI report, 1 auditor grant).`,
   );
   console.log(`  Demo auditor portal: /audit-portal/${auditorToken.token}`);
+
+  // --------------------------------------------------------------------------
+  // E15 — Referral & Advocate engine demo data.
+  //  - donor@bursa.test gets a referral link plus referred friends (so the
+  //    tracking dashboard and the both-win badge are non-empty), opted into the
+  //    anonymous leaderboard.
+  //  - Amara's campaign gets a small advocate team with referred donations, so
+  //    the advocate leaderboard + reward tiers render out of the box.
+  // Attribution is money-free: every referred donation still credits its
+  // campaign, whose funds flow to the school.
+  // --------------------------------------------------------------------------
+  const referralAmaraId = campaignBySlug['amara-okonkwo'];
+  if (referralAmaraId) {
+    // Donor's own referral link (opted into the anonymous leaderboard).
+    const donorCode = createReferralCode();
+    const donorLink = await prisma.referralLink.create({
+      data: {
+        donorUserId: donor.id,
+        code: donorCode.code,
+        codeHash: donorCode.codeHash,
+        optInLeaderboard: true,
+      },
+    });
+
+    // Three referred friends; two donate (one of them recurring → "active").
+    const referredFriends = [
+      { email: 'friend.ada@bursa.test', name: 'Ada Referred', donates: true },
+      { email: 'friend.ben@bursa.test', name: 'Ben Referred', donates: true },
+      { email: 'friend.cy@bursa.test', name: 'Cy Invited', donates: false },
+    ];
+    let referredActiveCount = 0;
+    for (const [i, friend] of referredFriends.entries()) {
+      const friendUser = await prisma.user.create({
+        data: {
+          email: friend.email,
+          passwordHash,
+          displayName: friend.name,
+          role: 'DONOR',
+        },
+      });
+      if (!friend.donates) continue;
+
+      const recurring = i === 0; // the first donor keeps giving → counts as active
+      let recurringPledgeId: string | null = null;
+      if (recurring) {
+        const pledge = await prisma.recurringPledge.create({
+          data: {
+            donorUserId: friendUser.id,
+            campaignId: referralAmaraId,
+            amountCents: eur(25),
+            status: 'ACTIVE',
+            nextRunAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        });
+        recurringPledgeId = pledge.id;
+        referredActiveCount += 1;
+      }
+
+      const referredDonation = await prisma.donation.create({
+        data: {
+          campaignId: referralAmaraId,
+          donorUserId: friendUser.id,
+          amountCents: eur(recurring ? 25 : 60),
+          method: 'CARD',
+          type: 'PRIVATE',
+          status: 'CAPTURED',
+          providerRef: `mock_seed_referral_${i}`,
+          donorName: friend.name,
+          donorCountry: donorCountryFor(friend.name),
+          recurringPledgeId,
+          capturedAt: new Date(),
+        },
+      });
+      await prisma.referralAttribution.create({
+        data: {
+          kind: 'REFERRAL',
+          referralLinkId: donorLink.id,
+          donationId: referredDonation.id,
+        },
+      });
+    }
+
+    // Advocate team on Amara's campaign with referred conversions.
+    const advocateSeeds = [
+      { name: 'Chidi Alumni', email: 'chidi.alumni@bursa.test', referrals: 6 },
+      { name: 'Ngozi Mentor', email: 'ngozi.mentor@bursa.test', referrals: 3 },
+      { name: 'Tunde Friend', email: null, referrals: 1 },
+    ];
+    let advocateDonationSeq = 0;
+    for (const adv of advocateSeeds) {
+      const advCode = createReferralCode();
+      const invite = await prisma.advocateInvite.create({
+        data: {
+          campaignId: referralAmaraId,
+          name: adv.name,
+          email: adv.email,
+          codeHash: advCode.codeHash,
+        },
+      });
+      for (let r = 0; r < adv.referrals; r += 1) {
+        const advDonation = await prisma.donation.create({
+          data: {
+            campaignId: referralAmaraId,
+            amountCents: eur(40),
+            method: 'CARD',
+            type: 'PRIVATE',
+            status: 'CAPTURED',
+            providerRef: `mock_seed_advocate_${advocateDonationSeq}`,
+            donorName: `Backer ${advocateDonationSeq}`,
+            donorCountry: donorCountryFor(`Backer ${advocateDonationSeq}`),
+            capturedAt: new Date(),
+          },
+        });
+        advocateDonationSeq += 1;
+        await prisma.referralAttribution.create({
+          data: {
+            kind: 'ADVOCATE',
+            advocateInviteId: invite.id,
+            donationId: advDonation.id,
+          },
+        });
+      }
+    }
+
+    console.log(
+      `Created E15 referral demo data (donor link + ${referredFriends.length} ` +
+        `friends [${referredActiveCount} active], 3 advocates with ` +
+        `${advocateDonationSeq} referred donations).`,
+    );
+  }
 
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(
