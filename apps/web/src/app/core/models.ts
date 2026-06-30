@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -295,13 +285,7 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  | 'DETECTED'
-  | 'OFFERED'
-  | 'CLAIMED'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXPIRED';
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -1213,4 +1197,60 @@ export interface AdvocateDashboardView {
   remaining: number;
   advocates: AdvocateRowView[];
   leaderboard: LeaderboardEntry[];
+}
+
+// ---- E17: Multi-Channel Impact-Feed ----
+
+export type FeedItemKind = 'IMPACT_UPDATE' | 'MILESTONE' | 'GOAL_REACHED' | 'STUDENT_VOICE';
+
+export type FeedChannel = 'IN_APP' | 'EMAIL' | 'PUSH' | 'WHATSAPP' | 'TELEGRAM' | 'MESSENGER';
+
+export interface FeedItem {
+  key: string;
+  kind: FeedItemKind;
+  campaignId: string;
+  title: string;
+  body: string;
+  ctaUrl: string;
+  photoUrl: string | null;
+  videoUrl?: string | null;
+  voiceUrl?: string | null;
+  createdAt: string;
+  read: boolean;
+}
+
+export interface FeedView {
+  items: FeedItem[];
+  unreadCount: number;
+  readStreak: StreakState;
+}
+
+export interface ChannelPrefView {
+  channel: FeedChannel;
+  optIn: boolean;
+  handle?: string;
+}
+
+export interface ChannelPrefsView {
+  prefs: ChannelPrefView[];
+}
+
+export interface InactivityReminder {
+  title: string;
+  body: string;
+  ctaUrl: string;
+}
+
+export interface InactivityView {
+  inactive: boolean;
+  daysSince: number | null;
+  shouldRemind: boolean;
+  reminder?: InactivityReminder;
+}
+
+export interface VoiceSubmitView {
+  id: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reasons: string[];
+  delivered: number;
 }

@@ -8,6 +8,7 @@ import { StudentCampaignStatus } from './campaign-status.component';
 import { ImpactUpdateFormComponent } from './impact-update-form.component';
 import { KycVerificationComponent } from './kyc-verification.component';
 import { StudentProfileForm } from './profile-form.component';
+import { StudentVoiceComponent } from './student-voice.component';
 
 /** Student dashboard: profile → campaign → status state machine driven by `studentMe()`. */
 @Component({
@@ -20,6 +21,7 @@ import { StudentProfileForm } from './profile-form.component';
     ImpactUpdateFormComponent,
     KycVerificationComponent,
     AdvocateManagerComponent,
+    StudentVoiceComponent,
   ],
   template: `
     <section class="mx-auto max-w-2xl px-4 py-10">
@@ -93,6 +95,7 @@ import { StudentProfileForm } from './profile-form.component';
           />
           @if (isLive(data.campaign.status)) {
             <app-impact-update-form [campaignId]="data.campaign.id" />
+            <app-student-voice [campaignId]="data.campaign.id" />
             @if (advocates(); as adv) {
               <div class="mt-6">
                 <app-advocate-manager

@@ -87,6 +87,12 @@ import {
   ReferralLeaderboardView,
   CreatedAdvocateView,
   AdvocateDashboardView,
+  FeedView,
+  ChannelPrefsView,
+  ChannelPrefView,
+  FeedChannel,
+  InactivityView,
+  VoiceSubmitView,
 } from './models';
 
 export interface TrackEventBody {
@@ -480,6 +486,46 @@ export class ApiService {
       this.http.get<Envelope<ReferralLeaderboardView>>(
         `${API_BASE}/campaigns/${campaignId}/advocate-leaderboard`,
       ),
+    );
+  }
+
+  // ---- Multi-Channel Impact-Feed (E17) ----
+  feed(): Observable<FeedView> {
+    return this.unwrap(this.http.get<Envelope<FeedView>>(`${API_BASE}/feed`));
+  }
+
+  markFeedRead(itemKey: string): Observable<{ read: boolean }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ read: boolean }>>(
+        `${API_BASE}/feed/${encodeURIComponent(itemKey)}/read`,
+        {},
+      ),
+    );
+  }
+
+  channelPrefs(): Observable<ChannelPrefsView> {
+    return this.unwrap(this.http.get<Envelope<ChannelPrefsView>>(`${API_BASE}/feed/channel-prefs`));
+  }
+
+  setChannelPref(body: ChannelPrefView): Observable<{ channel: FeedChannel; optIn: boolean }> {
+    return this.unwrap(
+      this.http.put<Envelope<{ channel: FeedChannel; optIn: boolean }>>(
+        `${API_BASE}/feed/channel-prefs`,
+        body,
+      ),
+    );
+  }
+
+  feedInactivity(): Observable<InactivityView> {
+    return this.unwrap(this.http.get<Envelope<InactivityView>>(`${API_BASE}/feed/inactivity`));
+  }
+
+  submitStudentVoice(
+    campaignId: string,
+    body: { text: string; videoUrl?: string; voiceUrl?: string },
+  ): Observable<VoiceSubmitView> {
+    return this.unwrap(
+      this.http.post<Envelope<VoiceSubmitView>>(`${API_BASE}/campaigns/${campaignId}/voice`, body),
     );
   }
 

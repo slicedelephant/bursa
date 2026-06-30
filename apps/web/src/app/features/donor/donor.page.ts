@@ -4,8 +4,12 @@ import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import {
+  ChannelPrefView,
+  ChannelPrefsView,
   DonorHistory,
   DonorReferralView,
+  FeedView,
+  InactivityView,
   MatchBalance,
   NotificationFeed,
   PortfolioView,
@@ -17,8 +21,11 @@ import { ClaimHistoryComponent } from '../matching/claim-history.component';
 import { MatchBalanceComponent } from '../matching/match-balance.component';
 import { ReferralCtaComponent } from '../referral/referral-cta.component';
 import { ReferralPanelComponent } from '../referral/referral-panel.component';
+import { ChannelPrefsComponent } from './channel-prefs.component';
 import { DonationHistoryComponent } from './donation-history.component';
 import { recurringLabel, repeatLabel, supportedLabel } from './donor-summary';
+import { ImpactFeedComponent } from './impact-feed.component';
+import { InactivityReminderComponent } from './inactivity-reminder.component';
 import { NotificationsFeedComponent } from './notifications-feed.component';
 import { PortfolioGridComponent } from './portfolio-grid.component';
 import { PortfolioStatsComponent } from './portfolio-stats.component';
@@ -42,6 +49,9 @@ import { StreakBannerComponent } from './streak-banner.component';
     PortfolioGridComponent,
     ReferralPanelComponent,
     ReferralCtaComponent,
+    ImpactFeedComponent,
+    ChannelPrefsComponent,
+    InactivityReminderComponent,
   ],
   template: `
     <section class="mx-auto max-w-5xl px-4 py-10">
@@ -108,6 +118,20 @@ import { StreakBannerComponent } from './streak-banner.component';
         </div>
       }
 
+      @if (inactivity(); as inact) {
+        @if (inact.shouldRemind) {
+          <div class="mb-6">
+            <app-inactivity-reminder [view]="inact" />
+          </div>
+        }
+      }
+
+      @if (impactFeed(); as f) {
+        <div class="mb-8">
+          <app-impact-feed [view]="f" (read)="markFeedItemRead($event)" />
+        </div>
+      }
+
       @if (toast(); as t) {
         <p class="mb-6 rounded-lg bg-brand-green/10 px-4 py-2 text-sm text-brand-green">{{ t }}</p>
       }
@@ -140,6 +164,9 @@ import { StreakBannerComponent } from './streak-banner.component';
             <app-match-balance [balance]="b" />
             <app-claim-history [claims]="b.claims" />
           }
+          @if (channelPrefs(); as cp) {
+            <app-channel-prefs [view]="cp" (changed)="updateChannelPref($event)" />
+          }
           @if (feed(); as f) {
             <app-notifications-feed [feed]="f" (read)="markRead($event)" />
           }
@@ -166,6 +193,9 @@ export class DonorPage implements OnInit {
   readonly portfolio = signal<PortfolioView | null>(null);
   readonly referral = signal<DonorReferralView | null>(null);
   readonly referralCopied = signal(false);
+  readonly impactFeed = signal<FeedView | null>(null);
+  readonly channelPrefs = signal<ChannelPrefsView | null>(null);
+  readonly inactivity = signal<InactivityView | null>(null);
 
   ngOnInit(): void {
     this.reloadHistory();
@@ -174,6 +204,29 @@ export class DonorPage implements OnInit {
     this.reloadMatchBalance();
     this.reloadPortfolio();
     this.reloadReferral();
+    this.reloadImpactFeed();
+    this.reloadChannelPrefs();
+    this.reloadInactivity();
+  }
+
+  private reloadImpactFeed(): void {
+    this.api.feed().subscribe({ next: (f) => this.impactFeed.set(f) });
+  }
+
+  private reloadChannelPrefs(): void {
+    this.api.channelPrefs().subscribe({ next: (cp) => this.channelPrefs.set(cp) });
+  }
+
+  private reloadInactivity(): void {
+    this.api.feedInactivity().subscribe({ next: (i) => this.inactivity.set(i) });
+  }
+
+  markFeedItemRead(itemKey: string): void {
+    this.api.markFeedRead(itemKey).subscribe({ next: () => this.reloadImpactFeed() });
+  }
+
+  updateChannelPref(pref: ChannelPrefView): void {
+    this.api.setChannelPref(pref).subscribe({ next: () => this.reloadChannelPrefs() });
   }
 
   private reloadReferral(): void {
