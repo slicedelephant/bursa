@@ -109,6 +109,29 @@ enum NotificationChannel {
   EMAIL
 }
 
+// ---- E17: multi-channel impact feed ----
+/// E17 Impact-Feed: lifecycle of a student thank-you message. Only APPROVED
+/// messages enter the feed / are fanned out; the decision is owned by the pure
+/// `voice-moderation.ts` (reusing the E9 keyword filter).
+enum StudentMessageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// E17 Impact-Feed: the channels a donor can opt into. IN_APP is always on
+/// (the primary feed); EMAIL/PUSH/WHATSAPP/TELEGRAM/MESSENGER are opt-in only
+/// and (for the messenger/push ones) delivered via the swappable, mocked
+/// MessagingProvider. Distinct from the E4 `NotificationChannel`.
+enum FeedChannel {
+  IN_APP
+  EMAIL
+  PUSH
+  WHATSAPP
+  TELEGRAM
+  MESSENGER
+}
+
 enum SponsorshipTier {
   SEMESTER
   YEAR
@@ -352,6 +375,10 @@ model User {
 
   // ---- E15: referral & advocate engine (one referral link per donor) ----
   referralLink ReferralLink? @relation("DonorReferralLink")
+
+  // ---- E17: multi-channel impact feed (donor channel opt-ins + feed reads) ----
+  channelPrefs NotificationChannelPref[] @relation("DonorChannelPrefs")
+  feedReads    FeedRead[]                @relation("DonorFeedReads")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -562,6 +589,9 @@ model Campaign {
   // ---- E15: referral & advocate engine ----
   advocateInvites AdvocateInvite[]
 
+  // ---- E17: multi-channel impact feed (moderated student voice messages) ----
+  studentMessages StudentMessage[]
+
   @@index([status])
   @@index([schoolId])
 }
@@ -679,6 +709,57 @@ model Notification {
   campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+}
+
+/// E17 Impact-Feed: a moderated student thank-you message. Video/voice are URLs
+/// only (no upload pipeline). Only APPROVED rows surface in the feed and are
+/// fanned out to opted-in donors via the MessagingProvider. Money-free.
+model StudentMessage {
+  id               String               @id @default(cuid())
+  campaignId       String
+  text             String
+  videoUrl         String?
+  voiceUrl         String?
+  status           StudentMessageStatus @default(PENDING)
+  moderationReason String?
+  createdAt        DateTime             @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, status])
+}
+
+/// E17 Impact-Feed: a donor's opt-in for one feed channel. Exactly one row per
+/// (userId, channel). `handle` holds the (mocked) delivery handle, e.g. a phone
+/// number or Telegram chat id. IN_APP is always on and is not stored as opt-out.
+model NotificationChannelPref {
+  id        String      @id @default(cuid())
+  userId    String
+  channel   FeedChannel
+  optIn     Boolean     @default(false)
+  handle    String?
+  updatedAt DateTime    @updatedAt
+  createdAt DateTime    @default(now())
+
+  user User @relation("DonorChannelPrefs", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channel])
+  @@index([userId])
+}
+
+/// E17 Impact-Feed: read tracking per donor + feed-item key. `feedItemKey` is
+/// the stable key from `feed-builder.feedItemKey`. The unique pair makes reads
+/// idempotent and feeds the update-read streak (E16 streak primitive).
+model FeedRead {
+  id          String   @id @default(cuid())
+  userId      String
+  feedItemKey String
+  readAt      DateTime @default(now())
+
+  user User @relation("DonorFeedReads", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feedItemKey])
+  @@index([userId, readAt])
 }
 
 model CorporateProfile {

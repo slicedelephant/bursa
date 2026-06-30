@@ -389,6 +389,10 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E17 (delete before campaign/user — student voices, channel prefs, feed reads)
+  await prisma.studentMessage.deleteMany();
+  await prisma.notificationChannelPref.deleteMany();
+  await prisma.feedRead.deleteMany();
   // E15 (delete before donation/campaign/user — referral attribution + links)
   await prisma.referralAttribution.deleteMany();
   await prisma.advocateInvite.deleteMany();
@@ -1987,6 +1991,77 @@ async function main(): Promise<void> {
       `Created E15 referral demo data (donor link + ${referredFriends.length} ` +
         `friends [${referredActiveCount} active], 3 advocates with ` +
         `${advocateDonationSeq} referred donations).`,
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // E17 — Multi-Channel Impact-Feed demo data for donor@bursa.test.
+  //  - one moderated (APPROVED) student-voice message on Amara's campaign, so
+  //    the feed shows a student thank-you card with a video URL out of the box;
+  //  - donor channel preferences (WhatsApp + Telegram opted in, with handles),
+  //    so the channel-prefs panel and the mocked fan-out have something to send;
+  //  - feed-read rows across the current + previous two months, so the
+  //    update-read streak (E16 streak primitive) renders a non-zero streak.
+  // E17 layers on top of E4: the E4 email thank-you path is untouched. Nothing
+  // here writes to a donation/payout — money still goes to the school.
+  // Idempotent via the full clearDatabase() reset at the top of main().
+  // --------------------------------------------------------------------------
+  const feedAmaraId = campaignBySlug['amara-okonkwo'];
+  if (feedAmaraId) {
+    await prisma.studentMessage.create({
+      data: {
+        campaignId: feedAmaraId,
+        text: 'Thank you for believing in me — I just started my second semester and could not have done it without your support.',
+        videoUrl: 'https://example.com/amara-thank-you.mp4',
+        voiceUrl: null,
+        status: 'APPROVED',
+        moderationReason: null,
+      },
+    });
+
+    await prisma.notificationChannelPref.createMany({
+      data: [
+        {
+          userId: donor.id,
+          channel: 'WHATSAPP',
+          optIn: true,
+          handle: '+4915112345678',
+        },
+        {
+          userId: donor.id,
+          channel: 'TELEGRAM',
+          optIn: true,
+          handle: '987654321',
+        },
+        { userId: donor.id, channel: 'EMAIL', optIn: true },
+        { userId: donor.id, channel: 'PUSH', optIn: false },
+      ],
+    });
+
+    // A 3-month update-read streak (current + two previous months).
+    await prisma.feedRead.createMany({
+      data: [
+        {
+          userId: donor.id,
+          feedItemKey: `voice:seed-${feedAmaraId}`,
+          readAt: monthsAgo(0),
+        },
+        {
+          userId: donor.id,
+          feedItemKey: `update:seed-${feedAmaraId}-prev`,
+          readAt: monthsAgo(1),
+        },
+        {
+          userId: donor.id,
+          feedItemKey: `milestone:${feedAmaraId}:80`,
+          readAt: monthsAgo(2),
+        },
+      ],
+    });
+
+    console.log(
+      'Created E17 impact-feed demo data (1 approved student voice, ' +
+        '4 channel prefs [WhatsApp + Telegram opt-in], 3-month read streak).',
     );
   }
 
