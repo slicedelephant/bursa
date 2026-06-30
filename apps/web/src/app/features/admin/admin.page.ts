@@ -33,6 +33,12 @@ type AdminTab = 'verify' | 'schools' | 'payouts';
             Observability
           </a>
           <a
+            routerLink="/admin/csrd"
+            class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
+          >
+            ESG / CSRD
+          </a>
+          <a
             routerLink="/campaigns"
             class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
           >

@@ -75,6 +75,13 @@ import {
   MatchClaimResult,
   MatchBalance,
   MatchLocale,
+  ReportStandard,
+  CsrdReportView,
+  CsrdReportSummary,
+  DataQualityReport,
+  TrendReport,
+  AuditorGrant,
+  CreatedAuditorGrant,
 } from './models';
 
 export interface TrackEventBody {
@@ -789,6 +796,75 @@ export class ApiService {
 
   schoolLedger(): Observable<LedgerView> {
     return this.unwrap(this.http.get<Envelope<LedgerView>>(`${API_BASE}/school/ledger`));
+  }
+
+  // ---- ESG / CSRD compliance reporting (E14, ADMIN) ----
+
+  csrdReport(standard: ReportStandard, year?: number): Observable<CsrdReportView> {
+    let params = new HttpParams().set('standard', standard);
+    if (year) params = params.set('year', String(year));
+    return this.unwrap(
+      this.http.get<Envelope<CsrdReportView>>(`${API_BASE}/admin/esg/report`, {
+        params,
+      }),
+    );
+  }
+
+  csrdCreateReport(standard: ReportStandard, year?: number): Observable<CsrdReportSummary> {
+    return this.unwrap(
+      this.http.post<Envelope<CsrdReportSummary>>(`${API_BASE}/admin/esg/reports`, {
+        standard,
+        year,
+      }),
+    );
+  }
+
+  csrdListReports(): Observable<CsrdReportSummary[]> {
+    return this.unwrap(
+      this.http.get<Envelope<CsrdReportSummary[]>>(`${API_BASE}/admin/esg/reports`),
+    );
+  }
+
+  csrdDataQuality(): Observable<DataQualityReport> {
+    return this.unwrap(
+      this.http.get<Envelope<DataQualityReport>>(`${API_BASE}/admin/esg/data-quality`),
+    );
+  }
+
+  csrdTrend(): Observable<TrendReport> {
+    return this.unwrap(this.http.get<Envelope<TrendReport>>(`${API_BASE}/admin/esg/trend`));
+  }
+
+  csrdListGrants(): Observable<AuditorGrant[]> {
+    return this.unwrap(
+      this.http.get<Envelope<AuditorGrant[]>>(`${API_BASE}/admin/esg/auditor-grants`),
+    );
+  }
+
+  csrdCreateGrant(body: {
+    label: string;
+    ttlHours?: number;
+    scope?: string;
+  }): Observable<CreatedAuditorGrant> {
+    return this.unwrap(
+      this.http.post<Envelope<CreatedAuditorGrant>>(`${API_BASE}/admin/esg/auditor-grants`, body),
+    );
+  }
+
+  csrdRevokeGrant(id: string): Observable<{ id: string; revokedAt: string | null }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ id: string; revokedAt: string | null }>>(
+        `${API_BASE}/admin/esg/auditor-grants/${id}/revoke`,
+        {},
+      ),
+    );
+  }
+
+  /** ESG report export as a binary blob (CSV or PDF); auth token added by interceptor. */
+  csrdReportExport(reportId: string, format: 'csv' | 'pdf'): Observable<Blob> {
+    return this.http.get(`${API_BASE}/admin/esg/reports/${reportId}/export.${format}`, {
+      responseType: 'blob',
+    });
   }
 
   /** Absolute URLs for the file-download endpoints (opened in a new tab). */

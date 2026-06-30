@@ -67,6 +67,12 @@ export const routes: Routes = [
       import('./features/admin/kyc/kyc-review.page').then((m) => m.KycReviewPage),
   },
   {
+    path: 'admin/csrd',
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () => import('./features/admin/csrd/csrd.page').then((m) => m.CsrdPage),
+  },
+  {
     path: 'account',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),

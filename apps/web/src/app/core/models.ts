@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -295,13 +285,7 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  | 'DETECTED'
-  | 'OFFERED'
-  | 'CLAIMED'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXPIRED';
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -457,6 +441,93 @@ export interface EsgDashboard {
   companyName: string;
   metrics: EsgMetrics;
   rows: EsgRow[];
+}
+
+// ---- ESG / CSRD compliance reporting (E14) ----
+
+export type ReportStandard = 'GRI_2024' | 'CSRD_ESRS' | 'SASB' | 'UN_SDG';
+
+export interface CsrdMetric {
+  code: string;
+  label: string;
+  value: number;
+  unit: string;
+  note: string;
+}
+
+export interface CsrdAnnotation {
+  ref: number;
+  sequence: number;
+  entryType: string;
+  amountCents: number;
+  reason: string;
+  entryHash: string;
+}
+
+export interface CsrdReportView {
+  standard: ReportStandard;
+  period: { start: string; end: string };
+  metrics: CsrdMetric[];
+  annotations: CsrdAnnotation[];
+}
+
+export interface CsrdReportSummary {
+  id: string;
+  standard: ReportStandard;
+  periodStart: string;
+  periodEnd: string;
+  createdAt: string;
+}
+
+export interface DataQualityField {
+  field: string;
+  captured: number;
+  total: number;
+  pct: number;
+  collectMore: boolean;
+}
+
+export interface DataQualityReport {
+  fields: DataQualityField[];
+  overallPct: number;
+}
+
+export interface TrendYear {
+  year: number;
+  investedEur: number;
+  scholarCount: number;
+  femaleSharePct: number;
+}
+
+export interface TrendDelta {
+  year: number;
+  investedEurDelta: number;
+  scholarCountDelta: number;
+  femaleShareDeltaPct: number;
+}
+
+export interface TrendReport {
+  years: TrendYear[];
+  deltas: TrendDelta[];
+}
+
+export type AuditorGrantStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED';
+
+export interface AuditorGrant {
+  id: string;
+  label: string;
+  expiresAt: string;
+  revokedAt: string | null;
+  lastUsedAt: string | null;
+  status: AuditorGrantStatus;
+}
+
+export interface CreatedAuditorGrant {
+  id: string;
+  label: string;
+  token: string;
+  expiresAt: string;
+  portalUrl: string;
 }
 
 // ---- Observability & funnel analytics (E7) ----
