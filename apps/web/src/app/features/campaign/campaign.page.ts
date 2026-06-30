@@ -4,10 +4,16 @@ import { AnalyticsService } from '../../core/analytics.service';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { campaignViewEvent } from '../../core/funnel-events';
-import { CampaignDetail, CorporateSponsorshipResult, DonationResult } from '../../core/models';
+import {
+  CampaignDetail,
+  CorporateSponsorshipResult,
+  DonationResult,
+  LeaderboardEntry,
+} from '../../core/models';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge.component';
 import { CorporateSponsorBoxComponent } from '../corporate/corporate-sponsor-box.component';
 import { RecognitionBannerComponent } from '../corporate/recognition-banner.component';
+import { AdvocateLeaderboardComponent } from '../referral/advocate-leaderboard.component';
 import { CampaignFlagComponent } from './campaign-flag.component';
 import { CampaignProgressComponent } from './campaign-progress.component';
 import { CampaignVideoComponent } from './campaign-video.component';
@@ -35,6 +41,7 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
     TrustPanelComponent,
     PayoutProofComponent,
     CampaignFlagComponent,
+    AdvocateLeaderboardComponent,
   ],
   template: `
     <section class="mx-auto max-w-6xl px-4 py-10">
@@ -183,6 +190,12 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
                 "
               />
 
+              @if (advocateEntries(); as entries) {
+                @if (entries.length > 0) {
+                  <app-advocate-leaderboard [entries]="entries" />
+                }
+              }
+
               <div class="px-1">
                 <app-campaign-flag [campaignId]="c.id" />
               </div>
@@ -203,6 +216,7 @@ export class CampaignPage implements OnInit {
   readonly detail = signal<CampaignDetail | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly advocateEntries = signal<LeaderboardEntry[] | null>(null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -222,6 +236,12 @@ export class CampaignPage implements OnInit {
         this.error.set(err?.error?.error?.message ?? 'This campaign could not be loaded.');
         this.loading.set(false);
       },
+    });
+
+    // Advocate leaderboard is auth-gated; tolerate failure for anonymous visitors.
+    this.api.advocateLeaderboard(id).subscribe({
+      next: (board) => this.advocateEntries.set(board.entries),
+      error: () => this.advocateEntries.set(null),
     });
   }
 

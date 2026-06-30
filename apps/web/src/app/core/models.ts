@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -295,13 +285,7 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  | 'DETECTED'
-  | 'OFFERED'
-  | 'CLAIMED'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXPIRED';
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -1140,4 +1124,77 @@ export interface PortfolioView {
   badge: BadgeProgress;
   stats: CumulativeStats;
   peer: PeerComparison;
+}
+
+// ---- E15: Referral & Advocate Engine ----
+
+export type ReferralPerk = 'NONE' | 'SHOUT_OUT' | 'RECAP' | 'RECOGNITION';
+export type ReferralShareChannel = 'email' | 'whatsapp' | 'linkedin';
+
+export interface ShareTemplate {
+  subject?: string;
+  body: string;
+}
+
+export type ShareTemplates = Record<ReferralShareChannel, ShareTemplate>;
+
+export interface ReferralStats {
+  invited: number;
+  donated: number;
+  active: number;
+  conversionPct: number;
+  viralCoefficient: number;
+  label: string;
+}
+
+export interface ReferralReward {
+  count: number;
+  tier: BadgeTier;
+  nextTier: BadgeTier | null;
+  toNext: number | null;
+  perk: ReferralPerk;
+  bothWin: boolean;
+}
+
+export interface DonorReferralView {
+  link: { code: string; shareUrl: string };
+  stats: ReferralStats;
+  reward: ReferralReward;
+  optInLeaderboard: boolean;
+  templates: ShareTemplates;
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  label: string;
+  score: number;
+  rank: number;
+}
+
+export interface ReferralLeaderboardView {
+  entries: LeaderboardEntry[];
+}
+
+export interface CreatedAdvocateView {
+  id: string;
+  name: string;
+  shareUrl: string;
+  templates: ShareTemplates;
+}
+
+export interface AdvocateRowView {
+  id: string;
+  name: string;
+  email: string | null;
+  referralCount: number;
+  reward: ReferralReward;
+  rank: number;
+}
+
+export interface AdvocateDashboardView {
+  campaignId: string;
+  advocateCount: number;
+  remaining: number;
+  advocates: AdvocateRowView[];
+  leaderboard: LeaderboardEntry[];
 }

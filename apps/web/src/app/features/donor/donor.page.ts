@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import {
   DonorHistory,
+  DonorReferralView,
   MatchBalance,
   NotificationFeed,
   PortfolioView,
@@ -14,6 +15,8 @@ import {
 import { ReceiptPanelComponent } from '../sponsor/receipt-panel.component';
 import { ClaimHistoryComponent } from '../matching/claim-history.component';
 import { MatchBalanceComponent } from '../matching/match-balance.component';
+import { ReferralCtaComponent } from '../referral/referral-cta.component';
+import { ReferralPanelComponent } from '../referral/referral-panel.component';
 import { DonationHistoryComponent } from './donation-history.component';
 import { recurringLabel, repeatLabel, supportedLabel } from './donor-summary';
 import { NotificationsFeedComponent } from './notifications-feed.component';
@@ -37,6 +40,8 @@ import { StreakBannerComponent } from './streak-banner.component';
     StreakBannerComponent,
     PortfolioStatsComponent,
     PortfolioGridComponent,
+    ReferralPanelComponent,
+    ReferralCtaComponent,
   ],
   template: `
     <section class="mx-auto max-w-5xl px-4 py-10">
@@ -94,6 +99,12 @@ import { StreakBannerComponent } from './streak-banner.component';
               </button>
             </div>
           }
+          @if (referral(); as r) {
+            <app-referral-cta
+              [shareUrl]="r.link.shareUrl"
+              (share)="copyReferral(r.link.shareUrl)"
+            />
+          }
         </div>
       }
 
@@ -117,6 +128,14 @@ import { StreakBannerComponent } from './streak-banner.component';
           }
         </div>
         <div class="space-y-6">
+          @if (referral(); as r) {
+            <app-referral-panel
+              [view]="r"
+              [copied]="referralCopied()"
+              (copyRequested)="copyReferral($event)"
+              (optInChanged)="setReferralOptIn($event)"
+            />
+          }
           @if (matchBalance(); as b) {
             <app-match-balance [balance]="b" />
             <app-claim-history [claims]="b.claims" />
@@ -145,6 +164,8 @@ export class DonorPage implements OnInit {
   readonly toast = signal<string | null>(null);
   readonly matchBalance = signal<MatchBalance | null>(null);
   readonly portfolio = signal<PortfolioView | null>(null);
+  readonly referral = signal<DonorReferralView | null>(null);
+  readonly referralCopied = signal(false);
 
   ngOnInit(): void {
     this.reloadHistory();
@@ -152,6 +173,27 @@ export class DonorPage implements OnInit {
     this.reloadRecurring();
     this.reloadMatchBalance();
     this.reloadPortfolio();
+    this.reloadReferral();
+  }
+
+  private reloadReferral(): void {
+    this.api.donorReferral().subscribe({ next: (r) => this.referral.set(r) });
+  }
+
+  copyReferral(text: string): void {
+    void navigator.clipboard?.writeText(text).then(
+      () => {
+        this.referralCopied.set(true);
+        setTimeout(() => this.referralCopied.set(false), 2000);
+      },
+      () => undefined,
+    );
+  }
+
+  setReferralOptIn(optIn: boolean): void {
+    this.api.setReferralOptIn(optIn).subscribe({
+      next: () => this.reloadReferral(),
+    });
   }
 
   goToCampaign(campaignId: string): void {

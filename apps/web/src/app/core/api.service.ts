@@ -83,6 +83,10 @@ import {
   AuditorGrant,
   CreatedAuditorGrant,
   PortfolioView,
+  DonorReferralView,
+  ReferralLeaderboardView,
+  CreatedAdvocateView,
+  AdvocateDashboardView,
 } from './models';
 
 export interface TrackEventBody {
@@ -427,6 +431,56 @@ export class ApiService {
     return this.http.get(`${API_BASE}/donors/me/portfolio/export.${format}`, {
       responseType: 'blob',
     });
+  }
+
+  // ---- Referral & advocate engine (E15) ----
+  donorReferral(): Observable<DonorReferralView> {
+    return this.unwrap(
+      this.http.get<Envelope<DonorReferralView>>(`${API_BASE}/donors/me/referral`),
+    );
+  }
+
+  setReferralOptIn(optIn: boolean): Observable<{ optInLeaderboard: boolean }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ optInLeaderboard: boolean }>>(
+        `${API_BASE}/donors/me/referral/leaderboard-opt-in`,
+        { optIn },
+      ),
+    );
+  }
+
+  referralLeaderboard(): Observable<ReferralLeaderboardView> {
+    return this.unwrap(
+      this.http.get<Envelope<ReferralLeaderboardView>>(`${API_BASE}/referral/leaderboard`),
+    );
+  }
+
+  inviteAdvocate(
+    campaignId: string,
+    body: { name: string; email?: string },
+  ): Observable<CreatedAdvocateView> {
+    return this.unwrap(
+      this.http.post<Envelope<CreatedAdvocateView>>(
+        `${API_BASE}/campaigns/${campaignId}/advocates`,
+        body,
+      ),
+    );
+  }
+
+  campaignAdvocates(campaignId: string): Observable<AdvocateDashboardView> {
+    return this.unwrap(
+      this.http.get<Envelope<AdvocateDashboardView>>(
+        `${API_BASE}/campaigns/${campaignId}/advocates`,
+      ),
+    );
+  }
+
+  advocateLeaderboard(campaignId: string): Observable<ReferralLeaderboardView> {
+    return this.unwrap(
+      this.http.get<Envelope<ReferralLeaderboardView>>(
+        `${API_BASE}/campaigns/${campaignId}/advocate-leaderboard`,
+      ),
+    );
   }
 
   // ---- Employer matching (E13) ----

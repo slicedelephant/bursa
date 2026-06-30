@@ -1,7 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { StudentMe } from '../../core/models';
+import { AdvocateDashboardView, StudentMe } from '../../core/models';
+import { AdvocateManagerComponent } from '../referral/advocate-manager.component';
 import { CampaignWizardComponent } from './campaign-wizard.component';
 import { StudentCampaignStatus } from './campaign-status.component';
 import { ImpactUpdateFormComponent } from './impact-update-form.component';
@@ -18,6 +19,7 @@ import { StudentProfileForm } from './profile-form.component';
     StudentCampaignStatus,
     ImpactUpdateFormComponent,
     KycVerificationComponent,
+    AdvocateManagerComponent,
   ],
   template: `
     <section class="mx-auto max-w-2xl px-4 py-10">
@@ -91,6 +93,14 @@ import { StudentProfileForm } from './profile-form.component';
           />
           @if (isLive(data.campaign.status)) {
             <app-impact-update-form [campaignId]="data.campaign.id" />
+            @if (advocates(); as adv) {
+              <div class="mt-6">
+                <app-advocate-manager
+                  [view]="adv"
+                  (invite)="inviteAdvocate(data.campaign.id, $event)"
+                />
+              </div>
+            }
           }
         }
       }
@@ -104,6 +114,7 @@ export class StudentPage implements OnInit {
   readonly me = signal<StudentMe | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly advocates = signal<AdvocateDashboardView | null>(null);
 
   readonly steps = [
     { n: 1, label: 'Profile' },
@@ -131,11 +142,26 @@ export class StudentPage implements OnInit {
       next: (data) => {
         this.me.set(data);
         this.loading.set(false);
+        if (data.campaign && this.isLive(data.campaign.status)) {
+          this.reloadAdvocates(data.campaign.id);
+        }
       },
       error: (err) => {
         this.loading.set(false);
         this.error.set(err?.error?.error?.message ?? 'Something went wrong');
       },
+    });
+  }
+
+  private reloadAdvocates(campaignId: string): void {
+    this.api.campaignAdvocates(campaignId).subscribe({
+      next: (view) => this.advocates.set(view),
+    });
+  }
+
+  inviteAdvocate(campaignId: string, body: { name: string; email?: string }): void {
+    this.api.inviteAdvocate(campaignId, body).subscribe({
+      next: () => this.reloadAdvocates(campaignId),
     });
   }
 
