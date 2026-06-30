@@ -9,8 +9,17 @@
   - E9 Trust-and-Safety Console: branch `010-trust-safety`, PR #9, gemerged (API 548 / Web 252 Tests).
   - E10 AI Fundraising Coach: branch `011-ai-coach`, PR #10, gemerged (API 620 / Web 270 Tests).
   - Finaler `main` (e8c8a16): beide Builds gruen, Seed laeuft, alle Migrationen sauber.
-- **Welle B (E11-E17): zurueckgestellt** -> Neubewertung nach Welle A.
-- **Welle C (E18-E21): zurueckgestellt** -> XL-Brocken (E11/E19/E20) erst nach Kapazitaetsklaerung.
+- **Welle B (E11-E17): UMGESETZT und gemerged** (Stand 01.07.2026) -> autonom ueber spec-kit gebaut, je Epic ein Agent + eigener PR, in Abhaengigkeits-Reihenfolge.
+  - E11 KYC & Verification Pipeline: branch `012-kyc-verification`, PR #11, gemerged.
+  - E12 Payout-Reconciliation + Append-only-Ledger: branch `013-payout-reconciliation`, PR #12, gemerged.
+  - E13 Employer Matching Auto-Detection: branch `014-employer-matching`, PR #13, gemerged.
+  - E14 ESG/CSRD-Reporting (auf E12-Ledger): branch `015-csrd-reporting`, PR #14, gemerged.
+  - E16 Spender-Portfolio + Gamification-Primitive: branch `016-donor-portfolio`, PR #15, gemerged.
+  - E15 Referral- + Advocate-Engine (auf E16): branch `017-referral-engine`, PR #16, gemerged.
+  - E17 Multi-Channel Impact-Feed (WhatsApp/Telegram): branch `018-impact-feed`, PR #17, gemerged.
+  - Finaler `main` (2632b5e): beide Builds gruen, Seed laeuft, 17 Migrationen sauber, prettier-clean. Testsumme: API 1179 / Web 494.
+  - Alle externen Dienste (Persona/Onfido/Sumsub/Plaid, Double-the-Donation, WhatsApp/Telegram) gemockt hinter austauschbaren Providern (Default `mock`, keine echten Keys noetig).
+- **Welle C (E18-E21): zurueckgestellt** -> XL-Brocken (E19 Scholarship-Manager, E20 Multi-Currency) erst nach Kapazitaetsklaerung.
 
 ## Kurzfazit
 
