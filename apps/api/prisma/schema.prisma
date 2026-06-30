@@ -250,6 +250,35 @@ enum EmployerIntegrationLevel {
   MANUAL
 }
 
+/// E14 ESG/CSRD: the ESG/CSR category a ledger entry is tagged with. Tagging is
+/// additive (a separate EsgTag row), never a mutation of the append-only ledger.
+enum EsgCategory {
+  QUALITY_EDUCATION
+  GENDER_EQUALITY
+  GEOGRAPHIC_REACH
+  POVERTY_REDUCTION
+  ECONOMIC_GROWTH
+}
+
+/// E14 ESG/CSRD: the reporting standard a generated report is mapped onto. The
+/// mapping (pure `esg-standard-mapper.ts`) is illustrative, not a certified
+/// disclosure schema.
+enum ReportStandard {
+  GRI_2024
+  CSRD_ESRS
+  SASB
+  UN_SDG
+}
+
+/// E14 ESG/CSRD: optional diversity dimension captured at scholar onboarding.
+/// Always optional — capturing it never breaks the E8 admission / E11 KYC flows.
+enum Gender {
+  FEMALE
+  MALE
+  NON_BINARY
+  UNDISCLOSED
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -304,7 +333,11 @@ model User {
   /// Match euros (cents) already committed this `matchYear`. Reset when the year rolls.
   matchUsedCents Int     @default(0)
 
-  matchClaims MatchClaim[] @relation("DonorMatchClaims")
+  matchClaims   MatchClaim[]         @relation("DonorMatchClaims")
+  // ---- E14: ESG/CSRD reporting (compliance records this user created) ----
+  esgTags       EsgTag[]             @relation("EsgTagTagger")
+  esgReports    EsgReport[]          @relation("EsgReportCreator")
+  auditorGrants AuditorAccessGrant[] @relation("AuditorGrantCreator")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -462,6 +495,11 @@ model StudentProfile {
   story          String
   recommendation String?
   createdAt      DateTime @default(now())
+  // ---- E14: optional diversity fields (CSRD/diversity reporting). All nullable;
+  // capturing them never breaks E8 onboarding / E11 KYC. `country` already exists.
+  gender         Gender?
+  birthYear      Int?
+  firstGen       Boolean?
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   campaign Campaign?
@@ -936,8 +974,10 @@ model LedgerEntry {
   entryHash   String
   createdAt   DateTime        @default(now())
 
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  actor  User?  @relation("LedgerActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  actor  User?   @relation("LedgerActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  // ---- E14: additive ESG tag (read-only ref; the entry itself is never mutated) ----
+  esgTag EsgTag?
 
   @@unique([schoolId, sequence])
   @@index([schoolId, createdAt])
@@ -1032,4 +1072,57 @@ model MatchClaim {
   @@index([donorUserId, createdAt])
   @@index([campaignId])
   @@index([status])
+}
+
+/// E14 ESG/CSRD — An additive compliance tag on an immutable ledger entry. Unique
+/// per ledgerEntryId (re-tag replaces). The referenced LedgerEntry is NEVER mutated,
+/// so the append-only hash chain stays verifiable (relations are not hashed).
+model EsgTag {
+  id             String      @id @default(cuid())
+  ledgerEntryId  String      @unique
+  category       EsgCategory
+  note           String?
+  taggedByUserId String?
+  createdAt      DateTime    @default(now())
+
+  ledgerEntry LedgerEntry @relation(fields: [ledgerEntryId], references: [id], onDelete: Cascade)
+  taggedBy    User?       @relation("EsgTagTagger", fields: [taggedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+}
+
+/// E14 ESG/CSRD — A persisted snapshot of a generated report (standard + period +
+/// mapped metrics/annotations). `metricsJson` is an illustrative mapping snapshot,
+/// not a certified disclosure schema.
+model EsgReport {
+  id              String         @id @default(cuid())
+  standard        ReportStandard
+  periodStart     DateTime
+  periodEnd       DateTime
+  metricsJson     Json
+  createdByUserId String?
+  createdAt       DateTime       @default(now())
+
+  createdBy User? @relation("EsgReportCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([standard, createdAt])
+}
+
+/// E14 ESG/CSRD — A time-limited, read-only auditor access grant. Only the SHA-256
+/// hash of the token is stored (E8 one-time-token pattern); the raw token is shown
+/// once. A grant is valid while `revokedAt == null && expiresAt > now`.
+model AuditorAccessGrant {
+  id              String    @id @default(cuid())
+  label           String
+  tokenHash       String    @unique
+  scope           String?
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  lastUsedAt      DateTime?
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+
+  createdBy User? @relation("AuditorGrantCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([expiresAt])
 }

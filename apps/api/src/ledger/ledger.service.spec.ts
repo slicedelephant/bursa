@@ -28,13 +28,22 @@ function createPrismaFake() {
         return row;
       }),
       findMany: jest.fn(async ({ where, orderBy }: any) => {
-        return entries
-          .filter((e) => e.schoolId === where.schoolId)
-          .sort((a, b) =>
-            orderBy?.sequence === 'desc'
-              ? b.sequence - a.sequence
-              : a.sequence - b.sequence,
-          );
+        let rows = entries.slice();
+        if (where?.schoolId) {
+          rows = rows.filter((e) => e.schoolId === where.schoolId);
+        }
+        if (where?.createdAt) {
+          const { gte, lte } = where.createdAt;
+          rows = rows.filter((e) => {
+            const t = new Date(e.createdAt ?? 0).getTime();
+            return (!gte || t >= gte.getTime()) && (!lte || t <= lte.getTime());
+          });
+        }
+        return rows.sort((a, b) =>
+          orderBy?.sequence === 'desc'
+            ? b.sequence - a.sequence
+            : a.sequence - b.sequence,
+        );
       }),
     },
   };
@@ -107,5 +116,35 @@ describe('LedgerService', () => {
     const view = await service.viewForSchool('school-1');
     expect(view.integrity.valid).toBe(true);
     expect(view.entries).toHaveLength(2);
+  });
+
+  it('lists all entries across schools for reporting (no window)', async () => {
+    const { prisma } = createPrismaFake();
+    const service = new LedgerService(prisma);
+    await service.append(movement('p1'));
+    await service.append({
+      entryType: LedgerEntryType.DONATION,
+      amountCents: 1000,
+      schoolId: 'school-2',
+      reason: 'Donation',
+    });
+    const all = await service.listAllForReporting();
+    expect(all).toHaveLength(2);
+    expect(new Set(all.map((e) => e.schoolId))).toEqual(
+      new Set(['school-1', 'school-2']),
+    );
+  });
+
+  it('applies a date window when reporting', async () => {
+    const { prisma, entries } = createPrismaFake();
+    const service = new LedgerService(prisma);
+    await service.append(movement('p1'));
+    // Stamp the only entry into 2024 so a 2026 window excludes it.
+    entries[0].createdAt = new Date('2024-01-01T00:00:00Z');
+    const within = await service.listAllForReporting({
+      from: new Date('2026-01-01T00:00:00Z'),
+      to: new Date('2026-12-31T23:59:59Z'),
+    });
+    expect(within).toHaveLength(0);
   });
 });

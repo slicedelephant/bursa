@@ -22,6 +22,7 @@ import { KycModule } from './kyc/kyc.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { MatchingModule } from './matching/matching.module';
+import { EsgModule } from './esg/esg.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { MatchingModule } from './matching/matching.module';
     LedgerModule,
     ReconciliationModule,
     MatchingModule,
+    EsgModule,
   ],
 })
 export class AppModule {}

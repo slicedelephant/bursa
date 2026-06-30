@@ -1,4 +1,11 @@
-import { LedgerEntryType, PrismaClient } from '@prisma/client';
+import {
+  EsgCategory,
+  Gender,
+  LedgerEntryType,
+  Prisma,
+  PrismaClient,
+  ReportStandard,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -10,6 +17,10 @@ import {
 } from '../src/ledger/ledger-entry';
 import { createOnboardingToken } from '../src/schools/onboarding-token';
 import { EMPLOYER_PROGRAMS } from '../src/matching/employer-programs.data';
+import { buildEsgAggregate } from '../src/esg/esg-aggregate';
+import { mapToStandard } from '../src/esg/esg-standard-mapper';
+import { buildAnnotations } from '../src/esg/audit-annotation';
+import { createAuditorToken } from '../src/esg/auditor-access-token';
 
 const prisma = new PrismaClient();
 
@@ -377,6 +388,10 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E14 (delete before ledgerEntry/user: EsgTag references a ledger entry)
+  await prisma.esgTag.deleteMany();
+  await prisma.esgReport.deleteMany();
+  await prisma.auditorAccessGrant.deleteMany();
   // E13 (delete before donation/user/campaign: claim references donation + program)
   await prisma.matchClaim.deleteMany();
   await prisma.employerMatchProgram.deleteMany();
@@ -1651,6 +1666,129 @@ async function main(): Promise<void> {
   console.log(
     `Created E12 reconciliation demo data (ledger entries, matched + orphan + stale).`,
   );
+
+  // --------------------------------------------------------------------------
+  // E14 — ESG/CSRD reporting demo: tag a few ledger entries, fill optional
+  // scholar diversity, generate one persisted report, and issue one auditor grant.
+  // Read-only over the E12 ledger — the entries themselves are never mutated.
+  // --------------------------------------------------------------------------
+
+  // (a) Diversity data on the existing scholar profiles (synthetic, optional).
+  const scholarProfiles = await prisma.studentProfile.findMany({
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  const GENDERS: Gender[] = ['FEMALE', 'MALE', 'NON_BINARY', 'UNDISCLOSED'];
+  for (let i = 0; i < scholarProfiles.length; i++) {
+    // Skip ~1 in 5 fields so the data-quality score is realistically incomplete.
+    await prisma.studentProfile.update({
+      where: { id: scholarProfiles[i].id },
+      data: {
+        gender:
+          i % 5 === 4
+            ? undefined
+            : GENDERS[i % 3 === 0 ? 0 : i % GENDERS.length],
+        birthYear: i % 4 === 3 ? undefined : 1990 + (i % 12),
+        firstGen: i % 3 === 2 ? undefined : i % 2 === 0,
+      },
+    });
+  }
+
+  // (b) ESG-tag a handful of ledger entries (additive; entries stay immutable).
+  const taggableEntries = await prisma.ledgerEntry.findMany({
+    where: { entryType: { in: ['PAYOUT', 'DISBURSEMENT'] } },
+    select: { id: true, entryType: true },
+    orderBy: { createdAt: 'asc' },
+    take: 6,
+  });
+  const TAG_CATEGORIES: EsgCategory[] = [
+    'QUALITY_EDUCATION',
+    'GENDER_EQUALITY',
+    'GEOGRAPHIC_REACH',
+    'POVERTY_REDUCTION',
+    'ECONOMIC_GROWTH',
+  ];
+  for (let i = 0; i < taggableEntries.length; i++) {
+    await prisma.esgTag.create({
+      data: {
+        ledgerEntryId: taggableEntries[i].id,
+        category: TAG_CATEGORIES[i % TAG_CATEGORIES.length],
+        note: 'Seed demo tag',
+        taggedByUserId: admin.id,
+      },
+    });
+  }
+
+  // (c) Generate + persist one report snapshot (GRI 2024, current year) using the
+  // same pure cores the service uses — read-only over the ledger.
+  const reportYear = new Date().getUTCFullYear();
+  const periodStart = new Date(Date.UTC(reportYear, 0, 1, 0, 0, 0));
+  const periodEnd = new Date(Date.UTC(reportYear, 11, 31, 23, 59, 59));
+  const allLedgerForReport = await prisma.ledgerEntry.findMany({
+    where: { createdAt: { gte: periodStart, lte: periodEnd } },
+    orderBy: [{ schoolId: 'asc' }, { sequence: 'asc' }],
+  });
+  const reportProfiles = await prisma.studentProfile.findMany({
+    select: { gender: true, birthYear: true, country: true, firstGen: true },
+  });
+  const reportTags = await prisma.esgTag.findMany({
+    select: { category: true },
+  });
+  const aggregate = buildEsgAggregate({
+    entries: allLedgerForReport.map((e) => ({
+      entryType: e.entryType,
+      amountCents: e.amountCents,
+      createdAt: e.createdAt,
+    })),
+    profiles: reportProfiles,
+    tags: reportTags,
+    refYear: reportYear,
+  });
+  const reportView = {
+    standard: 'GRI_2024' as ReportStandard,
+    period: { start: periodStart, end: periodEnd },
+    metrics: mapToStandard('GRI_2024', aggregate),
+    annotations: buildAnnotations(
+      allLedgerForReport
+        .filter(
+          (e) => e.entryType === 'PAYOUT' || e.entryType === 'DISBURSEMENT',
+        )
+        .map((e) => ({
+          sequence: e.sequence,
+          entryType: e.entryType,
+          amountCents: e.amountCents,
+          reason: e.reason,
+          entryHash: e.entryHash,
+        })),
+    ),
+  };
+  await prisma.esgReport.create({
+    data: {
+      standard: 'GRI_2024',
+      periodStart,
+      periodEnd,
+      metricsJson: reportView as unknown as Prisma.InputJsonValue,
+      createdByUserId: admin.id,
+    },
+  });
+
+  // (d) One demo auditor access grant (48h, read-only). Raw token logged once.
+  const auditorToken = createAuditorToken();
+  await prisma.auditorAccessGrant.create({
+    data: {
+      label: 'Demo external auditor (seed)',
+      tokenHash: auditorToken.tokenHash,
+      scope: null,
+      expiresAt: auditorToken.expiresAt,
+      createdByUserId: admin.id,
+    },
+  });
+
+  console.log(
+    `Created E14 CSRD demo data (diversity on ${scholarProfiles.length} scholars, ` +
+      `${taggableEntries.length} ESG tags, 1 GRI report, 1 auditor grant).`,
+  );
+  console.log(`  Demo auditor portal: /audit-portal/${auditorToken.token}`);
 
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');
   console.log(

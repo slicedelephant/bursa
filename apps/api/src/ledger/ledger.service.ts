@@ -72,6 +72,24 @@ export class LedgerService {
     });
   }
 
+  /**
+   * List ledger entries across all schools for read-only reporting (E14 CSRD).
+   * Ordered by (school, sequence) so per-school chains stay contiguous. Optional
+   * date window. Read-only — the append-only invariant is untouched.
+   */
+  async listAllForReporting(window?: {
+    from?: Date;
+    to?: Date;
+  }): Promise<LedgerEntry[]> {
+    return this.prisma.ledgerEntry.findMany({
+      where:
+        window?.from || window?.to
+          ? { createdAt: { gte: window.from, lte: window.to } }
+          : undefined,
+      orderBy: [{ schoolId: 'asc' }, { sequence: 'asc' }],
+    });
+  }
+
   /** Build the full ledger view (entries + chain integrity) for a school. */
   async viewForSchool(schoolId: string): Promise<LedgerView> {
     const rows = await this.listForSchool(schoolId);
