@@ -67,6 +67,10 @@ import {
   DocumentBody,
   AmlScreenBody,
   ReviewDecideBody,
+  ReconciliationView,
+  PayoutRowView,
+  LedgerView,
+  TransparencyView,
 } from './models';
 
 export interface TrackEventBody {
@@ -739,6 +743,44 @@ export class ApiService {
         `${API_BASE}/kyc/review/${caseId}/decide`,
         body,
       ),
+    );
+  }
+
+  // ---- E12: Payout Reconciliation & Transparency ----
+  schoolReconciliation(): Observable<ReconciliationView> {
+    return this.unwrap(
+      this.http.get<Envelope<ReconciliationView>>(`${API_BASE}/school/reconciliation`),
+    );
+  }
+
+  schoolReconciliationPayouts(): Observable<PayoutRowView[]> {
+    return this.unwrap(
+      this.http.get<Envelope<PayoutRowView[]>>(`${API_BASE}/school/reconciliation/payouts`),
+    );
+  }
+
+  schoolLedger(): Observable<LedgerView> {
+    return this.unwrap(this.http.get<Envelope<LedgerView>>(`${API_BASE}/school/ledger`));
+  }
+
+  /** Absolute URLs for the file-download endpoints (opened in a new tab). */
+  reconciliationExportUrl(kind: 'csv' | 'pdf' | 'tax' | 'accounting'): string {
+    switch (kind) {
+      case 'pdf':
+        return `${API_BASE}/school/reconciliation/export.pdf`;
+      case 'tax':
+        return `${API_BASE}/school/reconciliation/tax-report.csv`;
+      case 'accounting':
+        return `${API_BASE}/school/reconciliation/accounting.csv`;
+      case 'csv':
+      default:
+        return `${API_BASE}/school/reconciliation/export.csv`;
+    }
+  }
+
+  transparency(schoolId: string): Observable<TransparencyView> {
+    return this.unwrap(
+      this.http.get<Envelope<TransparencyView>>(`${API_BASE}/transparency/schools/${schoolId}`),
     );
   }
 }

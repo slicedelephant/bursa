@@ -360,5 +360,30 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E12 — Payout Reconciliation & Transparency (new code, held to >= 80%).
+    './src/app/features/school/reconciliation-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/school/reconciliation-panel.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/transparency/transparency-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/transparency/transparency.page.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

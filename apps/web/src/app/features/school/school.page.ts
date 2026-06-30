@@ -9,11 +9,12 @@ import {
   onboardingStatusLabel,
 } from './onboarding-progress';
 import { SchoolPayoutFormComponent } from './payout-form.component';
+import { SchoolReconciliationComponent } from './reconciliation-panel.component';
 import { SchoolDashboardComponent } from './school-dashboard.component';
 import { SchoolStudentListComponent } from './student-list.component';
 import { SchoolWebhooksPanelComponent } from './webhooks-panel.component';
 
-type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
+type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'reconciliation' | 'webhooks';
 
 /** Branded school-admin portal shell: per-school header, onboarding banner, tabs. */
 @Component({
@@ -25,6 +26,7 @@ type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
     SchoolStudentListComponent,
     SchoolCampaignApprovalComponent,
     SchoolPayoutFormComponent,
+    SchoolReconciliationComponent,
     SchoolWebhooksPanelComponent,
   ],
   template: `
@@ -121,6 +123,9 @@ type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
         @case ('payout') {
           <app-school-payout-form (changed)="load()" />
         }
+        @case ('reconciliation') {
+          <app-school-reconciliation />
+        }
         @case ('webhooks') {
           <app-school-webhooks-panel />
         }
@@ -139,6 +144,7 @@ export class SchoolPage {
     { id: 'students', label: 'Students' },
     { id: 'campaigns', label: 'Campaigns' },
     { id: 'payout', label: 'Payout & agreement' },
+    { id: 'reconciliation', label: 'Reconciliation' },
     { id: 'webhooks', label: 'Webhooks' },
   ];
 

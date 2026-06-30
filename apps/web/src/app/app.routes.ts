@@ -83,5 +83,11 @@ export const routes: Routes = [
     data: { roles: ['SCHOOL_ADMIN'] },
     loadComponent: () => import('./features/school/school.page').then((m) => m.SchoolPage),
   },
+  {
+    // Public, embeddable per-school transparency page (no auth).
+    path: 'transparency/:schoolId',
+    loadComponent: () =>
+      import('./features/transparency/transparency.page').then((m) => m.TransparencyPage),
+  },
   { path: '**', redirectTo: 'campaigns' },
 ];

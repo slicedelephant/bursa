@@ -835,3 +835,88 @@ export interface ReviewDecideBody {
   decision: 'APPROVE' | 'REJECT';
   note: string;
 }
+
+// ---- E12: Payout Reconciliation & Transparency ----
+
+export type LedgerEntryType = 'DONATION' | 'PAYOUT' | 'DISBURSEMENT';
+
+export type ReconciliationRowStatus = 'MATCHED' | 'PENDING' | 'UNMATCHED' | 'DISCREPANCY';
+
+export interface BankTxView {
+  externalId: string;
+  amountCents: number;
+  currency: string;
+  reference: string | null;
+  postedAt: string;
+}
+
+export interface PayoutRowView {
+  payoutId: string;
+  campaignTitle: string;
+  amountCents: number;
+  currency: string;
+  payoutStatus: 'PENDING' | 'SENT' | 'CONFIRMED';
+  reconciliationStatus: ReconciliationRowStatus;
+  bankTx: BankTxView | null;
+  discrepancyCents: number | null;
+  sentAt: string | null;
+}
+
+export interface StaleAlertView {
+  payoutId: string;
+  amountCents: number;
+  hoursStale: number;
+  campaignTitle: string;
+}
+
+export interface ReconciliationView {
+  schoolId: string;
+  runAt: string;
+  summary: {
+    matchedCount: number;
+    pendingCount: number;
+    unmatchedCount: number;
+    discrepancyCount: number;
+    bankTxCount: number;
+  };
+  rows: PayoutRowView[];
+  unmatchedBankTx: BankTxView[];
+  alerts: StaleAlertView[];
+}
+
+export interface LedgerEntryView {
+  sequence: number;
+  entryType: LedgerEntryType;
+  amountCents: number;
+  currency: string;
+  reason: string;
+  refType: string | null;
+  refId: string | null;
+  entryHash: string;
+  createdAt: string;
+}
+
+export interface LedgerView {
+  schoolId: string;
+  integrity: {
+    valid: boolean;
+    checkedCount: number;
+    brokenAtSequence: number | null;
+  };
+  entries: LedgerEntryView[];
+}
+
+export interface TransparencyView {
+  schoolId: string;
+  schoolName: string;
+  totalRaisedCents: number;
+  totalPaidOutCents: number;
+  donationCount: number;
+  avgDonationCents: number;
+  studentsSupported: number;
+  donorGeography: {
+    country: string;
+    donationCount: number;
+    amountCents: number;
+  }[];
+}
