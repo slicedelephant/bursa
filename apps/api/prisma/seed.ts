@@ -804,6 +804,71 @@ async function main(): Promise<void> {
     },
   });
 
+  // --------------------------------------------------------------------------
+  // E16 — Donor Portfolio & Giving-Streaks demo data for donor@bursa.test.
+  // Builds a multi-month, multi-student history so the portfolio shows a visible
+  // streak (SILVER badge at 6+ months) and 5 supported students. Money still goes
+  // to the school: these are normal CAPTURED donations on existing campaigns.
+  // Idempotent via the full clearDatabase() reset at the top of main().
+  // Anchor on the 15th to avoid day-of-month overflow (e.g. "Feb 31" rolling into
+  // March), which would otherwise punch a hole in the consecutive-month streak.
+  const monthsAgo = (n: number): Date => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - n, 15, 12, 0, 0);
+  };
+
+  // A 7-month giving streak on Amara's campaign (months 0..6) -> SILVER badge.
+  for (let i = 1; i <= 6; i += 1) {
+    await prisma.donation.create({
+      data: {
+        campaignId: amaraId,
+        donorUserId: donor.id,
+        amountCents: eur(25),
+        method: 'CARD',
+        type: 'PRIVATE',
+        status: 'CAPTURED',
+        providerRef: `mock_seed_donor_streak_${i}`,
+        donorName: 'Generous Donor',
+        capturedAt: monthsAgo(i),
+        createdAt: monthsAgo(i),
+      },
+    });
+    await prisma.campaign.update({
+      where: { id: amaraId },
+      data: { raisedCents: { increment: eur(25) } },
+    });
+  }
+
+  // Three more supported students across earlier months -> a 5-student portfolio
+  // (Amara + Kwame from E4, plus Thandiwe, Aisha, Priya here).
+  const portfolioGifts: Array<{ slug: string; eur: number; month: number }> = [
+    { slug: 'thandiwe-ncube', eur: 60, month: 2 },
+    { slug: 'aisha-bello', eur: 40, month: 4 },
+    { slug: 'priya-sharma', eur: 35, month: 5 },
+  ];
+  for (const gift of portfolioGifts) {
+    const campaignId = campaignBySlug[gift.slug];
+    if (!campaignId) continue;
+    await prisma.donation.create({
+      data: {
+        campaignId,
+        donorUserId: donor.id,
+        amountCents: eur(gift.eur),
+        method: 'CARD',
+        type: 'PRIVATE',
+        status: 'CAPTURED',
+        providerRef: `mock_seed_donor_portfolio_${gift.slug}`,
+        donorName: 'Generous Donor',
+        capturedAt: monthsAgo(gift.month),
+        createdAt: monthsAgo(gift.month),
+      },
+    });
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: { raisedCents: { increment: eur(gift.eur) } },
+    });
+  }
+
   // In-app feed + one logged email copy.
   await prisma.notification.createMany({
     data: [

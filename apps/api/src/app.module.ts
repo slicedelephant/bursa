@@ -23,6 +23,7 @@ import { LedgerModule } from './ledger/ledger.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { MatchingModule } from './matching/matching.module';
 import { EsgModule } from './esg/esg.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { EsgModule } from './esg/esg.module';
     ReconciliationModule,
     MatchingModule,
     EsgModule,
+    PortfolioModule,
   ],
 })
 export class AppModule {}
