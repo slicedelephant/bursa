@@ -1068,3 +1068,60 @@ export interface TransparencyView {
     amountCents: number;
   }[];
 }
+
+// ---- E16: Donor Portfolio & Giving-Streaks ----
+
+export type BadgeTier = 'NONE' | 'BRONZE' | 'SILVER' | 'GOLD';
+
+export interface PortfolioItem {
+  campaignId: string;
+  studentName: string;
+  photoUrl: string | null;
+  country: string;
+  schoolName: string;
+  campaignTitle: string;
+  raisedCents: number;
+  goalCents: number;
+  percent: number;
+  verified: boolean;
+  yourContributionCents: number;
+  canDonateAgain: boolean;
+}
+
+export interface StreakState {
+  currentMonths: number;
+  longestMonths: number;
+  currentMonthCovered: boolean;
+  lastActiveMonth: string | null;
+}
+
+export interface BadgeProgress {
+  tier: BadgeTier;
+  streakMonths: number;
+  nextTier: BadgeTier | null;
+  monthsToNextTier: number | null;
+}
+
+export interface CumulativeStats {
+  totalCents: number;
+  contributionCount: number;
+  distinctTargets: number;
+  impactPerTargetCents: number;
+  firstMonth: string | null;
+  lastMonth: string | null;
+}
+
+export interface PeerComparison {
+  yourValue: number;
+  peerAverage: number;
+  ratio: number;
+  ahead: boolean;
+}
+
+export interface PortfolioView {
+  items: PortfolioItem[];
+  streak: StreakState;
+  badge: BadgeProgress;
+  stats: CumulativeStats;
+  peer: PeerComparison;
+}

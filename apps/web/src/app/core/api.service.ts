@@ -82,6 +82,7 @@ import {
   TrendReport,
   AuditorGrant,
   CreatedAuditorGrant,
+  PortfolioView,
 } from './models';
 
 export interface TrackEventBody {
@@ -414,6 +415,18 @@ export class ApiService {
     return this.unwrap(
       this.http.get<Envelope<SubscriptionItem[]>>(`${API_BASE}/donors/me/subscriptions`),
     );
+  }
+
+  // ---- Donor portfolio & giving-streaks (E16) ----
+  donorPortfolio(): Observable<PortfolioView> {
+    return this.unwrap(this.http.get<Envelope<PortfolioView>>(`${API_BASE}/donors/me/portfolio`));
+  }
+
+  /** Portfolio export as a binary blob (CSV or PDF); auth token added by interceptor. */
+  donorPortfolioExport(format: 'csv' | 'pdf'): Observable<Blob> {
+    return this.http.get(`${API_BASE}/donors/me/portfolio/export.${format}`, {
+      responseType: 'blob',
+    });
   }
 
   // ---- Employer matching (E13) ----

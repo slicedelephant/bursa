@@ -465,5 +465,36 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E16 — Donor Portfolio & Giving-Streaks (pure helpers + presentational components).
+    './src/app/features/donor/streak-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donor/portfolio-stats.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donor/streak-banner.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donor/portfolio-stats.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donor/portfolio-grid.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

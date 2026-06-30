@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { MoneyPipe } from '../../core/money.pipe';
@@ -6,6 +7,7 @@ import {
   DonorHistory,
   MatchBalance,
   NotificationFeed,
+  PortfolioView,
   Receipt,
   RecurringPledge,
 } from '../../core/models';
@@ -15,7 +17,10 @@ import { MatchBalanceComponent } from '../matching/match-balance.component';
 import { DonationHistoryComponent } from './donation-history.component';
 import { recurringLabel, repeatLabel, supportedLabel } from './donor-summary';
 import { NotificationsFeedComponent } from './notifications-feed.component';
+import { PortfolioGridComponent } from './portfolio-grid.component';
+import { PortfolioStatsComponent } from './portfolio-stats.component';
 import { RecurringListComponent } from './recurring-list.component';
+import { StreakBannerComponent } from './streak-banner.component';
 
 /** Donor account: lifetime impact, donation history + receipts, impact feed, monthly giving. */
 @Component({
@@ -29,6 +34,9 @@ import { RecurringListComponent } from './recurring-list.component';
     ReceiptPanelComponent,
     MatchBalanceComponent,
     ClaimHistoryComponent,
+    StreakBannerComponent,
+    PortfolioStatsComponent,
+    PortfolioGridComponent,
   ],
   template: `
     <section class="mx-auto max-w-5xl px-4 py-10">
@@ -60,6 +68,32 @@ import { RecurringListComponent } from './recurring-list.component';
             </p>
             <p class="mt-1 text-xs text-slate2">{{ recurringText() }}</p>
           </div>
+        </div>
+      }
+
+      @if (portfolio(); as p) {
+        <div class="mb-8 space-y-6">
+          <app-streak-banner [streak]="p.streak" [badge]="p.badge" />
+          <app-portfolio-stats [stats]="p.stats" [peer]="p.peer" />
+          <app-portfolio-grid [items]="p.items" (donateAgain)="goToCampaign($event)" />
+          @if (p.items.length > 0) {
+            <div class="flex flex-wrap gap-3">
+              <button
+                type="button"
+                (click)="exportPortfolio('csv')"
+                class="rounded-lg ring-1 ring-black/10 px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                (click)="exportPortfolio('pdf')"
+                class="rounded-lg ring-1 ring-black/10 px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
+              >
+                Export PDF
+              </button>
+            </div>
+          }
         </div>
       }
 
@@ -102,6 +136,7 @@ import { RecurringListComponent } from './recurring-list.component';
 export class DonorPage implements OnInit {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly history = signal<DonorHistory | null>(null);
   readonly feed = signal<NotificationFeed | null>(null);
@@ -109,12 +144,37 @@ export class DonorPage implements OnInit {
   readonly receipt = signal<Receipt | null>(null);
   readonly toast = signal<string | null>(null);
   readonly matchBalance = signal<MatchBalance | null>(null);
+  readonly portfolio = signal<PortfolioView | null>(null);
 
   ngOnInit(): void {
     this.reloadHistory();
     this.reloadFeed();
     this.reloadRecurring();
     this.reloadMatchBalance();
+    this.reloadPortfolio();
+  }
+
+  goToCampaign(campaignId: string): void {
+    this.router.navigate(['/campaigns', campaignId]);
+  }
+
+  exportPortfolio(format: 'csv' | 'pdf'): void {
+    this.api.donorPortfolioExport(format).subscribe({
+      next: (blob) => this.downloadBlob(blob, `bursa-portfolio.${format}`),
+    });
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private reloadPortfolio(): void {
+    this.api.donorPortfolio().subscribe({ next: (p) => this.portfolio.set(p) });
   }
 
   greeting(): string {
