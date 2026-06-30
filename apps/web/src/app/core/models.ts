@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -770,4 +760,78 @@ export interface AiShareResult {
   variants: AiVariant[];
   recommendedIndex: number;
   budget: AiBudgetDelta;
+}
+
+// ---- E11: KYC & Verification Pipeline ----
+export type VerificationSubject = 'STUDENT' | 'SPONSOR';
+
+export type VerificationCaseStatus =
+  | 'STARTED'
+  | 'LIVENESS_PASSED'
+  | 'DOCUMENT_VERIFIED'
+  | 'AML_CLEARED'
+  | 'VERIFIED'
+  | 'MANUAL_REVIEW'
+  | 'REJECTED';
+
+export type ReviewQueueStatus = 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export type KycRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export type AmlDecision = 'CLEAR' | 'HIT' | 'BLOCKED';
+
+export interface VerificationCaseView {
+  id: string;
+  subjectType: VerificationSubject;
+  status: VerificationCaseStatus;
+  reviewQueueStatus: ReviewQueueStatus;
+  riskScore: number;
+  riskLevel: KycRiskLevel;
+  decisionNote: string | null;
+  liveness: { provider: string; confidence: number; passed: boolean } | null;
+  document: {
+    provider: string;
+    extractedName: string;
+    nameMatchScore: number;
+    matched: boolean;
+    registrarConfirmed: boolean;
+  } | null;
+  aml: {
+    provider: string;
+    amountCents: number;
+    country: string;
+    decision: AmlDecision;
+    reasons: string[];
+  } | null;
+  createdAt: string;
+}
+
+export interface KycDashboardView {
+  total: number;
+  byStatus: Record<string, number>;
+  pendingReview: number;
+  riskDistribution: Record<KycRiskLevel, number>;
+}
+
+export interface StartCaseBody {
+  admissionRecordId?: string;
+}
+
+export interface LivenessBody {
+  livenessToken: string;
+}
+
+export interface DocumentBody {
+  documentToken: string;
+  claimedName: string;
+}
+
+export interface AmlScreenBody {
+  amountCents: number;
+  country: string;
+}
+
+export interface ReviewDecideBody {
+  decision: 'APPROVE' | 'REJECT';
+  note: string;
 }

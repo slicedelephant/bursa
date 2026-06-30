@@ -5,6 +5,7 @@ import { StudentMe } from '../../core/models';
 import { CampaignWizardComponent } from './campaign-wizard.component';
 import { StudentCampaignStatus } from './campaign-status.component';
 import { ImpactUpdateFormComponent } from './impact-update-form.component';
+import { KycVerificationComponent } from './kyc-verification.component';
 import { StudentProfileForm } from './profile-form.component';
 
 /** Student dashboard: profile → campaign → status state machine driven by `studentMe()`. */
@@ -16,6 +17,7 @@ import { StudentProfileForm } from './profile-form.component';
     CampaignWizardComponent,
     StudentCampaignStatus,
     ImpactUpdateFormComponent,
+    KycVerificationComponent,
   ],
   template: `
     <section class="mx-auto max-w-2xl px-4 py-10">
@@ -77,6 +79,9 @@ import { StudentProfileForm } from './profile-form.component';
         @if (!data.profile) {
           <app-student-profile-form (saved)="load()" />
         } @else if (!data.campaign) {
+          <div class="mb-6">
+            <app-kyc-verification />
+          </div>
           <app-student-campaign-wizard (saved)="load()" />
         } @else {
           <app-student-campaign-status

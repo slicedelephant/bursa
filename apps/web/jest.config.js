@@ -323,5 +323,42 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E11 — KYC & Verification Pipeline (new code, held to >= 80%).
+    './src/app/features/student/kyc-status.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/student/kyc-verification.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/kyc/kyc-review-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/admin/kyc/kyc-review-queue.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/sponsor/aml-status.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/sponsor/aml-status.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

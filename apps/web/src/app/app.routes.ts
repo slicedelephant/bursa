@@ -60,6 +60,13 @@ export const routes: Routes = [
       import('./features/admin/trust-safety/trust-safety.page').then((m) => m.TrustSafetyPage),
   },
   {
+    path: 'admin/kyc',
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./features/admin/kyc/kyc-review.page').then((m) => m.KycReviewPage),
+  },
+  {
     path: 'account',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),

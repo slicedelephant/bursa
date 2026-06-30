@@ -60,6 +60,13 @@ import {
   AiShareResult,
   AiShareChannel,
   CoachLocale,
+  VerificationCaseView,
+  KycDashboardView,
+  StartCaseBody,
+  LivenessBody,
+  DocumentBody,
+  AmlScreenBody,
+  ReviewDecideBody,
 } from './models';
 
 export interface TrackEventBody {
@@ -670,6 +677,66 @@ export class ApiService {
     return this.unwrap(
       this.http.post<Envelope<CampaignFlagResult>>(
         `${API_BASE}/campaigns/${campaignId}/flags`,
+        body,
+      ),
+    );
+  }
+
+  // ---- E11: KYC & Verification Pipeline ----
+  kycStartCase(body: StartCaseBody): Observable<VerificationCaseView> {
+    return this.unwrap(
+      this.http.post<Envelope<VerificationCaseView>>(`${API_BASE}/kyc/cases`, body),
+    );
+  }
+
+  kycLiveness(caseId: string, body: LivenessBody): Observable<VerificationCaseView> {
+    return this.unwrap(
+      this.http.post<Envelope<VerificationCaseView>>(
+        `${API_BASE}/kyc/cases/${caseId}/liveness`,
+        body,
+      ),
+    );
+  }
+
+  kycDocument(caseId: string, body: DocumentBody): Observable<VerificationCaseView> {
+    return this.unwrap(
+      this.http.post<Envelope<VerificationCaseView>>(
+        `${API_BASE}/kyc/cases/${caseId}/document`,
+        body,
+      ),
+    );
+  }
+
+  kycMyCases(): Observable<VerificationCaseView[]> {
+    return this.unwrap(this.http.get<Envelope<VerificationCaseView[]>>(`${API_BASE}/kyc/cases/me`));
+  }
+
+  kycScreenAml(body: AmlScreenBody): Observable<VerificationCaseView> {
+    return this.unwrap(
+      this.http.post<Envelope<VerificationCaseView>>(`${API_BASE}/kyc/aml/screen`, body),
+    );
+  }
+
+  kycReviewQueue(status?: string): Observable<VerificationCaseView[]> {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    return this.unwrap(
+      this.http.get<Envelope<VerificationCaseView[]>>(`${API_BASE}/kyc/review/queue`, {
+        params,
+      }),
+    );
+  }
+
+  kycReviewDashboard(): Observable<KycDashboardView> {
+    return this.unwrap(
+      this.http.get<Envelope<KycDashboardView>>(`${API_BASE}/kyc/review/dashboard`),
+    );
+  }
+
+  kycReviewDecide(caseId: string, body: ReviewDecideBody): Observable<VerificationCaseView> {
+    return this.unwrap(
+      this.http.post<Envelope<VerificationCaseView>>(
+        `${API_BASE}/kyc/review/${caseId}/decide`,
         body,
       ),
     );

@@ -5,6 +5,7 @@ import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { EsgDashboard, Receipt, SponsorImpact } from '../../core/models';
 import { EsgDashboardComponent } from '../corporate/esg-dashboard.component';
+import { AmlStatusComponent } from './aml-status.component';
 import { CompanyProfileFormComponent, CompanyProfileInput } from './company-profile-form.component';
 import { ReceiptPanelComponent } from './receipt-panel.component';
 
@@ -27,6 +28,7 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
     CompanyProfileFormComponent,
     ReceiptPanelComponent,
     EsgDashboardComponent,
+    AmlStatusComponent,
   ],
   template: `
     <section class="mx-auto max-w-6xl px-4 py-10">
@@ -77,6 +79,11 @@ import { ReceiptPanelComponent } from './receipt-panel.component';
               {{ imp.campaignsSupported.length }}
             </p>
           </div>
+        </div>
+
+        <!-- AML compliance status (E11) -->
+        <div class="mt-10">
+          <app-aml-status />
         </div>
 
         <!-- ESG / CSR impact dashboard -->
