@@ -55,13 +55,11 @@ function buildPrisma(tx = buildTx()) {
     tx,
     campaign: { findUnique: jest.fn().mockResolvedValue(campaign()) },
     corporateProfile: {
-      findUnique: jest
-        .fn()
-        .mockResolvedValue({
-          id: 'corp1',
-          userId: 'u1',
-          companyName: 'Acme Capital',
-        }),
+      findUnique: jest.fn().mockResolvedValue({
+        id: 'corp1',
+        userId: 'u1',
+        companyName: 'Acme Capital',
+      }),
     },
     corporateSponsorship: {
       findMany: jest.fn().mockResolvedValue([]),
@@ -82,13 +80,11 @@ function buildDeps(prisma = buildPrisma()) {
       .mockResolvedValue({ status: 'SUCCEEDED', reference: 'mock_sepa_1' }),
   };
   const donations = {
-    captureCampaign: jest
-      .fn()
-      .mockResolvedValue({
-        capturedIds: ['x'],
-        failedIds: [],
-        capturedCents: 12_000,
-      }),
+    captureCampaign: jest.fn().mockResolvedValue({
+      capturedIds: ['x'],
+      failedIds: [],
+      capturedCents: 12_000,
+    }),
   };
   const notifications = {
     deliver: jest.fn(),

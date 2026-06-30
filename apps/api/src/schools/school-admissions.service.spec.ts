@@ -6,16 +6,14 @@ function buildPrisma() {
     upsert: jest.fn().mockResolvedValue({}),
     findMany: jest.fn().mockResolvedValue([]),
     findFirst: jest.fn(),
-    update: jest
-      .fn()
-      .mockImplementation(({ data }) =>
-        Promise.resolve({
-          id: 'r1',
-          studentName: 'Amara',
-          admissionRef: 'ADM-1',
-          ...data,
-        }),
-      ),
+    update: jest.fn().mockImplementation(({ data }) =>
+      Promise.resolve({
+        id: 'r1',
+        studentName: 'Amara',
+        admissionRef: 'ADM-1',
+        ...data,
+      }),
+    ),
   };
   return {
     school: {

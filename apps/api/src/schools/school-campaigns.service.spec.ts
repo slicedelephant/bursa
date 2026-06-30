@@ -11,16 +11,14 @@ function buildPrisma() {
     admissionVerification: { upsert: jest.fn().mockResolvedValue({}) },
     campaignUpdate: { create: jest.fn().mockResolvedValue({}) },
     campaign: {
-      update: jest
-        .fn()
-        .mockImplementation(({ data }) =>
-          Promise.resolve({
-            id: 'c1',
-            title: 'MBA tuition',
-            goalCents: 100_000,
-            ...data,
-          }),
-        ),
+      update: jest.fn().mockImplementation(({ data }) =>
+        Promise.resolve({
+          id: 'c1',
+          title: 'MBA tuition',
+          goalCents: 100_000,
+          ...data,
+        }),
+      ),
     },
   };
   return {
