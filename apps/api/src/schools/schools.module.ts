@@ -46,6 +46,6 @@ import { SchoolsService } from './schools.service';
       useClass: MockRegistrarProvider,
     },
   ],
-  exports: [SchoolsService, SchoolWebhookService],
+  exports: [SchoolsService, SchoolWebhookService, SchoolPortalService],
 })
 export class SchoolsModule {}

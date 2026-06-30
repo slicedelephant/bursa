@@ -1,7 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { LedgerEntryType, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  buildLedgerEntry,
+  genesisPosition,
+  MovementInput,
+  nextPosition,
+} from '../src/ledger/ledger-entry';
 import { createOnboardingToken } from '../src/schools/onboarding-token';
 
 const prisma = new PrismaClient();
@@ -376,6 +382,10 @@ async function clearDatabase(): Promise<void> {
   await prisma.auditLog.deleteMany();
   await prisma.updateSubscription.deleteMany();
   await prisma.campaignUpdate.deleteMany();
+  // E12 (delete before payout: bank tx references the payout via matchedPayoutId)
+  await prisma.bankTransaction.deleteMany();
+  await prisma.reconciliation.deleteMany();
+  await prisma.ledgerEntry.deleteMany();
   await prisma.payout.deleteMany();
   // E11 (delete step children before the case, case before user/admission)
   await prisma.livenessResult.deleteMany();
@@ -1356,6 +1366,208 @@ async function main(): Promise<void> {
   });
   console.log(
     'Created E11 KYC demo data (verified case, manual-review queue, AML hit).',
+  );
+
+  // --------------------------------------------------------------------------
+  // E12 — Payout-Reconciliation & Transparenz-Layer demo data:
+  //  - append-only LEDGER entries (with hash chain) for every captured/succeeded
+  //    donation, every payout and every disbursement, per school;
+  //  - a STALE payout (sent > 48h ago, reference ends "-STALE") with NO matching
+  //    bank transaction → 48h reconciliation alert;
+  //  - a MATCHED bank transaction for one real disbursed payout;
+  //  - an ORPHAN bank transaction with no system payout.
+  // The mock bank-feed derives matches at request time; here we persist enough so
+  // the school dashboard shows a non-empty reconciliation out of the box.
+  // --------------------------------------------------------------------------
+
+  // Append ledger entries in deterministic order per school (donations, then
+  // payouts/disbursements), keeping the hash chain valid.
+  const lastPositionBySchool = new Map<
+    string,
+    { sequence: number; entryHash: string }
+  >();
+  async function appendLedger(
+    movement: MovementInput,
+    at: Date,
+  ): Promise<void> {
+    const previous = lastPositionBySchool.get(movement.schoolId) ?? null;
+    const position = previous
+      ? nextPosition(previous, at)
+      : genesisPosition(at);
+    const built = buildLedgerEntry(movement, position);
+    await prisma.ledgerEntry.create({
+      data: {
+        sequence: built.sequence,
+        entryType: built.entryType,
+        amountCents: built.amountCents,
+        currency: built.currency,
+        schoolId: built.schoolId,
+        actorUserId: built.actorUserId,
+        reason: built.reason,
+        refType: built.refType,
+        refId: built.refId,
+        prevHash: built.prevHash,
+        entryHash: built.entryHash,
+        createdAt: built.createdAt,
+      },
+    });
+    lastPositionBySchool.set(movement.schoolId, {
+      sequence: built.sequence,
+      entryHash: built.entryHash,
+    });
+  }
+
+  // Ledger DONATION entries for counted donations (oldest first for a stable chain).
+  const ledgerDonations = await prisma.donation.findMany({
+    where: { status: { in: ['SUCCEEDED', 'CAPTURED', 'PLEDGED'] } },
+    select: {
+      id: true,
+      amountCents: true,
+      currency: true,
+      createdAt: true,
+      campaign: { select: { schoolId: true, title: true } },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  for (const d of ledgerDonations) {
+    await appendLedger(
+      {
+        entryType: LedgerEntryType.DONATION,
+        amountCents: d.amountCents,
+        currency: d.currency,
+        schoolId: d.campaign.schoolId,
+        reason: `Donation captured for ${d.campaign.title}`,
+        refType: 'Donation',
+        refId: d.id,
+      },
+      d.createdAt,
+    );
+  }
+
+  // Ledger PAYOUT + DISBURSEMENT entries for existing payouts, and a matched bank
+  // transaction for the first (CONFIRMED, disbursed) payout.
+  const ledgerPayouts = await prisma.payout.findMany({
+    select: {
+      id: true,
+      schoolId: true,
+      amountCents: true,
+      reference: true,
+      status: true,
+      sentAt: true,
+      createdAt: true,
+      campaign: { select: { title: true, currency: true } },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  let matchedBankTxCreated = false;
+  for (const p of ledgerPayouts) {
+    const at = p.sentAt ?? p.createdAt;
+    await appendLedger(
+      {
+        entryType: LedgerEntryType.PAYOUT,
+        amountCents: p.amountCents,
+        currency: p.campaign.currency,
+        schoolId: p.schoolId,
+        actorUserId: admin.id,
+        reason: `Payout initiated for ${p.campaign.title}`,
+        refType: 'Payout',
+        refId: p.id,
+      },
+      at,
+    );
+    if (p.status === 'CONFIRMED') {
+      await appendLedger(
+        {
+          entryType: LedgerEntryType.DISBURSEMENT,
+          amountCents: p.amountCents,
+          currency: p.campaign.currency,
+          schoolId: p.schoolId,
+          actorUserId: admin.id,
+          reason: `Disbursement confirmed by ${p.campaign.title}'s school`,
+          refType: 'Payout',
+          refId: p.id,
+        },
+        at,
+      );
+      if (!matchedBankTxCreated) {
+        await prisma.bankTransaction.create({
+          data: {
+            provider: 'mock',
+            externalId: `mock_btx_${p.id}`,
+            schoolId: p.schoolId,
+            amountCents: p.amountCents,
+            currency: p.campaign.currency,
+            reference: p.reference,
+            postedAt: new Date((p.sentAt ?? p.createdAt).getTime() + 3_600_000),
+            matchedPayoutId: p.id,
+            raw: { source: 'mock', payoutId: p.id },
+          },
+        });
+        matchedBankTxCreated = true;
+      }
+    }
+  }
+
+  // A stale payout: SENT > 48h ago with a "-STALE" reference and NO bank tx →
+  // the reconciliation flags it as a 48h alert. Attach it to a FUNDED campaign
+  // that has not yet been disbursed (or fall back to any live campaign's school).
+  const fundedNoPayout = await prisma.campaign.findFirst({
+    where: { payout: null },
+    select: {
+      id: true,
+      schoolId: true,
+      raisedCents: true,
+      currency: true,
+      title: true,
+    },
+    orderBy: { raisedCents: 'desc' },
+  });
+  if (fundedNoPayout && fundedNoPayout.raisedCents > 0) {
+    const staleSentAt = new Date(Date.now() - 72 * 3_600_000);
+    const stalePayout = await prisma.payout.create({
+      data: {
+        campaignId: fundedNoPayout.id,
+        schoolId: fundedNoPayout.schoolId,
+        amountCents: fundedNoPayout.raisedCents,
+        method: 'SEPA',
+        reference: `mock_payout_seed_${fundedNoPayout.id.slice(-6)}-STALE`,
+        status: 'SENT',
+        proofNote: 'Awaiting bank confirmation (demo: stale > 48h).',
+        sentAt: staleSentAt,
+      },
+    });
+    await appendLedger(
+      {
+        entryType: LedgerEntryType.PAYOUT,
+        amountCents: stalePayout.amountCents,
+        currency: fundedNoPayout.currency,
+        schoolId: fundedNoPayout.schoolId,
+        actorUserId: admin.id,
+        reason: `Payout initiated for ${fundedNoPayout.title} (awaiting bank)`,
+        refType: 'Payout',
+        refId: stalePayout.id,
+      },
+      staleSentAt,
+    );
+  }
+
+  // An orphan bank transaction: money arrived with no matching system payout.
+  const orphanSchoolId = ledgerPayouts[0]?.schoolId ?? esmtId;
+  await prisma.bankTransaction.create({
+    data: {
+      provider: 'mock',
+      externalId: `mock_orphan_seed_${orphanSchoolId}`,
+      schoolId: orphanSchoolId,
+      amountCents: 4200,
+      currency: 'EUR',
+      reference: 'UNKNOWN-INBOUND',
+      postedAt: new Date(Date.now() - 6 * 3_600_000),
+      raw: { source: 'mock', kind: 'orphan' },
+    },
+  });
+
+  console.log(
+    `Created E12 reconciliation demo data (ledger entries, matched + orphan + stale).`,
   );
 
   console.log('\nDemo accounts (password: ' + PASSWORD + ')');

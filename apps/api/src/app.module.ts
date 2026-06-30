@@ -19,6 +19,8 @@ import { ObservabilityModule } from './observability/observability.module';
 import { TrustSafetyModule } from './trust-safety/trust-safety.module';
 import { AiModule } from './ai/ai.module';
 import { KycModule } from './kyc/kyc.module';
+import { LedgerModule } from './ledger/ledger.module';
+import { ReconciliationModule } from './reconciliation/reconciliation.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { KycModule } from './kyc/kyc.module';
     TrustSafetyModule,
     AiModule,
     KycModule,
+    LedgerModule,
+    ReconciliationModule,
   ],
 })
 export class AppModule {}

@@ -666,6 +666,96 @@
         "branches": 80,
         "functions": 80,
         "lines": 80
+      },
+      "**/ledger/ledger-hash.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/ledger/ledger-entry.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/ledger/ledger-view.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/ledger/ledger.service.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/reconciliation-matcher.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/discrepancy-detector.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/stale-payout-alert.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/tax-report.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/double-entry.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/transparency-aggregator.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/reconciliation-export.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/reconciliation-view.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/mock-bank-feed.provider.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/bank-feed.factory.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/reconciliation/reconciliation.service.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
       }
     }
   }

@@ -208,6 +208,25 @@ enum AmlDecision {
   BLOCKED
 }
 
+/// E12 Payout-Reconciliation: which money movement a ledger entry represents.
+/// The append-only ledger (a reusable primitive E14 will build on) writes one
+/// immutable entry per movement. Money always flows to the school.
+enum LedgerEntryType {
+  DONATION
+  PAYOUT
+  DISBURSEMENT
+}
+
+/// E12 Payout-Reconciliation: the reconciliation state of a system payout vs the
+/// bank feed. Derived by the pure `reconciliation-matcher.ts` / `discrepancy-
+/// detector.ts`; never mutates the money path.
+enum ReconciliationStatus {
+  MATCHED
+  PENDING
+  UNMATCHED
+  DISCREPANCY
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -248,6 +267,9 @@ model User {
   // ---- E11: KYC & verification (cases the user is subject of / reviewed) ----
   verificationCases   VerificationCase[] @relation("VerificationSubject")
   verificationReviews VerificationCase[] @relation("VerificationReviewer")
+
+  // ---- E12: payout reconciliation (movements this user acted on) ----
+  ledgerEntries LedgerEntry[] @relation("LedgerActor")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -321,6 +343,11 @@ model School {
   admissionRecords AdmissionRecord[]
   onboardingTokens SchoolOnboardingToken[]
   webhookEvents    SchoolWebhookEvent[]
+
+  // ---- E12: payout reconciliation + append-only ledger ----
+  ledgerEntries    LedgerEntry[]
+  bankTransactions BankTransaction[]
+  reconciliations  Reconciliation[]
 }
 
 /// Binds a User (role SCHOOL_ADMIN) to exactly one School (E8). One user admins
@@ -582,6 +609,9 @@ model Payout {
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   school   School   @relation(fields: [schoolId], references: [id])
+
+  // ---- E12: optional bank-feed match(es) for this payout ----
+  bankTransactions BankTransaction[]
 }
 
 model CampaignUpdate {
@@ -841,4 +871,74 @@ model AmlScreening {
   createdAt   DateTime    @default(now())
 
   case VerificationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+/// E12 — Append-only transaction ledger (a reusable money primitive E14/CSRD will
+/// build on). Every donation/payout/disbursement writes exactly one IMMUTABLE row:
+/// there is no `updatedAt`, no soft-delete, and the LedgerService exposes only
+/// append() + read() — no update/delete (Constitution IV). Each entry is chained to
+/// its predecessor via a SHA-256 hash (prevHash → entryHash) so the chain is
+/// tamper-evident. Money always flows to the school.
+model LedgerEntry {
+  id          String          @id @default(cuid())
+  sequence    Int
+  entryType   LedgerEntryType
+  amountCents Int
+  currency    String          @default("EUR")
+  schoolId    String
+  actorUserId String?
+  reason      String
+  refType     String?
+  refId       String?
+  prevHash    String          @default("")
+  entryHash   String
+  createdAt   DateTime        @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  actor  User?  @relation("LedgerActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@unique([schoolId, sequence])
+  @@index([schoolId, createdAt])
+  @@index([entryType])
+}
+
+/// E12 — A transaction reported by the bank-feed provider (mock by default; Plaid
+/// behind the swappable `BankFeedProvider` seam). Idempotent via (provider,
+/// externalId). Matched against system Payouts by the pure reconciliation cores.
+model BankTransaction {
+  id              String   @id @default(cuid())
+  provider        String
+  externalId      String
+  schoolId        String
+  amountCents     Int
+  currency        String   @default("EUR")
+  reference       String?
+  postedAt        DateTime
+  matchedPayoutId String?
+  raw             Json?
+  createdAt       DateTime @default(now())
+
+  school        School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  matchedPayout Payout? @relation(fields: [matchedPayoutId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalId])
+  @@index([schoolId, postedAt])
+}
+
+/// E12 — A persisted reconciliation run per school (history/audit). The detail rows
+/// are computed at request time by the pure cores; only the summary counters are
+/// stored here.
+model Reconciliation {
+  id               String   @id @default(cuid())
+  schoolId         String
+  matchedCount     Int      @default(0)
+  pendingCount     Int      @default(0)
+  unmatchedCount   Int      @default(0)
+  discrepancyCount Int      @default(0)
+  bankTxCount      Int      @default(0)
+  runAt            DateTime @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId, runAt])
 }
