@@ -2,12 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { MoneyPipe } from '../../core/money.pipe';
-import {
-  DonorHistory,
-  NotificationFeed,
-  Receipt,
-  RecurringPledge,
-} from '../../core/models';
+import { DonorHistory, NotificationFeed, Receipt, RecurringPledge } from '../../core/models';
 import { ReceiptPanelComponent } from '../sponsor/receipt-panel.component';
 import { DonationHistoryComponent } from './donation-history.component';
 import { recurringLabel, repeatLabel, supportedLabel } from './donor-summary';

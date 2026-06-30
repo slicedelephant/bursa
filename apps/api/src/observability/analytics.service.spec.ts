@@ -34,7 +34,9 @@ describe('AnalyticsService', () => {
     const prisma = makePrisma();
     prisma.analyticsEvent.create.mockRejectedValueOnce(new Error('db down'));
     const service = new AnalyticsService(prisma);
-    await expect(service.record({ type: 'gallery_view' })).resolves.toBeUndefined();
+    await expect(
+      service.record({ type: 'gallery_view' }),
+    ).resolves.toBeUndefined();
   });
 
   it('builds the donation funnel from grouped counts', async () => {

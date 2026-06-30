@@ -43,8 +43,8 @@ export interface DonationSuccess {
           } @else {
             <p class="text-sm text-slate2">
               Your gift of
-              <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is on
-              its way to the school.
+              <span class="font-semibold text-ink">{{ lastAmountCents() | money: true }}</span> is
+              on its way to the school.
             </p>
           }
           <button
@@ -351,9 +351,7 @@ export class DonateCardComponent {
         this.success.set(true);
       },
       error: (err) => {
-        this.errorMsg.set(
-          err?.error?.error?.message ?? 'Could not set up monthly giving',
-        );
+        this.errorMsg.set(err?.error?.error?.message ?? 'Could not set up monthly giving');
         this.submitting.set(false);
       },
     });
@@ -373,4 +371,3 @@ export class DonateCardComponent {
     this.monthly = false;
   }
 }
-

@@ -20,9 +20,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
           class="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <p class="text-sm text-slate2">
-            We use privacy-friendly, anonymous analytics (no IP, no personal data)
-            to understand which campaigns reach their goal and where donors drop
-            off. Help us improve Bursa?
+            We use privacy-friendly, anonymous analytics (no IP, no personal data) to understand
+            which campaigns reach their goal and where donors drop off. Help us improve Bursa?
           </p>
           <div class="flex shrink-0 gap-2">
             <button

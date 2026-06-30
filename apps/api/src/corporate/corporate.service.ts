@@ -1,9 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  DonationMethod,
-  InvoiceStatus,
-  RecognitionKind,
-} from '@prisma/client';
+import { DonationMethod, InvoiceStatus, RecognitionKind } from '@prisma/client';
 import { percentOf } from '../campaigns/campaign.mapper';
 import { DomainException } from '../common/domain.exception';
 import { splitContribution } from '../donations/contribution.util';
@@ -143,7 +139,10 @@ export class CorporateService {
       const invoice = await tx.invoice.create({
         data: {
           sponsorshipId: sponsorship.id,
-          invoiceNo: buildInvoiceNo(donation.createdAt.getFullYear(), sponsorship.id),
+          invoiceNo: buildInvoiceNo(
+            donation.createdAt.getFullYear(),
+            sponsorship.id,
+          ),
           documentType: docType,
           netCents: amounts.netCents,
           vatCents: amounts.vatCents,
@@ -163,7 +162,9 @@ export class CorporateService {
         data: {
           raisedCents: newRaised,
           tipsCents: campaign.tipsCents + tip,
-          ...(funded && campaign.status !== 'FUNDED' ? { status: 'FUNDED' } : {}),
+          ...(funded && campaign.status !== 'FUNDED'
+            ? { status: 'FUNDED' }
+            : {}),
         },
       });
 
@@ -305,7 +306,11 @@ export class CorporateService {
       where: { userId },
     });
     if (!profile) {
-      throw new DomainException('NOT_FOUND', 'Corporate profile not found', 404);
+      throw new DomainException(
+        'NOT_FOUND',
+        'Corporate profile not found',
+        404,
+      );
     }
     const sponsorships = await this.prisma.corporateSponsorship.findMany({
       where: { corporateProfileId: profile.id },

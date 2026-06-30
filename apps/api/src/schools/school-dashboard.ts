@@ -74,7 +74,10 @@ function toStudentRow(campaign: DashboardCampaignInput): DashboardStudentRow {
 function donorGeography(
   donations: readonly DashboardDonationInput[],
 ): DonorGeographyRow[] {
-  const byCountry = new Map<string, { donationCount: number; amountCents: number }>();
+  const byCountry = new Map<
+    string,
+    { donationCount: number; amountCents: number }
+  >();
   for (const donation of donations) {
     const country = donation.donorCountry?.trim() || 'Unknown';
     const prev = byCountry.get(country) ?? { donationCount: 0, amountCents: 0 };
@@ -85,7 +88,10 @@ function donorGeography(
   }
   return [...byCountry.entries()]
     .map(([country, agg]) => ({ country, ...agg }))
-    .sort((a, b) => b.amountCents - a.amountCents || a.country.localeCompare(b.country));
+    .sort(
+      (a, b) =>
+        b.amountCents - a.amountCents || a.country.localeCompare(b.country),
+    );
 }
 
 export function buildSchoolDashboard(
@@ -99,13 +105,16 @@ export function buildSchoolDashboard(
       const paid = isPaidOut(row.payoutStatus);
       return {
         totalStudents: acc.totalStudents + 1,
-        liveCampaigns: acc.liveCampaigns + (row.payoutStatus === 'AWAITING_FUNDING' ? 1 : 0),
-        fundedCampaigns: acc.fundedCampaigns + (row.payoutStatus === 'READY' ? 1 : 0),
+        liveCampaigns:
+          acc.liveCampaigns + (row.payoutStatus === 'AWAITING_FUNDING' ? 1 : 0),
+        fundedCampaigns:
+          acc.fundedCampaigns + (row.payoutStatus === 'READY' ? 1 : 0),
         totalGoalCents: acc.totalGoalCents + row.goalCents,
         totalRaisedCents: acc.totalRaisedCents + row.raisedCents,
         totalPaidOutCents: acc.totalPaidOutCents + (paid ? row.raisedCents : 0),
         pendingPayoutCents:
-          acc.pendingPayoutCents + (row.payoutStatus === 'READY' ? row.raisedCents : 0),
+          acc.pendingPayoutCents +
+          (row.payoutStatus === 'READY' ? row.raisedCents : 0),
       };
     },
     {

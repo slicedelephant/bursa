@@ -11,7 +11,10 @@ async function codeOf(action: () => Promise<unknown>): Promise<string> {
 
 function buildPrisma() {
   return {
-    donation: { findMany: jest.fn().mockResolvedValue([]), findUnique: jest.fn() },
+    donation: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn(),
+    },
     recurringPledge: { count: jest.fn().mockResolvedValue(0) },
   };
 }
@@ -37,7 +40,12 @@ describe('DonorsService', () => {
     const prisma = buildPrisma();
     prisma.donation.findMany.mockResolvedValue([
       row({ tributeType: 'HONOR', tributeName: 'Prof. Mensah' }),
-      row({ id: 'd2', campaignId: 'c2', amountCents: 3000, recurringPledgeId: 'r1' }),
+      row({
+        id: 'd2',
+        campaignId: 'c2',
+        amountCents: 3000,
+        recurringPledgeId: 'r1',
+      }),
       row({ id: 'd3', status: 'FAILED', amountCents: 9999 }),
     ]);
     prisma.recurringPledge.count.mockResolvedValue(1);
@@ -102,7 +110,10 @@ describe('DonorsService', () => {
 
   it('rejects a receipt request for someone else’s donation', async () => {
     const prisma = buildPrisma();
-    prisma.donation.findUnique.mockResolvedValue({ id: 'd1', donorUserId: 'owner' });
+    prisma.donation.findUnique.mockResolvedValue({
+      id: 'd1',
+      donorUserId: 'owner',
+    });
     const svc = new DonorsService(prisma as never);
     expect(await codeOf(() => svc.receipt('intruder', 'd1'))).toBe('FORBIDDEN');
   });

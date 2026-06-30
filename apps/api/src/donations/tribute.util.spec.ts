@@ -32,7 +32,9 @@ describe('normalizeTribute', () => {
 
 describe('tributeLine', () => {
   it('formats an honour dedication', () => {
-    expect(tributeLine('HONOR', 'Prof. Mensah')).toBe('In honour of Prof. Mensah');
+    expect(tributeLine('HONOR', 'Prof. Mensah')).toBe(
+      'In honour of Prof. Mensah',
+    );
   });
 
   it('formats a memory dedication', () => {

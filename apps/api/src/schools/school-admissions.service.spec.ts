@@ -6,12 +6,21 @@ function buildPrisma() {
     upsert: jest.fn().mockResolvedValue({}),
     findMany: jest.fn().mockResolvedValue([]),
     findFirst: jest.fn(),
-    update: jest.fn().mockImplementation(({ data }) =>
-      Promise.resolve({ id: 'r1', studentName: 'Amara', admissionRef: 'ADM-1', ...data }),
-    ),
+    update: jest
+      .fn()
+      .mockImplementation(({ data }) =>
+        Promise.resolve({
+          id: 'r1',
+          studentName: 'Amara',
+          admissionRef: 'ADM-1',
+          ...data,
+        }),
+      ),
   };
   return {
-    school: { findUnique: jest.fn().mockResolvedValue({ id: 's1', name: 'ESMT' }) },
+    school: {
+      findUnique: jest.fn().mockResolvedValue({ id: 's1', name: 'ESMT' }),
+    },
     admissionRecord,
     $transaction: jest.fn().mockImplementation((ops) => Promise.resolve(ops)),
   };
@@ -27,7 +36,10 @@ function makeService(prisma: ReturnType<typeof buildPrisma>) {
   return { service, webhooks };
 }
 
-const csv = ['email,name,program,admissionRef', 'a@bursa.test,Amara,MBA,ADM-1'].join('\n');
+const csv = [
+  'email,name,program,admissionRef',
+  'a@bursa.test,Amara,MBA,ADM-1',
+].join('\n');
 
 describe('SchoolAdmissionsService', () => {
   it('imports a CSV and upserts each record idempotently', async () => {
@@ -70,7 +82,12 @@ describe('SchoolAdmissionsService', () => {
 
   it('verifies a record when the registrar recognises it and emits a webhook', async () => {
     const prisma = buildPrisma();
-    prisma.admissionRecord.findFirst.mockResolvedValue({ id: 'r1', schoolId: 's1', admissionRef: 'ADM-1', studentName: 'Amara' });
+    prisma.admissionRecord.findFirst.mockResolvedValue({
+      id: 'r1',
+      schoolId: 's1',
+      admissionRef: 'ADM-1',
+      studentName: 'Amara',
+    });
     const { service, webhooks } = makeService(prisma);
     const updated = await service.verify('s1', 'r1', 'admin1');
     expect(updated.status).toBe('VERIFIED');
@@ -79,7 +96,12 @@ describe('SchoolAdmissionsService', () => {
 
   it('blocks verification when the registrar does not recognise the ref', async () => {
     const prisma = buildPrisma();
-    prisma.admissionRecord.findFirst.mockResolvedValue({ id: 'r1', schoolId: 's1', admissionRef: 'ADM-1-UNKNOWN', studentName: 'Amara' });
+    prisma.admissionRecord.findFirst.mockResolvedValue({
+      id: 'r1',
+      schoolId: 's1',
+      admissionRef: 'ADM-1-UNKNOWN',
+      studentName: 'Amara',
+    });
     const { service } = makeService(prisma);
     await expect(service.verify('s1', 'r1', 'admin1')).rejects.toMatchObject({
       response: { code: 'ADMISSION_NOT_ON_FILE' },
@@ -88,7 +110,12 @@ describe('SchoolAdmissionsService', () => {
 
   it('rejects a record with a reason and emits a webhook', async () => {
     const prisma = buildPrisma();
-    prisma.admissionRecord.findFirst.mockResolvedValue({ id: 'r1', schoolId: 's1', admissionRef: 'ADM-1', studentName: 'Amara' });
+    prisma.admissionRecord.findFirst.mockResolvedValue({
+      id: 'r1',
+      schoolId: 's1',
+      admissionRef: 'ADM-1',
+      studentName: 'Amara',
+    });
     const { service, webhooks } = makeService(prisma);
     const updated = await service.reject('s1', 'r1', 'admin1', 'No proof');
     expect(updated.status).toBe('REJECTED');
@@ -100,7 +127,9 @@ describe('SchoolAdmissionsService', () => {
     const prisma = buildPrisma();
     prisma.admissionRecord.findFirst.mockResolvedValue(null);
     const { service } = makeService(prisma);
-    await expect(service.reject('s1', 'missing', 'admin1', 'x')).rejects.toMatchObject({
+    await expect(
+      service.reject('s1', 'missing', 'admin1', 'x'),
+    ).rejects.toMatchObject({
       response: { code: 'NOT_FOUND' },
     });
   });

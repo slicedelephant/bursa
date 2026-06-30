@@ -53,10 +53,7 @@ export function loadWizardState(storage: WizardStorage | null): WizardState | nu
   }
 }
 
-export function saveWizardState(
-  storage: WizardStorage | null,
-  state: WizardState,
-): void {
+export function saveWizardState(storage: WizardStorage | null, state: WizardState): void {
   if (!storage) return;
   try {
     storage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(state));

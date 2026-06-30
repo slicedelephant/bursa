@@ -23,15 +23,24 @@ describe('request-id', () => {
 
   describe('generateRequestId', () => {
     it('produces a valid, prefixed, bounded id', () => {
-      const id = generateRequestId(() => 0.5, () => 1_700_000_000_000);
+      const id = generateRequestId(
+        () => 0.5,
+        () => 1_700_000_000_000,
+      );
       expect(id.startsWith('req_')).toBe(true);
       expect(id.length).toBeLessThanOrEqual(40);
       expect(isValidRequestId(id)).toBe(true);
     });
 
     it('is deterministic for fixed rand/now', () => {
-      const a = generateRequestId(() => 0.1, () => 1);
-      const b = generateRequestId(() => 0.1, () => 1);
+      const a = generateRequestId(
+        () => 0.1,
+        () => 1,
+      );
+      const b = generateRequestId(
+        () => 0.1,
+        () => 1,
+      );
       expect(a).toBe(b);
     });
 

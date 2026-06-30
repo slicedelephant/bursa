@@ -3,7 +3,13 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
+  | 'DRAFT'
+  | 'PENDING_VERIFICATION'
+  | 'LIVE'
+  | 'FUNDED'
+  | 'DISBURSED'
+  | 'CLOSED'
+  | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -578,18 +584,8 @@ export interface OnboardingCompleteResult {
 
 export type TrustRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type ModerationStatus = 'OPEN' | 'APPROVED' | 'REJECTED' | 'ESCALATED';
-export type ChargebackStatus =
-  | 'OPEN'
-  | 'EVIDENCE_SUBMITTED'
-  | 'REFUND_OFFERED'
-  | 'WON'
-  | 'LOST';
-export type FlagReason =
-  | 'SCAM'
-  | 'DUPLICATE'
-  | 'INAPPROPRIATE'
-  | 'MISLEADING'
-  | 'OTHER';
+export type ChargebackStatus = 'OPEN' | 'EVIDENCE_SUBMITTED' | 'REFUND_OFFERED' | 'WON' | 'LOST';
+export type FlagReason = 'SCAM' | 'DUPLICATE' | 'INAPPROPRIATE' | 'MISLEADING' | 'OTHER';
 export type FlagStatus = 'OPEN' | 'REVIEWED' | 'DISMISSED';
 export type ModerationAction = 'APPROVE' | 'REJECT' | 'ESCALATE';
 

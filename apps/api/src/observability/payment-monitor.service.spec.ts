@@ -16,7 +16,9 @@ function makePrisma(statuses: string[], stuck: number) {
 }
 
 function makeMetrics(webhookFailures: number) {
-  return { webhookFailures: () => webhookFailures } as unknown as MetricsService;
+  return {
+    webhookFailures: () => webhookFailures,
+  } as unknown as MetricsService;
 }
 
 describe('PaymentMonitorService', () => {

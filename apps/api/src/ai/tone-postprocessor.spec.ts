@@ -8,9 +8,7 @@ import {
 describe('tone-postprocessor', () => {
   describe('stripAiSlop', () => {
     it('removes AI-slop phrases (case-insensitive)', () => {
-      const out = stripAiSlop(
-        "In today's fast-paced world, I need your help.",
-      );
+      const out = stripAiSlop("In today's fast-paced world, I need your help.");
       expect(out.toLowerCase()).not.toContain('fast-paced world');
       expect(out).toContain('I need your help.');
     });
@@ -50,7 +48,9 @@ describe('tone-postprocessor', () => {
 
   describe('enforceGermanUmlauts', () => {
     it('fixes common ASCII-umlaut words', () => {
-      const out = enforceGermanUmlauts('Ich moechte fuer meine Zukunft lernen.');
+      const out = enforceGermanUmlauts(
+        'Ich moechte fuer meine Zukunft lernen.',
+      );
       expect(out).toContain('möchte');
       expect(out).toContain('für');
     });

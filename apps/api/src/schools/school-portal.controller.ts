@@ -48,13 +48,19 @@ export class SchoolPortalController {
   }
 
   @Put('payout')
-  async savePayout(@CurrentUser('id') userId: string, @Body() dto: SavePayoutDto) {
+  async savePayout(
+    @CurrentUser('id') userId: string,
+    @Body() dto: SavePayoutDto,
+  ) {
     const schoolId = await this.portal.resolveSchoolId(userId);
     return this.onboarding.savePayout(schoolId, dto);
   }
 
   @Post('agreement/sign')
-  async signAgreement(@CurrentUser('id') userId: string, @Body() dto: SignAgreementDto) {
+  async signAgreement(
+    @CurrentUser('id') userId: string,
+    @Body() dto: SignAgreementDto,
+  ) {
     const schoolId = await this.portal.resolveSchoolId(userId);
     return this.onboarding.signAgreement(schoolId, dto);
   }
@@ -78,7 +84,10 @@ export class SchoolPortalController {
   }
 
   @Post('admissions/:id/verify')
-  async verifyAdmission(@CurrentUser('id') userId: string, @Param('id') id: string) {
+  async verifyAdmission(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+  ) {
     const schoolId = await this.portal.resolveSchoolId(userId);
     return this.admissions.verify(schoolId, id, userId);
   }

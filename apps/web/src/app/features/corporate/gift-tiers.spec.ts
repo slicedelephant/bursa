@@ -36,7 +36,9 @@ describe('isFullTuition', () => {
 
 describe('tierBadge / tierName', () => {
   it('badges only the highlighted tier', () => {
-    expect(tierBadge({ tier: 'FULL', label: 'x', amountCents: 1, highlight: true })).toBe('Highest impact');
+    expect(tierBadge({ tier: 'FULL', label: 'x', amountCents: 1, highlight: true })).toBe(
+      'Highest impact',
+    );
     expect(tierBadge({ tier: 'YEAR', label: 'x', amountCents: 1 })).toBeNull();
   });
   it('names each tier', () => {

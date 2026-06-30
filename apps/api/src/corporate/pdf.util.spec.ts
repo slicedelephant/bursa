@@ -10,7 +10,10 @@ describe('escapePdfText', () => {
 });
 
 describe('buildSimplePdf', () => {
-  const pdf = buildSimplePdf('Bursa ESG Report', ['Students: 3', 'Total: EUR 42000']);
+  const pdf = buildSimplePdf('Bursa ESG Report', [
+    'Students: 3',
+    'Total: EUR 42000',
+  ]);
 
   it('produces a valid PDF 1.4 header and EOF', () => {
     expect(pdf.startsWith('%PDF-1.4')).toBe(true);

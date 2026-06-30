@@ -35,6 +35,8 @@ describe('AdminMfaGuard', () => {
 
   it('rejects an invalid token', () => {
     const guard = guardWith(SECRET);
-    expect(() => guard.canActivate(context({ 'x-mfa-token': '000000' }))).toThrow();
+    expect(() =>
+      guard.canActivate(context({ 'x-mfa-token': '000000' })),
+    ).toThrow();
   });
 });

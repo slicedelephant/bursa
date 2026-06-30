@@ -32,7 +32,12 @@ describe('verifyWebhookSignature', () => {
   it('accepts a correctly signed payload', () => {
     const header = sign(BODY, now);
     expect(
-      verifyWebhookSignature({ rawBody: BODY, header, secret: SECRET, nowSec: now }),
+      verifyWebhookSignature({
+        rawBody: BODY,
+        header,
+        secret: SECRET,
+        nowSec: now,
+      }),
     ).toBe(true);
   });
 
@@ -51,7 +56,12 @@ describe('verifyWebhookSignature', () => {
   it('rejects a wrong secret', () => {
     const header = sign(BODY, now, 'other');
     expect(
-      verifyWebhookSignature({ rawBody: BODY, header, secret: SECRET, nowSec: now }),
+      verifyWebhookSignature({
+        rawBody: BODY,
+        header,
+        secret: SECRET,
+        nowSec: now,
+      }),
     ).toBe(false);
   });
 
@@ -70,24 +80,46 @@ describe('verifyWebhookSignature', () => {
 
   it('rejects a missing header or secret', () => {
     expect(
-      verifyWebhookSignature({ rawBody: BODY, header: undefined, secret: SECRET, nowSec: now }),
+      verifyWebhookSignature({
+        rawBody: BODY,
+        header: undefined,
+        secret: SECRET,
+        nowSec: now,
+      }),
     ).toBe(false);
     expect(
-      verifyWebhookSignature({ rawBody: BODY, header: sign(BODY, now), secret: undefined, nowSec: now }),
+      verifyWebhookSignature({
+        rawBody: BODY,
+        header: sign(BODY, now),
+        secret: undefined,
+        nowSec: now,
+      }),
     ).toBe(false);
   });
 
   it('rejects a header without a v1 signature', () => {
     expect(
-      verifyWebhookSignature({ rawBody: BODY, header: `t=${now}`, secret: SECRET, nowSec: now }),
+      verifyWebhookSignature({
+        rawBody: BODY,
+        header: `t=${now}`,
+        secret: SECRET,
+        nowSec: now,
+      }),
     ).toBe(false);
   });
 
   it('accepts when one of several v1 signatures matches', () => {
-    const good = createHmac('sha256', SECRET).update(`${now}.${BODY}`).digest('hex');
+    const good = createHmac('sha256', SECRET)
+      .update(`${now}.${BODY}`)
+      .digest('hex');
     const header = `t=${now},v1=deadbeef,v1=${good}`;
     expect(
-      verifyWebhookSignature({ rawBody: BODY, header, secret: SECRET, nowSec: now }),
+      verifyWebhookSignature({
+        rawBody: BODY,
+        header,
+        secret: SECRET,
+        nowSec: now,
+      }),
     ).toBe(true);
   });
 });

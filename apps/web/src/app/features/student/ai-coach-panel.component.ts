@@ -33,16 +33,26 @@ import {
         <span class="text-xs text-slate2">{{ budgetText() }}</span>
       </div>
       <p class="mt-1 text-xs text-slate2">
-        Optional. Generate a draft, then pick a variant to drop it into your campaign. Your
-        own text is never replaced unless you choose a variant.
+        Optional. Generate a draft, then pick a variant to drop it into your campaign. Your own text
+        is never replaced unless you choose a variant.
       </p>
 
       <div class="mt-3 flex items-center gap-2 text-xs">
         <span class="text-slate2">Language</span>
-        <button type="button" (click)="locale.set('en')"
-          [class]="locale() === 'en' ? activeChip : chip">EN</button>
-        <button type="button" (click)="locale.set('de')"
-          [class]="locale() === 'de' ? activeChip : chip">DE</button>
+        <button
+          type="button"
+          (click)="locale.set('en')"
+          [class]="locale() === 'en' ? activeChip : chip"
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          (click)="locale.set('de')"
+          [class]="locale() === 'de' ? activeChip : chip"
+        >
+          DE
+        </button>
       </div>
 
       <div class="mt-3 flex flex-wrap gap-2">
@@ -60,7 +70,10 @@ import {
       </div>
 
       @if (error()) {
-        <p class="mt-3 rounded-lg bg-brand-orange/10 px-3 py-2 text-xs font-medium text-brand-orange" role="alert">
+        <p
+          class="mt-3 rounded-lg bg-brand-orange/10 px-3 py-2 text-xs font-medium text-brand-orange"
+          role="alert"
+        >
           {{ error() }}
         </p>
       }
@@ -72,14 +85,20 @@ import {
         <div class="mt-4">
           <div class="flex items-center justify-between">
             <h4 class="text-xs font-semibold text-ink">Title variants</h4>
-            <button type="button" (click)="genTitle()" [disabled]="disabled()" [class]="refreshBtn">Refresh</button>
+            <button type="button" (click)="genTitle()" [disabled]="disabled()" [class]="refreshBtn">
+              Refresh
+            </button>
           </div>
           <ul class="mt-2 space-y-2">
             @for (v of titleVariants(); track $index) {
-              <li class="flex items-start justify-between gap-2 rounded-lg bg-white p-2 ring-1 ring-black/5">
+              <li
+                class="flex items-start justify-between gap-2 rounded-lg bg-white p-2 ring-1 ring-black/5"
+              >
                 <span class="text-sm text-ink">
                   {{ v.text }}
-                  @if (v.recommended) { <span class="ml-1 text-[10px] font-semibold text-brand-green">RECOMMENDED</span> }
+                  @if (v.recommended) {
+                    <span class="ml-1 text-[10px] font-semibold text-brand-green">RECOMMENDED</span>
+                  }
                 </span>
                 <button type="button" (click)="useTitle(v)" [class]="useBtn">Use</button>
               </li>
@@ -92,14 +111,18 @@ import {
         <div class="mt-4">
           <div class="flex items-center justify-between">
             <h4 class="text-xs font-semibold text-ink">Story drafts</h4>
-            <button type="button" (click)="genStory()" [disabled]="disabled()" [class]="refreshBtn">Refresh</button>
+            <button type="button" (click)="genStory()" [disabled]="disabled()" [class]="refreshBtn">
+              Refresh
+            </button>
           </div>
           <ul class="mt-2 space-y-2">
             @for (v of storyVariants(); track $index) {
               <li class="rounded-lg bg-white p-2 ring-1 ring-black/5">
                 <p class="whitespace-pre-line text-sm text-ink">{{ v.text }}</p>
                 <div class="mt-2 flex justify-end">
-                  <button type="button" (click)="useStory(v)" [class]="useBtn">Use this draft</button>
+                  <button type="button" (click)="useStory(v)" [class]="useBtn">
+                    Use this draft
+                  </button>
                 </div>
               </li>
             }
@@ -160,12 +183,8 @@ export class AiCoachPanelComponent {
   readonly activeChip =
     'rounded-md border border-brand-green bg-brand-green/10 px-2 py-0.5 font-semibold text-brand-green';
 
-  readonly budgetText = computed(() =>
-    formatRemainingBudget(this.remaining(), this.limit()),
-  );
-  readonly disabled = computed(
-    () => this.loading() || budgetExhausted(this.remaining()),
-  );
+  readonly budgetText = computed(() => formatRemainingBudget(this.remaining(), this.limit()));
+  readonly disabled = computed(() => this.loading() || budgetExhausted(this.remaining()));
   readonly shareHeading = computed(() => {
     const c = this.shareChannel();
     return c ? `${channelLabel(c)} variants` : 'Share variants';

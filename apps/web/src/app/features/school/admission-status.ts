@@ -33,8 +33,10 @@ export interface ImportResultLike {
 /** A short, human summary of an import outcome for a toast/banner. */
 export function importSummary(result: ImportResultLike): string {
   const parts = [`${result.imported} imported`];
-  if (result.duplicates > 0) parts.push(`${result.duplicates} duplicate${result.duplicates === 1 ? '' : 's'} skipped`);
-  if (result.errors.length > 0) parts.push(`${result.errors.length} row error${result.errors.length === 1 ? '' : 's'}`);
+  if (result.duplicates > 0)
+    parts.push(`${result.duplicates} duplicate${result.duplicates === 1 ? '' : 's'} skipped`);
+  if (result.errors.length > 0)
+    parts.push(`${result.errors.length} row error${result.errors.length === 1 ? '' : 's'}`);
   return parts.join(' · ');
 }
 

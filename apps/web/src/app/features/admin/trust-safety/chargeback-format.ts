@@ -40,9 +40,6 @@ export function chargebackStatusClass(status: ChargebackStatus): string {
 }
 
 /** True when an open, low-value dispute may be offered an auto-refund. */
-export function refundEligible(
-  status: ChargebackStatus,
-  amountCents: number,
-): boolean {
+export function refundEligible(status: ChargebackStatus, amountCents: number): boolean {
   return status === 'OPEN' && amountCents > 0 && amountCents <= AUTO_REFUND_MAX_CENTS;
 }

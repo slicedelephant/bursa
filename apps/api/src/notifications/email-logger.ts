@@ -40,7 +40,11 @@ export class EmailLogger {
         emailLogged: true,
       },
     });
-    this.sentLog.push({ userId: input.userId, title: input.title, at: new Date() });
+    this.sentLog.push({
+      userId: input.userId,
+      title: input.title,
+      at: new Date(),
+    });
     return row;
   }
 

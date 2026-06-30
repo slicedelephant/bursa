@@ -47,7 +47,10 @@ export class SchoolsController {
   @Post(':id/onboarding-link')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  onboardingLink(@Param('id') id: string, @Body() dto: GenerateOnboardingLinkDto) {
+  onboardingLink(
+    @Param('id') id: string,
+    @Body() dto: GenerateOnboardingLinkDto,
+  ) {
     return this.onboarding.generateLink(id, dto.expiresInHours);
   }
 }

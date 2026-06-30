@@ -18,13 +18,7 @@ export interface AnalyticsEvent {
   metadata?: Record<string, unknown>;
 }
 
-export const ONBOARDING_STEPS = [
-  'basics',
-  'story',
-  'video',
-  'review',
-  'submitted',
-] as const;
+export const ONBOARDING_STEPS = ['basics', 'story', 'video', 'review', 'submitted'] as const;
 
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 
@@ -48,9 +42,6 @@ export function onboardingStepEvent(step: OnboardingStep): AnalyticsEvent {
   return { type: 'onboarding_step', step };
 }
 
-export function shareClickEvent(
-  campaignId: string,
-  channel: string,
-): AnalyticsEvent {
+export function shareClickEvent(campaignId: string, channel: string): AnalyticsEvent {
   return { type: 'share_click', campaignId, metadata: { channel } };
 }

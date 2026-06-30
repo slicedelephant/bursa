@@ -28,7 +28,9 @@ export function addMonth(date: Date): Date {
 }
 
 export function isDue(pledge: RecurringLike, now: Date): boolean {
-  return pledge.status === 'ACTIVE' && pledge.nextRunAt.getTime() <= now.getTime();
+  return (
+    pledge.status === 'ACTIVE' && pledge.nextRunAt.getTime() <= now.getTime()
+  );
 }
 
 export function duePledges<T extends RecurringLike>(

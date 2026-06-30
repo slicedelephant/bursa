@@ -1,8 +1,4 @@
-import {
-  aggregateFraudScore,
-  clampScore,
-  scoreToLevel,
-} from './fraud-score';
+import { aggregateFraudScore, clampScore, scoreToLevel } from './fraud-score';
 
 describe('fraud-score', () => {
   describe('clampScore', () => {

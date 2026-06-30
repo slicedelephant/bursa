@@ -1,9 +1,36 @@
-import { buildSchoolDashboard, DashboardCampaignInput } from './school-dashboard';
+import {
+  buildSchoolDashboard,
+  DashboardCampaignInput,
+} from './school-dashboard';
 
 const campaigns: DashboardCampaignInput[] = [
-  { id: 'c1', title: 'MBA tuition', studentName: 'Amara', status: 'DISBURSED', goalCents: 100_000, raisedCents: 100_000, payout: { status: 'CONFIRMED' } },
-  { id: 'c2', title: 'MBA tuition', studentName: 'Kofi', status: 'FUNDED', goalCents: 200_000, raisedCents: 200_000, payout: null },
-  { id: 'c3', title: 'MBA tuition', studentName: 'Lin', status: 'LIVE', goalCents: 100_000, raisedCents: 25_000, payout: null },
+  {
+    id: 'c1',
+    title: 'MBA tuition',
+    studentName: 'Amara',
+    status: 'DISBURSED',
+    goalCents: 100_000,
+    raisedCents: 100_000,
+    payout: { status: 'CONFIRMED' },
+  },
+  {
+    id: 'c2',
+    title: 'MBA tuition',
+    studentName: 'Kofi',
+    status: 'FUNDED',
+    goalCents: 200_000,
+    raisedCents: 200_000,
+    payout: null,
+  },
+  {
+    id: 'c3',
+    title: 'MBA tuition',
+    studentName: 'Lin',
+    status: 'LIVE',
+    goalCents: 100_000,
+    raisedCents: 25_000,
+    payout: null,
+  },
 ];
 
 const donations = [
@@ -38,8 +65,16 @@ describe('buildSchoolDashboard', () => {
 
   it('groups donor geography and sorts by amount, mapping missing to Unknown', () => {
     const { donorGeography } = buildSchoolDashboard(campaigns, donations);
-    expect(donorGeography[0]).toEqual({ country: 'Germany', donationCount: 2, amountCents: 100_000 });
-    expect(donorGeography.map((r) => r.country)).toEqual(['Germany', 'United States', 'Unknown']);
+    expect(donorGeography[0]).toEqual({
+      country: 'Germany',
+      donationCount: 2,
+      amountCents: 100_000,
+    });
+    expect(donorGeography.map((r) => r.country)).toEqual([
+      'Germany',
+      'United States',
+      'Unknown',
+    ]);
   });
 
   it('handles an empty school with zeroed totals', () => {
@@ -51,7 +86,16 @@ describe('buildSchoolDashboard', () => {
 
   it('guards against a zero goal', () => {
     const dashboard = buildSchoolDashboard(
-      [{ id: 'z', title: 't', studentName: 'Z', status: 'DRAFT', goalCents: 0, raisedCents: 0 }],
+      [
+        {
+          id: 'z',
+          title: 't',
+          studentName: 'Z',
+          status: 'DRAFT',
+          goalCents: 0,
+          raisedCents: 0,
+        },
+      ],
       [],
     );
     expect(dashboard.students[0].progressPct).toBe(0);

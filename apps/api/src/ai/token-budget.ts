@@ -34,7 +34,10 @@ export interface BudgetView {
  * length. Always at least MIN_TOKENS_PER_GENERATION. Non-finite/negative input
  * is treated as 0 characters.
  */
-export function estimateTokens(inputChars: number, outputChars: number): number {
+export function estimateTokens(
+  inputChars: number,
+  outputChars: number,
+): number {
   const safe = (n: number): number =>
     Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
   const total = safe(inputChars) + safe(outputChars);

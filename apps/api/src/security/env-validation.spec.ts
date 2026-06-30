@@ -16,7 +16,10 @@ describe('validateEnv', () => {
   });
 
   it('rejects an insecure default JWT secret in production', () => {
-    const { errors } = validateEnv({ ...prodBase, JWT_SECRET: 'dev-only-change-me' });
+    const { errors } = validateEnv({
+      ...prodBase,
+      JWT_SECRET: 'dev-only-change-me',
+    });
     expect(errors.join(' ')).toContain('insecure default');
   });
 
@@ -47,7 +50,10 @@ describe('validateEnv', () => {
   });
 
   it('always treats a missing DATABASE_URL as an error', () => {
-    const { errors } = validateEnv({ NODE_ENV: 'development', JWT_SECRET: SAFE_SECRET });
+    const { errors } = validateEnv({
+      NODE_ENV: 'development',
+      JWT_SECRET: SAFE_SECRET,
+    });
     expect(errors.join(' ')).toContain('DATABASE_URL');
   });
 

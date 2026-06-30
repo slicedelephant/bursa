@@ -55,9 +55,13 @@ describe('RateLimitStore', () => {
     store.hit('new', LIMIT, WINDOW, WINDOW); // resets at 2*WINDOW
     store.prune(WINDOW + 1); // old expired (resetAt=WINDOW), new still active
     // 'old' bucket gone → fresh window, full remaining
-    expect(store.hit('old', LIMIT, WINDOW, WINDOW + 1).remaining).toBe(LIMIT - 1);
+    expect(store.hit('old', LIMIT, WINDOW, WINDOW + 1).remaining).toBe(
+      LIMIT - 1,
+    );
     // 'new' bucket survived → second hit, remaining decremented further
-    expect(store.hit('new', LIMIT, WINDOW, WINDOW + 1).remaining).toBe(LIMIT - 2);
+    expect(store.hit('new', LIMIT, WINDOW, WINDOW + 1).remaining).toBe(
+      LIMIT - 2,
+    );
   });
 
   it('reset() clears all buckets', () => {

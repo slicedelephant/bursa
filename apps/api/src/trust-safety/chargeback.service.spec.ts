@@ -6,10 +6,14 @@ function buildPrisma(overrides: Record<string, unknown> = {}) {
     findMany: jest.fn().mockResolvedValue([]),
     create: jest
       .fn()
-      .mockImplementation(({ data }) => Promise.resolve({ id: 'cb1', ...data })),
+      .mockImplementation(({ data }) =>
+        Promise.resolve({ id: 'cb1', ...data }),
+      ),
     update: jest
       .fn()
-      .mockImplementation(({ data }) => Promise.resolve({ id: 'cb1', ...data })),
+      .mockImplementation(({ data }) =>
+        Promise.resolve({ id: 'cb1', ...data }),
+      ),
     count: jest.fn().mockResolvedValue(1),
   };
   const campaign = { update: jest.fn().mockResolvedValue({}) };
@@ -44,9 +48,9 @@ describe('ChargebackService', () => {
   it('rejects an event without a dispute id', async () => {
     const prisma = buildPrisma();
     const { service } = makeService(prisma);
-    await expect(service.ingest({ data: { object: {} } })).rejects.toMatchObject(
-      { status: 400 },
-    );
+    await expect(
+      service.ingest({ data: { object: {} } }),
+    ).rejects.toMatchObject({ status: 400 });
   });
 
   it('creates a chargeback and records analytics', async () => {
@@ -66,7 +70,10 @@ describe('ChargebackService', () => {
     const prisma = buildPrisma();
     prisma.chargeback.findUnique.mockResolvedValue(null);
     const { service } = makeService(prisma);
-    const result = await service.ingest({ data: { object: { id: 'dp_min' } } }, now);
+    const result = await service.ingest(
+      { data: { object: { id: 'dp_min' } } },
+      now,
+    );
     const created = prisma.chargeback.create.mock.calls[0][0].data;
     expect(created.amountCents).toBe(0);
     expect(created.currency).toBe('EUR');
@@ -125,9 +132,9 @@ describe('ChargebackService', () => {
       amountCents: 4_500,
     });
     const { service } = makeService(prisma);
-    await expect(
-      service.submitEvidence('cb1', 'x'),
-    ).rejects.toMatchObject({ status: 409 });
+    await expect(service.submitEvidence('cb1', 'x')).rejects.toMatchObject({
+      status: 409,
+    });
   });
 
   it('offers a refund for a low-value open dispute', async () => {

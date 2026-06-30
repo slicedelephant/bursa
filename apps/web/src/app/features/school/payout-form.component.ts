@@ -21,12 +21,42 @@ import { SchoolPortalProfile } from '../../core/models';
         </p>
 
         <div class="mt-4 space-y-3">
-          <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Bank account name" [(ngModel)]="bankAccountName" name="bankAccountName" />
-          <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" [placeholder]="ibanPlaceholder()" [(ngModel)]="iban" name="iban" />
-          <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="BIC (optional)" [(ngModel)]="bic" name="bic" />
-          <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Tax ID" [(ngModel)]="taxId" name="taxId" />
-          <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Contact person" [(ngModel)]="contactName" name="contactName" />
-          <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Contact email" [(ngModel)]="contactEmail" name="contactEmail" />
+          <input
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder="Bank account name"
+            [(ngModel)]="bankAccountName"
+            name="bankAccountName"
+          />
+          <input
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            [placeholder]="ibanPlaceholder()"
+            [(ngModel)]="iban"
+            name="iban"
+          />
+          <input
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder="BIC (optional)"
+            [(ngModel)]="bic"
+            name="bic"
+          />
+          <input
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder="Tax ID"
+            [(ngModel)]="taxId"
+            name="taxId"
+          />
+          <input
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder="Contact person"
+            [(ngModel)]="contactName"
+            name="contactName"
+          />
+          <input
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            placeholder="Contact email"
+            [(ngModel)]="contactEmail"
+            name="contactEmail"
+          />
         </div>
 
         <button
@@ -63,10 +93,17 @@ import { SchoolPortalProfile } from '../../core/models';
           </button>
         }
         @if (error()) {
-          <p class="mt-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange" role="alert">{{ error() }}</p>
+          <p
+            class="mt-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange"
+            role="alert"
+          >
+            {{ error() }}
+          </p>
         }
         @if (notice()) {
-          <p class="mt-3 rounded-lg bg-brand-green/10 px-4 py-3 text-sm text-brand-green">{{ notice() }}</p>
+          <p class="mt-3 rounded-lg bg-brand-green/10 px-4 py-3 text-sm text-brand-green">
+            {{ notice() }}
+          </p>
         }
       </div>
     </div>

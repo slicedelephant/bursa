@@ -13,7 +13,12 @@ describe('e-signature provider factory', () => {
 
   it('only selects DocuSign with both the flag and a key', () => {
     expect(shouldUseDocusign({ ESIGNATURE_PROVIDER: 'docusign' })).toBe(false);
-    expect(shouldUseDocusign({ ESIGNATURE_PROVIDER: 'docusign', DOCUSIGN_API_KEY: 'k' })).toBe(true);
+    expect(
+      shouldUseDocusign({
+        ESIGNATURE_PROVIDER: 'docusign',
+        DOCUSIGN_API_KEY: 'k',
+      }),
+    ).toBe(true);
   });
 
   it('falls back to mock with a warning when DocuSign is requested but unimplemented', () => {

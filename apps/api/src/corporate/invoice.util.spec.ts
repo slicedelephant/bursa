@@ -34,7 +34,9 @@ describe('computeInvoiceAmounts', () => {
 
 describe('buildInvoiceNo', () => {
   it('builds a stable, upper-cased invoice number with the year', () => {
-    expect(buildInvoiceNo(2026, 'abcd1234efgh')).toBe('BURSA-INV-2026-1234EFGH');
+    expect(buildInvoiceNo(2026, 'abcd1234efgh')).toBe(
+      'BURSA-INV-2026-1234EFGH',
+    );
   });
   it('pads short seeds', () => {
     expect(buildInvoiceNo(2026, 'a1')).toBe('BURSA-INV-2026-A1');

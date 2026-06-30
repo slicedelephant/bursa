@@ -25,15 +25,13 @@ export const STORY_PROMPTS: StoryPrompt[] = [
     key: 'background',
     label: 'Where you are coming from',
     hint: 'Your background and what you have built so far.',
-    placeholder:
-      'I built and scaled a mobile payments team in Lagos serving 200,000 users…',
+    placeholder: 'I built and scaled a mobile payments team in Lagos serving 200,000 users…',
   },
   {
     key: 'challenge',
     label: 'The funding gap',
     hint: 'What stands between you and the classroom right now.',
-    placeholder:
-      'I was admitted, but currency devaluation pushed tuition far beyond my savings…',
+    placeholder: 'I was admitted, but currency devaluation pushed tuition far beyond my savings…',
   },
   {
     key: 'vision',

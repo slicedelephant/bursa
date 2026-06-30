@@ -28,9 +28,7 @@ export function esgTiles(metrics: EsgMetrics): EsgTile[] {
 }
 
 export function documentTypeLabel(type: InvoiceDocType): string {
-  return type === 'SPONSORING'
-    ? 'Sponsoring invoice (incl. 19% VAT)'
-    : 'Donation receipt (no VAT)';
+  return type === 'SPONSORING' ? 'Sponsoring invoice (incl. 19% VAT)' : 'Donation receipt (no VAT)';
 }
 
 export function invoiceStatusLabel(status: InvoiceStatus): string {

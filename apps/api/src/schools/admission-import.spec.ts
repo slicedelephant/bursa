@@ -11,16 +11,32 @@ describe('parseAdmissionCsv', () => {
     expect(result.errors).toEqual([]);
     expect(result.duplicates).toBe(0);
     expect(result.records).toEqual([
-      { studentEmail: 'amara@bursa.test', studentName: 'Amara Okeke', programName: 'MBA 2026', admissionRef: 'ADM-1' },
-      { studentEmail: 'kofi@bursa.test', studentName: 'Kofi Mensah', programName: 'Global MBA', admissionRef: 'ADM-2' },
+      {
+        studentEmail: 'amara@bursa.test',
+        studentName: 'Amara Okeke',
+        programName: 'MBA 2026',
+        admissionRef: 'ADM-1',
+      },
+      {
+        studentEmail: 'kofi@bursa.test',
+        studentName: 'Kofi Mensah',
+        programName: 'Global MBA',
+        admissionRef: 'ADM-2',
+      },
     ]);
   });
 
   it('is tolerant of column order, casing and CRLF', () => {
-    const csv = 'Name,Email,AdmissionRef,Program\r\nAmara,AMARA@bursa.test,ADM-9,MBA\r\n';
+    const csv =
+      'Name,Email,AdmissionRef,Program\r\nAmara,AMARA@bursa.test,ADM-9,MBA\r\n';
     const result = parseAdmissionCsv(csv);
     expect(result.records).toEqual([
-      { studentEmail: 'amara@bursa.test', studentName: 'Amara', programName: 'MBA', admissionRef: 'ADM-9' },
+      {
+        studentEmail: 'amara@bursa.test',
+        studentName: 'Amara',
+        programName: 'MBA',
+        admissionRef: 'ADM-9',
+      },
     ]);
   });
 
@@ -70,12 +86,16 @@ describe('parseAdmissionCsv', () => {
     const result = parseAdmissionCsv(csv);
     expect(result.records).toHaveLength(1);
     expect(result.records[0].admissionRef).toBe('ADM-2');
-    expect(result.errors).toEqual([{ line: 2, message: 'missing admissionRef' }]);
+    expect(result.errors).toEqual([
+      { line: 2, message: 'missing admissionRef' },
+    ]);
   });
 
   it('treats blank or non-string input as an empty CSV', () => {
     expect(parseAdmissionCsv('').errors[0].message).toBe('CSV is empty');
     expect(parseAdmissionCsv('   \n  ').errors[0].message).toBe('CSV is empty');
-    expect(parseAdmissionCsv(undefined as unknown as string).errors[0].message).toBe('CSV is empty');
+    expect(
+      parseAdmissionCsv(undefined as unknown as string).errors[0].message,
+    ).toBe('CSV is empty');
   });
 });

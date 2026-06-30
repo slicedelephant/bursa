@@ -38,7 +38,10 @@ const PATTERNS: RegExp[] = [
 
 /** Redacts PII patterns inside a plain string. */
 function redactString(value: string): string {
-  return PATTERNS.reduce((acc, pattern) => acc.replace(pattern, REDACTED), value);
+  return PATTERNS.reduce(
+    (acc, pattern) => acc.replace(pattern, REDACTED),
+    value,
+  );
 }
 
 function isSensitiveKey(key: string): boolean {
@@ -49,7 +52,10 @@ function isSensitiveKey(key: string): boolean {
  * Deep-redacts any value. Returns a new structure; the input is never mutated.
  * Cyclic references are collapsed to the placeholder to stay safe in logs.
  */
-export function redact(value: unknown, seen: WeakSet<object> = new WeakSet()): unknown {
+export function redact(
+  value: unknown,
+  seen: WeakSet<object> = new WeakSet(),
+): unknown {
   if (typeof value === 'string') return redactString(value);
   if (value === null || typeof value !== 'object') return value;
 

@@ -17,7 +17,11 @@ describe('AuditService', () => {
   it('persists an entry', async () => {
     const prisma = makePrisma();
     const service = new AuditService(prisma);
-    await service.record({ action: 'auth.login', actorUserId: 'u1', ip: '1.2.3.4' });
+    await service.record({
+      action: 'auth.login',
+      actorUserId: 'u1',
+      ip: '1.2.3.4',
+    });
     expect(prisma.auditLog.create).toHaveBeenCalledTimes(1);
     const arg = prisma.auditLog.create.mock.calls[0][0];
     expect(arg.data.action).toBe('auth.login');

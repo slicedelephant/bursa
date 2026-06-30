@@ -30,9 +30,10 @@ import { relativeTime } from '../campaign/relative-time';
                     >
                   }
                   @if (d.tribute) {
-                    <span class="rounded-full bg-brand-blue/10 px-2 py-0.5 text-xs text-brand-blue">{{
-                      d.tribute
-                    }}</span>
+                    <span
+                      class="rounded-full bg-brand-blue/10 px-2 py-0.5 text-xs text-brand-blue"
+                      >{{ d.tribute }}</span
+                    >
                   }
                   @if (d.anonymous) {
                     <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate2"

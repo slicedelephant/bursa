@@ -23,9 +23,7 @@ describe('moderation-format', () => {
   });
 
   it('humanises reason codes with and without detail', () => {
-    expect(reasonLabel('suspicious_keyword:bitcoin')).toBe(
-      'Suspicious Keyword: bitcoin',
-    );
+    expect(reasonLabel('suspicious_keyword:bitcoin')).toBe('Suspicious Keyword: bitcoin');
     expect(reasonLabel('duplicate_campaign')).toBe('Duplicate Campaign');
   });
 

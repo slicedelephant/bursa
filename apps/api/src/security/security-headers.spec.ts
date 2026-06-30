@@ -28,7 +28,9 @@ describe('securityHeaders', () => {
 
   it('relaxes CSP for the docs route', () => {
     const h = securityHeaders({ production: false, relaxedCsp: true });
-    expect(h['Content-Security-Policy']).toContain("script-src 'self' 'unsafe-inline'");
+    expect(h['Content-Security-Policy']).toContain(
+      "script-src 'self' 'unsafe-inline'",
+    );
   });
 
   it('returns a fresh object each call (no shared mutation)', () => {

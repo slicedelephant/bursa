@@ -49,7 +49,10 @@ export class CorporateController {
     const csv = await this.corporate.esgCsv(userId);
     res
       .header('Content-Type', 'text/csv; charset=utf-8')
-      .header('Content-Disposition', 'attachment; filename="bursa-esg-report.csv"')
+      .header(
+        'Content-Disposition',
+        'attachment; filename="bursa-esg-report.csv"',
+      )
       .send(csv);
   }
 
@@ -61,7 +64,10 @@ export class CorporateController {
     const pdf = await this.corporate.esgPdf(userId);
     res
       .header('Content-Type', 'application/pdf')
-      .header('Content-Disposition', 'attachment; filename="bursa-esg-report.pdf"')
+      .header(
+        'Content-Disposition',
+        'attachment; filename="bursa-esg-report.pdf"',
+      )
       .send(Buffer.from(pdf, 'binary'));
   }
 

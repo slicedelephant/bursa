@@ -2,11 +2,7 @@ import { Component, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { AdmissionImportResult, AdmissionRecord, VerificationStatus } from '../../core/models';
-import {
-  admissionStatusClass,
-  admissionStatusLabel,
-  importSummary,
-} from './admission-status';
+import { admissionStatusClass, admissionStatusLabel, importSummary } from './admission-status';
 
 /** Student verification: import an admission list, then verify/reject each row. */
 @Component({
@@ -51,13 +47,22 @@ import {
       <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
         <header class="mb-4 flex items-center justify-between gap-4">
           <h3 class="font-display text-lg font-semibold text-ink">Admissions</h3>
-          <button type="button" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-mist" (click)="load()">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-mist"
+            (click)="load()"
+          >
             Refresh
           </button>
         </header>
 
         @if (error()) {
-          <p class="mb-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange" role="alert">{{ error() }}</p>
+          <p
+            class="mb-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange"
+            role="alert"
+          >
+            {{ error() }}
+          </p>
         }
         @if (records().length === 0) {
           <p class="text-sm text-slate2">No admission records yet — import a list above.</p>
@@ -69,10 +74,15 @@ import {
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-medium text-ink">{{ r.studentName }}</p>
-                  <p class="truncate text-xs text-slate2">{{ r.admissionRef }} · {{ r.programName }}</p>
+                  <p class="truncate text-xs text-slate2">
+                    {{ r.admissionRef }} · {{ r.programName }}
+                  </p>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1" [class]="statusCls(r.status)">
+                  <span
+                    class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1"
+                    [class]="statusCls(r.status)"
+                  >
                     {{ statusLabel(r.status) }}
                   </span>
                   @if (r.status === 'PENDING') {
@@ -102,10 +112,18 @@ import {
                     class="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
                     placeholder="Reason (required)"
                   />
-                  <button type="button" class="rounded-lg bg-brand-orange px-3 py-1.5 text-xs font-semibold text-white" (click)="reject(r)">
+                  <button
+                    type="button"
+                    class="rounded-lg bg-brand-orange px-3 py-1.5 text-xs font-semibold text-white"
+                    (click)="reject(r)"
+                  >
                     Confirm
                   </button>
-                  <button type="button" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs" (click)="cancelReject()">
+                  <button
+                    type="button"
+                    class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+                    (click)="cancelReject()"
+                  >
                     Cancel
                   </button>
                 </div>

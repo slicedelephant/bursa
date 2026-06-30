@@ -11,10 +11,12 @@ import { MetricsStore } from './metrics.store';
 
 describe('routeLabel / isPaymentPath', () => {
   it('prefers the route pattern and strips the query', () => {
-    expect(routeLabel({ method: 'GET', route: { path: '/campaigns/:id' } })).toBe(
-      'GET /campaigns/:id',
+    expect(
+      routeLabel({ method: 'GET', route: { path: '/campaigns/:id' } }),
+    ).toBe('GET /campaigns/:id');
+    expect(routeLabel({ method: 'POST', originalUrl: '/x?y=1' })).toBe(
+      'POST /x',
     );
-    expect(routeLabel({ method: 'POST', originalUrl: '/x?y=1' })).toBe('POST /x');
     expect(routeLabel({})).toBe('GET unknown');
   });
 
@@ -44,7 +46,11 @@ describe('MetricsInterceptor', () => {
   it('records a sample with the response status on success', (done) => {
     const { store, interceptor } = make();
     const ctx = context(
-      { method: 'GET', route: { path: '/campaigns' }, requestId: 'req_abc12345' },
+      {
+        method: 'GET',
+        route: { path: '/campaigns' },
+        requestId: 'req_abc12345',
+      },
       { statusCode: 200 },
     );
     const handler: CallHandler = { handle: () => of({ ok: true }) };
@@ -64,7 +70,8 @@ describe('MetricsInterceptor', () => {
       {},
     );
     const handler: CallHandler = {
-      handle: () => throwError(() => new DomainException('PAYMENT_FAILED', 'no', 402)),
+      handle: () =>
+        throwError(() => new DomainException('PAYMENT_FAILED', 'no', 402)),
     };
     interceptor.intercept(ctx, handler).subscribe({
       error: (err) => {

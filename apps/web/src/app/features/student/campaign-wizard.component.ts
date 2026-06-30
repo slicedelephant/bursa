@@ -1,23 +1,11 @@
-import {
-  Component,
-  OnInit,
-  computed,
-  effect,
-  inject,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, OnInit, computed, effect, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
 import { AiStoryParts, School } from '../../core/models';
 import { CampaignVideoComponent } from '../campaign/campaign-video.component';
 import { AiCoachPanelComponent } from './ai-coach-panel.component';
-import {
-  STORY_PROMPTS,
-  composeStory,
-  isStoryReady,
-} from './story-framework';
+import { STORY_PROMPTS, composeStory, isStoryReady } from './story-framework';
 import { toEmbed } from '../campaign/video-embed';
 import {
   WizardStorage,
@@ -51,7 +39,10 @@ import {
       </div>
 
       @if (error()) {
-        <p class="mb-4 rounded-lg bg-brand-orange/10 px-3 py-2 text-sm font-medium text-brand-orange" role="alert">
+        <p
+          class="mb-4 rounded-lg bg-brand-orange/10 px-3 py-2 text-sm font-medium text-brand-orange"
+          role="alert"
+        >
           {{ error() }}
         </p>
       }
@@ -75,40 +66,64 @@ import {
             </div>
             <div>
               <label for="w-program" class="block text-sm font-medium text-ink">Program name</label>
-              <input id="w-program" [ngModel]="programName()" (ngModelChange)="programName.set($event)"
-                placeholder="Full-Time MBA 2026" [class]="inputClass" />
+              <input
+                id="w-program"
+                [ngModel]="programName()"
+                (ngModelChange)="programName.set($event)"
+                placeholder="Full-Time MBA 2026"
+                [class]="inputClass"
+              />
             </div>
             <div>
               <label for="w-title" class="block text-sm font-medium text-ink">Campaign title</label>
-              <input id="w-title" [ngModel]="title()" (ngModelChange)="title.set($event)"
-                placeholder="Help me finish my MBA" [class]="inputClass" />
+              <input
+                id="w-title"
+                [ngModel]="title()"
+                (ngModelChange)="title.set($event)"
+                placeholder="Help me finish my MBA"
+                [class]="inputClass"
+              />
             </div>
             <div>
               <label for="w-goal" class="block text-sm font-medium text-ink">Goal (EUR)</label>
-              <input id="w-goal" type="number" min="10" step="1"
-                [ngModel]="goalEur()" (ngModelChange)="goalEur.set($event)"
-                placeholder="42000" [class]="inputClass" />
+              <input
+                id="w-goal"
+                type="number"
+                min="10"
+                step="1"
+                [ngModel]="goalEur()"
+                (ngModelChange)="goalEur.set($event)"
+                placeholder="42000"
+                [class]="inputClass"
+              />
               <p class="mt-1 text-xs text-slate2">Funding goal: {{ goalCents() | money }}</p>
             </div>
             <div>
               <label for="w-deadline" class="block text-sm font-medium text-ink">
                 Study-start deadline <span class="font-normal text-slate2">(optional)</span>
               </label>
-              <input id="w-deadline" type="date" [ngModel]="deadline()" (ngModelChange)="deadline.set($event)"
-                [class]="inputClass" />
+              <input
+                id="w-deadline"
+                type="date"
+                [ngModel]="deadline()"
+                (ngModelChange)="deadline.set($event)"
+                [class]="inputClass"
+              />
             </div>
           </div>
         }
 
         @case (2) {
           <p class="mb-4 text-sm text-slate2">
-            We guide your story instead of leaving you a blank page. Answer the prompts —
-            we will weave them into your campaign story.
+            We guide your story instead of leaving you a blank page. Answer the prompts — we will
+            weave them into your campaign story.
           </p>
           <div class="space-y-5">
             @for (p of prompts; track p.key) {
               <div>
-                <label [for]="'w-' + p.key" class="block text-sm font-medium text-ink">{{ p.label }}</label>
+                <label [for]="'w-' + p.key" class="block text-sm font-medium text-ink">{{
+                  p.label
+                }}</label>
                 <p class="mb-1 text-xs text-slate2">{{ p.hint }}</p>
                 <textarea
                   [id]="'w-' + p.key"
@@ -145,10 +160,16 @@ import {
           <div class="space-y-5">
             <div>
               <label for="w-video" class="block text-sm font-medium text-ink">
-                Pitch video <span class="font-normal text-slate2">(optional, YouTube or Vimeo link)</span>
+                Pitch video
+                <span class="font-normal text-slate2">(optional, YouTube or Vimeo link)</span>
               </label>
-              <input id="w-video" [ngModel]="videoUrl()" (ngModelChange)="videoUrl.set($event)"
-                placeholder="https://youtu.be/…" [class]="inputClass" />
+              <input
+                id="w-video"
+                [ngModel]="videoUrl()"
+                (ngModelChange)="videoUrl.set($event)"
+                placeholder="https://youtu.be/…"
+                [class]="inputClass"
+              />
               @if (videoInvalid()) {
                 <p class="mt-1 text-sm text-brand-orange">
                   Paste a YouTube or Vimeo link — other links cannot be embedded.
@@ -174,20 +195,36 @@ import {
       }
 
       <div class="mt-6 flex items-center justify-between gap-3">
-        <button type="button" (click)="back()" [disabled]="step() === 1"
-          class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-ink hover:bg-mist disabled:opacity-40">
+        <button
+          type="button"
+          (click)="back()"
+          [disabled]="step() === 1"
+          class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-ink hover:bg-mist disabled:opacity-40"
+        >
           Back
         </button>
 
         @if (step() < 3) {
-          <button type="button" (click)="next()" [disabled]="!currentStepValid()"
-            class="rounded-lg bg-brand-green px-5 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-50">
+          <button
+            type="button"
+            (click)="next()"
+            [disabled]="!currentStepValid()"
+            class="rounded-lg bg-brand-green px-5 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-50"
+          >
             Continue
           </button>
         } @else {
-          <button type="button" (click)="create()" [disabled]="!canCreate() || submitting()"
-            class="rounded-lg bg-brand-green px-5 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-50">
-            @if (submitting()) { Creating… } @else { Create campaign }
+          <button
+            type="button"
+            (click)="create()"
+            [disabled]="!canCreate() || submitting()"
+            class="rounded-lg bg-brand-green px-5 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-50"
+          >
+            @if (submitting()) {
+              Creating…
+            } @else {
+              Create campaign
+            }
           </button>
         }
       </div>
@@ -297,8 +334,7 @@ export class CampaignWizardComponent implements OnInit {
   ngOnInit(): void {
     this.api.listSchools().subscribe({
       next: (schools) => this.schools.set(schools),
-      error: (err) =>
-        this.schoolsError.set(err?.error?.error?.message ?? 'Could not load schools'),
+      error: (err) => this.schoolsError.set(err?.error?.error?.message ?? 'Could not load schools'),
     });
   }
 

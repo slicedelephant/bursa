@@ -58,7 +58,12 @@ export function buildCampaignApprovedEvent(
 
 export function buildPayoutSentEvent(
   schoolId: string,
-  payout: { id: string; campaignId: string; amountCents: number; reference: string },
+  payout: {
+    id: string;
+    campaignId: string;
+    amountCents: number;
+    reference: string;
+  },
   now: Date = new Date(),
 ): SchoolWebhookEnvelope {
   return {

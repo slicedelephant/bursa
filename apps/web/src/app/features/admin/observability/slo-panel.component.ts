@@ -1,16 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { SloReport } from '../../../core/models';
-import {
-  alertClass,
-  alertLabel,
-  objectiveLabel,
-  windowRows,
-} from './slo-format';
+import { alertClass, alertLabel, objectiveLabel, windowRows } from './slo-format';
 
 /** SLO + multi-window burn-rate panel with the escalation banner. Presentational. */
 @Component({

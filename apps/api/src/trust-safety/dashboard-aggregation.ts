@@ -90,7 +90,10 @@ function dayKey(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
-function countBy<T>(items: readonly T[], pick: (item: T) => string): CountRow[] {
+function countBy<T>(
+  items: readonly T[],
+  pick: (item: T) => string,
+): CountRow[] {
   const map = new Map<string, number>();
   for (const item of items) {
     const key = pick(item);

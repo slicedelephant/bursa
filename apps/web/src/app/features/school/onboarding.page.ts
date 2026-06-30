@@ -23,19 +23,30 @@ import { onboardingStatusClass, onboardingStatusLabel } from './onboarding-progr
         <div class="rounded-2xl bg-white p-8 text-center shadow-card ring-1 ring-black/5">
           <h1 class="font-display text-xl font-semibold text-ink">Link not valid</h1>
           <p class="mt-2 text-sm text-slate2">{{ loadError() }}</p>
-          <a routerLink="/login" class="mt-4 inline-block rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist">Go to login</a>
+          <a
+            routerLink="/login"
+            class="mt-4 inline-block rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
+            >Go to login</a
+          >
         </div>
       } @else if (done()) {
         <div class="rounded-2xl bg-white p-8 text-center shadow-card ring-1 ring-black/5">
           <h1 class="font-display text-xl font-semibold text-ink">You're all set</h1>
           <p class="mt-2 text-sm text-slate2">{{ state()?.schoolName }} is now active on Bursa.</p>
-          <a routerLink="/login" class="mt-4 inline-block rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white hover:opacity-90">Sign in to your portal</a>
+          <a
+            routerLink="/login"
+            class="mt-4 inline-block rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            >Sign in to your portal</a
+          >
         </div>
       } @else if (state(); as s) {
         <div class="rounded-2xl bg-white p-8 shadow-card ring-1 ring-black/5">
           <div class="mb-4 flex items-center justify-between gap-3">
             <h1 class="font-display text-xl font-semibold text-ink">{{ s.schoolName }}</h1>
-            <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1" [class]="statusCls(s.onboardingStatus)">
+            <span
+              class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1"
+              [class]="statusCls(s.onboardingStatus)"
+            >
               {{ statusLabel(s.onboardingStatus) }}
             </span>
           </div>
@@ -44,17 +55,50 @@ import { onboardingStatusClass, onboardingStatusLabel } from './onboarding-progr
           </p>
 
           <div class="mt-5 space-y-3">
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Bank account name" [(ngModel)]="bankAccountName" />
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="IBAN" [(ngModel)]="iban" />
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="BIC (optional)" [(ngModel)]="bic" />
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Tax ID" [(ngModel)]="taxId" />
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Contact person" [(ngModel)]="contactName" />
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Contact email" [(ngModel)]="contactEmail" />
-            <input class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Your full name (signature)" [(ngModel)]="signerName" />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Bank account name"
+              [(ngModel)]="bankAccountName"
+            />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="IBAN"
+              [(ngModel)]="iban"
+            />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="BIC (optional)"
+              [(ngModel)]="bic"
+            />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Tax ID"
+              [(ngModel)]="taxId"
+            />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Contact person"
+              [(ngModel)]="contactName"
+            />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Contact email"
+              [(ngModel)]="contactEmail"
+            />
+            <input
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Your full name (signature)"
+              [(ngModel)]="signerName"
+            />
           </div>
 
           @if (error()) {
-            <p class="mt-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange" role="alert">{{ error() }}</p>
+            <p
+              class="mt-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange"
+              role="alert"
+            >
+              {{ error() }}
+            </p>
           }
 
           <button

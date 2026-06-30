@@ -42,7 +42,11 @@ describe('MockEsignatureProvider', () => {
   it('rejects an empty signer name', async () => {
     const provider = new MockEsignatureProvider();
     await expect(
-      provider.signAgreement({ schoolId: 's', schoolName: 'x', signerName: '   ' }),
+      provider.signAgreement({
+        schoolId: 's',
+        schoolName: 'x',
+        signerName: '   ',
+      }),
     ).rejects.toThrow(/signerName is required/);
   });
 });

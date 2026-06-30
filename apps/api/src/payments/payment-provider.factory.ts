@@ -10,7 +10,10 @@ export interface PaymentProviderEnv {
 
 /** True only when Stripe is explicitly requested AND a secret key is configured. */
 export function shouldUseStripe(env: PaymentProviderEnv): boolean {
-  return (env.PAYMENT_PROVIDER ?? 'mock').toLowerCase() === 'stripe' && !!env.STRIPE_SECRET_KEY;
+  return (
+    (env.PAYMENT_PROVIDER ?? 'mock').toLowerCase() === 'stripe' &&
+    !!env.STRIPE_SECRET_KEY
+  );
 }
 
 /**
@@ -30,7 +33,9 @@ export function createPaymentProvider(
     logger.log('Using StripePaymentProvider (PAYMENT_PROVIDER=stripe)');
     return new StripePaymentProvider(env.STRIPE_SECRET_KEY as string);
   } catch (error) {
-    logger.warn(`Stripe unavailable, falling back to Mock: ${(error as Error).message}`);
+    logger.warn(
+      `Stripe unavailable, falling back to Mock: ${(error as Error).message}`,
+    );
     return new MockPaymentProvider();
   }
 }

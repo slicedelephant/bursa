@@ -56,12 +56,8 @@ describe('buildShareLinks', () => {
 
 describe('campaignUrl', () => {
   it('joins an origin and a campaign id without a double slash', () => {
-    expect(campaignUrl('https://bursa.test', 'c1')).toBe(
-      'https://bursa.test/campaigns/c1',
-    );
-    expect(campaignUrl('https://bursa.test/', 'c1')).toBe(
-      'https://bursa.test/campaigns/c1',
-    );
+    expect(campaignUrl('https://bursa.test', 'c1')).toBe('https://bursa.test/campaigns/c1');
+    expect(campaignUrl('https://bursa.test/', 'c1')).toBe('https://bursa.test/campaigns/c1');
   });
 });
 

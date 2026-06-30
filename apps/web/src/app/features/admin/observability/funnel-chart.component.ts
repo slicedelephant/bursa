@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { FunnelReport } from '../../../core/models';
 import { funnelBars, overallLabel } from './funnel-format';
 
@@ -26,9 +21,7 @@ import { funnelBars, overallLabel } from './funnel-format';
             <li>
               <div class="mb-1 flex justify-between text-sm">
                 <span class="font-medium text-ink">{{ bar.label }}</span>
-                <span class="text-slate2">
-                  {{ bar.count }} · {{ bar.conversionPct }}%
-                </span>
+                <span class="text-slate2"> {{ bar.count }} · {{ bar.conversionPct }}% </span>
               </div>
               <div class="h-3 w-full overflow-hidden rounded-full bg-mist">
                 <div

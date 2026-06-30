@@ -72,9 +72,7 @@ export class MetricsInterceptor implements NestInterceptor {
         timestamp: Date.now(),
       });
       this.logger.log(
-        JSON.stringify(
-          redact({ requestId, route: label, status, durationMs }),
-        ),
+        JSON.stringify(redact({ requestId, route: label, status, durationMs })),
       );
     };
 

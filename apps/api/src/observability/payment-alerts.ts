@@ -57,7 +57,8 @@ export function derivePaymentAlerts(
   if (input.stuckPledges > 0) {
     alerts.push({
       kind: 'stuck_pledges',
-      severity: input.stuckPledges >= STUCK_PLEDGE_CRIT ? 'critical' : 'warning',
+      severity:
+        input.stuckPledges >= STUCK_PLEDGE_CRIT ? 'critical' : 'warning',
       message: `${input.stuckPledges} pledge(s) stuck awaiting capture`,
       value: input.stuckPledges,
     });

@@ -1,13 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import {
-  ModerationAction,
-  ModerationCaseItem,
-} from '../../../core/models';
-import {
-  moderationStatusClass,
-  moderationStatusLabel,
-  reasonLabels,
-} from './moderation-format';
+import { ModerationAction, ModerationCaseItem } from '../../../core/models';
+import { moderationStatusClass, moderationStatusLabel, reasonLabels } from './moderation-format';
 import { riskLevelClass, riskLevelLabel, scoreBarWidth } from './risk-format';
 
 export interface ModerationDecisionEvent {

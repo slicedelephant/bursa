@@ -33,9 +33,9 @@ function harness(options: RateLimitOptions | undefined) {
 
 describe('clientIp', () => {
   it('prefers the first x-forwarded-for entry', () => {
-    expect(clientIp({ headers: { 'x-forwarded-for': '9.9.9.9, 10.0.0.1' } })).toBe(
-      '9.9.9.9',
-    );
+    expect(
+      clientIp({ headers: { 'x-forwarded-for': '9.9.9.9, 10.0.0.1' } }),
+    ).toBe('9.9.9.9');
   });
 
   it('falls back to req.ip then socket then unknown', () => {

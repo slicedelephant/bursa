@@ -13,7 +13,9 @@ function buildPrisma(overrides: Record<string, unknown> = {}) {
       ),
     update: jest
       .fn()
-      .mockImplementation(({ data }) => Promise.resolve({ id: 'fl1', ...data })),
+      .mockImplementation(({ data }) =>
+        Promise.resolve({ id: 'fl1', ...data }),
+      ),
   };
   return { campaign, campaignFlag, ...overrides };
 }

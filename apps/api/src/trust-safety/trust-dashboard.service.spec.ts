@@ -15,7 +15,10 @@ function buildPrisma() {
   };
 }
 
-function makeService(prisma: ReturnType<typeof buildPrisma>, auditEntries: unknown[] = []) {
+function makeService(
+  prisma: ReturnType<typeof buildPrisma>,
+  auditEntries: unknown[] = [],
+) {
   const audit = { list: jest.fn().mockResolvedValue(auditEntries) };
   const service = new TrustDashboardService(prisma as never, audit as never);
   return { service, audit };
@@ -107,8 +110,8 @@ describe('TrustDashboardService', () => {
     const lines = csv.split('\n');
     expect(lines).toHaveLength(2);
     expect(lines[1]).toContain('"c1, c2"');
-    expect(lines[1].startsWith('2026-06-29T00:00:00.000Z,moderation.escalate,,,')).toBe(
-      true,
-    );
+    expect(
+      lines[1].startsWith('2026-06-29T00:00:00.000Z,moderation.escalate,,,'),
+    ).toBe(true);
   });
 });

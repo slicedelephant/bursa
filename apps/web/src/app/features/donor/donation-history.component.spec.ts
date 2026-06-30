@@ -41,9 +41,8 @@ describe('DonationHistoryComponent', () => {
   });
 
   it('shows tribute, monthly and anonymous badges', () => {
-    const el = render([
-      donation({ tribute: 'In memory of Ada', recurring: true, anonymous: true }),
-    ]).nativeElement as HTMLElement;
+    const el = render([donation({ tribute: 'In memory of Ada', recurring: true, anonymous: true })])
+      .nativeElement as HTMLElement;
     expect(el.textContent).toContain('In memory of Ada');
     expect(el.textContent).toContain('Monthly');
     expect(el.textContent).toContain('Anonymous');
@@ -58,7 +57,9 @@ describe('DonationHistoryComponent', () => {
     const fixture = render([donation()]);
     let emitted: string | undefined;
     fixture.componentInstance.receipt.subscribe((id) => (emitted = id));
-    (fixture.nativeElement as HTMLElement).querySelector('button')?.dispatchEvent(new Event('click'));
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('button')
+      ?.dispatchEvent(new Event('click'));
     expect(emitted).toBe('d1');
   });
 

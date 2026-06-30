@@ -36,8 +36,9 @@ export class MetricsService {
   webhookFailures(): number {
     return this.store
       .samples()
-      .filter((s) => s.route.includes('/payments/webhook') && s.statusCode >= 400)
-      .length;
+      .filter(
+        (s) => s.route.includes('/payments/webhook') && s.statusCode >= 400,
+      ).length;
   }
 
   slo(objectivePct = 99.9, now: number = Date.now()): SloReport {

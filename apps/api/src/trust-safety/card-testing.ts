@@ -29,7 +29,8 @@ export interface CardTestingOptions {
 }
 
 const DEFAULT_WINDOW_MS = 10 * 60_000;
-const FAILED = (status: string): boolean => status.toUpperCase() !== 'SUCCEEDED';
+const FAILED = (status: string): boolean =>
+  status.toUpperCase() !== 'SUCCEEDED';
 
 function toMillis(value: Date | number): number {
   return value instanceof Date ? value.getTime() : value;

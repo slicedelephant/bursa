@@ -44,7 +44,8 @@ function evaluateWindow(
   errorBudgetFraction: number,
 ): SloWindow {
   const errorRate = input.total > 0 ? 1 - input.good / input.total : 0;
-  const sliPct = input.total > 0 ? round((input.good / input.total) * 100, 2) : 100;
+  const sliPct =
+    input.total > 0 ? round((input.good / input.total) * 100, 2) : 100;
   const burnRate =
     errorBudgetFraction > 0 ? round(errorRate / errorBudgetFraction, 2) : 0;
   const budgetConsumedPct = Math.min(100, round(burnRate * 100, 1));
@@ -64,7 +65,9 @@ function pairExceeds(
 ): boolean {
   const long = burnOf(windows, longLabel);
   const short = burnOf(windows, shortLabel);
-  return long !== null && short !== null && long >= threshold && short >= threshold;
+  return (
+    long !== null && short !== null && long >= threshold && short >= threshold
+  );
 }
 
 export function evaluateSlo(
@@ -77,7 +80,9 @@ export function evaluateSlo(
   let alert: SloAlert = 'none';
   if (pairExceeds(evaluated, 'fast', 'fast_short', PAGE_BURN_THRESHOLD)) {
     alert = 'page';
-  } else if (pairExceeds(evaluated, 'slow', 'slow_short', TICKET_BURN_THRESHOLD)) {
+  } else if (
+    pairExceeds(evaluated, 'slow', 'slow_short', TICKET_BURN_THRESHOLD)
+  ) {
     alert = 'ticket';
   }
 

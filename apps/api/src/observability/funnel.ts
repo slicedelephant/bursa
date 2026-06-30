@@ -31,20 +31,24 @@ export function buildFunnel(
   counts: Readonly<Record<string, number>>,
   steps: readonly FunnelStepDef[],
 ): FunnelReport {
-  const first = steps.length > 0 ? counts[steps[0].key] ?? 0 : 0;
+  const first = steps.length > 0 ? (counts[steps[0].key] ?? 0) : 0;
 
   const results: FunnelStepResult[] = steps.map((step, index) => {
     const count = counts[step.key] ?? 0;
-    const prev = index === 0 ? count : counts[steps[index - 1].key] ?? 0;
+    const prev = index === 0 ? count : (counts[steps[index - 1].key] ?? 0);
     return {
       key: step.key,
       label: step.label,
       count,
       conversionPct: pct(count, first),
-      dropOffPct: index === 0 ? 0 : Math.max(0, Math.round((pct(prev - count, prev)) * 10) / 10),
+      dropOffPct:
+        index === 0
+          ? 0
+          : Math.max(0, Math.round(pct(prev - count, prev) * 10) / 10),
     };
   });
 
-  const last = steps.length > 0 ? counts[steps[steps.length - 1].key] ?? 0 : 0;
+  const last =
+    steps.length > 0 ? (counts[steps[steps.length - 1].key] ?? 0) : 0;
   return { steps: results, overallConversionPct: pct(last, first) };
 }

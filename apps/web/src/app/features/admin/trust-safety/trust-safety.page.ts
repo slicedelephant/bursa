@@ -7,14 +7,8 @@ import {
   TrustDashboardData,
   TrustHeatMap,
 } from '../../../core/models';
-import {
-  ChargebackQueueComponent,
-  EvidenceEvent,
-} from './chargeback-queue.component';
-import {
-  ModerationDecisionEvent,
-  ModerationQueueComponent,
-} from './moderation-queue.component';
+import { ChargebackQueueComponent, EvidenceEvent } from './chargeback-queue.component';
+import { ModerationDecisionEvent, ModerationQueueComponent } from './moderation-queue.component';
 import { TrustDashboardComponent } from './trust-dashboard.component';
 
 type Tab = 'dashboard' | 'moderation' | 'chargebacks';
@@ -73,7 +67,10 @@ type Tab = 'dashboard' | 'moderation' | 'chargebacks';
       </nav>
 
       @if (error()) {
-        <p class="mb-4 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange" role="alert">
+        <p
+          class="mb-4 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange"
+          role="alert"
+        >
           {{ error() }}
         </p>
       }
@@ -154,15 +151,13 @@ export class TrustSafetyPage {
       return;
     }
     this.error.set(null);
-    this.api
-      .trustDecideModeration(event.id, { action: event.action, note: event.note })
-      .subscribe({
-        next: () => {
-          this.loadModeration();
-          this.loadDashboard();
-        },
-        error: () => this.error.set('The moderation decision failed.'),
-      });
+    this.api.trustDecideModeration(event.id, { action: event.action, note: event.note }).subscribe({
+      next: () => {
+        this.loadModeration();
+        this.loadDashboard();
+      },
+      error: () => this.error.set('The moderation decision failed.'),
+    });
   }
 
   onEvidence(event: EvidenceEvent): void {

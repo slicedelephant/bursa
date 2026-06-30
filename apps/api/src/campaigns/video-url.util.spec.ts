@@ -10,7 +10,9 @@ describe('parseVideoUrl', () => {
   });
 
   it('parses a standard youtube watch URL with extra params', () => {
-    const r = parseVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s');
+    const r = parseVideoUrl(
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s',
+    );
     expect(r?.provider).toBe('youtube');
     expect(r?.id).toBe('dQw4w9WgXcQ');
   });
@@ -28,9 +30,9 @@ describe('parseVideoUrl', () => {
   });
 
   it('parses an m.youtube.com URL', () => {
-    expect(parseVideoUrl('https://m.youtube.com/watch?v=dQw4w9WgXcQ')?.provider).toBe(
-      'youtube',
-    );
+    expect(
+      parseVideoUrl('https://m.youtube.com/watch?v=dQw4w9WgXcQ')?.provider,
+    ).toBe('youtube');
   });
 
   it('parses a vimeo URL into the player embed', () => {
@@ -64,7 +66,9 @@ describe('parseVideoUrl', () => {
   });
 
   it('trims surrounding whitespace', () => {
-    expect(parseVideoUrl('  https://youtu.be/dQw4w9WgXcQ  ')?.id).toBe('dQw4w9WgXcQ');
+    expect(parseVideoUrl('  https://youtu.be/dQw4w9WgXcQ  ')?.id).toBe(
+      'dQw4w9WgXcQ',
+    );
   });
 });
 

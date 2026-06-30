@@ -17,9 +17,26 @@ const row = (over: Partial<EsgRow> = {}): EsgRow => ({
 describe('computeEsgMetrics', () => {
   it('aggregates distinct students, countries, schools and totals', () => {
     const m = computeEsgMetrics([
-      row({ studentName: 'Amara', studentCountry: 'Nigeria', schoolName: 'INSEAD', amountCents: 100_000, fullTuition: true, scholarshipName: 'The Acme Scholarship' }),
-      row({ studentName: 'Kwame', studentCountry: 'Ghana', schoolName: 'INSEAD', amountCents: 50_000 }),
-      row({ studentName: 'Amara', studentCountry: 'Nigeria', schoolName: 'INSEAD', amountCents: 25_000 }),
+      row({
+        studentName: 'Amara',
+        studentCountry: 'Nigeria',
+        schoolName: 'INSEAD',
+        amountCents: 100_000,
+        fullTuition: true,
+        scholarshipName: 'The Acme Scholarship',
+      }),
+      row({
+        studentName: 'Kwame',
+        studentCountry: 'Ghana',
+        schoolName: 'INSEAD',
+        amountCents: 50_000,
+      }),
+      row({
+        studentName: 'Amara',
+        studentCountry: 'Nigeria',
+        schoolName: 'INSEAD',
+        amountCents: 25_000,
+      }),
     ]);
     expect(m.studentsSupported).toBe(2);
     expect(m.countriesReached).toBe(2);
@@ -45,7 +62,9 @@ describe('toCsv', () => {
   it('emits a header and one line per row with EUR amounts', () => {
     const csv = toCsv([row({ amountCents: 123_456 })]);
     const lines = csv.trim().split('\n');
-    expect(lines[0]).toBe('Campaign,Student,Country,School,Amount (EUR),Tier,Scholarship,Date');
+    expect(lines[0]).toBe(
+      'Campaign,Student,Country,School,Amount (EUR),Tier,Scholarship,Date',
+    );
     expect(lines[1]).toContain('Help Amara study');
     expect(lines[1]).toContain('1234.56');
     expect(lines[1]).toContain('2026-06-01');

@@ -8,9 +8,7 @@ import {
 describe('chargeback-format', () => {
   it('labels each chargeback status', () => {
     expect(chargebackStatusLabel('OPEN')).toBe('Open');
-    expect(chargebackStatusLabel('EVIDENCE_SUBMITTED')).toBe(
-      'Evidence submitted',
-    );
+    expect(chargebackStatusLabel('EVIDENCE_SUBMITTED')).toBe('Evidence submitted');
     expect(chargebackStatusLabel('REFUND_OFFERED')).toBe('Refund offered');
     expect(chargebackStatusLabel('WON')).toBe('Won');
     expect(chargebackStatusLabel('LOST')).toBe('Lost');

@@ -26,7 +26,9 @@ describe('onboarding-status state machine', () => {
   });
 
   it('throws on an invalid transition', () => {
-    expect(() => nextOnboardingStatus('ACTIVE', 'submit')).toThrow(/Invalid onboarding/);
+    expect(() => nextOnboardingStatus('ACTIVE', 'submit')).toThrow(
+      /Invalid onboarding/,
+    );
     expect(() => nextOnboardingStatus('NOT_STARTED', 'activate')).toThrow();
   });
 
@@ -47,9 +49,21 @@ describe('onboarding-status predicates', () => {
   it('knows when a school is onboarded and may approve campaigns', () => {
     expect(isOnboarded({ onboardingStatus: 'ACTIVE' })).toBe(true);
     expect(isOnboarded({ onboardingStatus: 'SUBMITTED' })).toBe(false);
-    expect(canApproveCampaigns({ onboardingStatus: 'ACTIVE', payoutVerified: true })).toBe(true);
-    expect(canApproveCampaigns({ onboardingStatus: 'ACTIVE', payoutVerified: false })).toBe(false);
-    expect(canApproveCampaigns({ onboardingStatus: 'SUBMITTED', payoutVerified: true })).toBe(false);
+    expect(
+      canApproveCampaigns({ onboardingStatus: 'ACTIVE', payoutVerified: true }),
+    ).toBe(true);
+    expect(
+      canApproveCampaigns({
+        onboardingStatus: 'ACTIVE',
+        payoutVerified: false,
+      }),
+    ).toBe(false);
+    expect(
+      canApproveCampaigns({
+        onboardingStatus: 'SUBMITTED',
+        payoutVerified: true,
+      }),
+    ).toBe(false);
   });
 
   it('builds a checklist and a progress percentage', () => {
@@ -58,7 +72,12 @@ describe('onboarding-status predicates', () => {
       payoutVerified: false,
     });
     expect(none.every((step) => !step.done)).toBe(true);
-    expect(onboardingProgressPct({ onboardingStatus: 'NOT_STARTED', payoutVerified: false })).toBe(0);
+    expect(
+      onboardingProgressPct({
+        onboardingStatus: 'NOT_STARTED',
+        payoutVerified: false,
+      }),
+    ).toBe(0);
 
     const full = {
       ...fullPayout,

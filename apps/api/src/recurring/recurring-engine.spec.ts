@@ -21,11 +21,21 @@ describe('isDue', () => {
   const now = new Date('2026-06-27T12:00:00.000Z');
 
   it('is due when ACTIVE and nextRunAt has passed', () => {
-    expect(isDue({ status: 'ACTIVE', nextRunAt: new Date('2026-06-27T11:00:00.000Z') }, now)).toBe(true);
+    expect(
+      isDue(
+        { status: 'ACTIVE', nextRunAt: new Date('2026-06-27T11:00:00.000Z') },
+        now,
+      ),
+    ).toBe(true);
   });
 
   it('is not due when nextRunAt is in the future', () => {
-    expect(isDue({ status: 'ACTIVE', nextRunAt: new Date('2026-06-28T00:00:00.000Z') }, now)).toBe(false);
+    expect(
+      isDue(
+        { status: 'ACTIVE', nextRunAt: new Date('2026-06-28T00:00:00.000Z') },
+        now,
+      ),
+    ).toBe(false);
   });
 
   it('is never due when paused or cancelled', () => {
@@ -52,7 +62,11 @@ describe('duePledges', () => {
 describe('advance', () => {
   it('increments counters and reschedules a month from now', () => {
     const now = new Date('2026-06-27T09:00:00.000Z');
-    const result = advance({ chargesCount: 2, totalChargedCents: 5000 }, 2500, now);
+    const result = advance(
+      { chargesCount: 2, totalChargedCents: 5000 },
+      2500,
+      now,
+    );
     expect(result.chargesCount).toBe(3);
     expect(result.totalChargedCents).toBe(7500);
     expect(result.lastChargedAt).toEqual(now);

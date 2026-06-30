@@ -32,9 +32,15 @@ type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
       <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           @if (profile()?.school?.logoUrl; as logo) {
-            <img [src]="logo" alt="" class="h-10 w-10 rounded-lg object-contain ring-1 ring-black/5" />
+            <img
+              [src]="logo"
+              alt=""
+              class="h-10 w-10 rounded-lg object-contain ring-1 ring-black/5"
+            />
           } @else {
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-green/10 font-display text-lg font-semibold text-brand-green">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-green/10 font-display text-lg font-semibold text-brand-green"
+            >
               {{ initials() }}
             </div>
           }
@@ -45,7 +51,10 @@ type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
             <p class="text-xs text-slate2">School portal · powered by Bursa</p>
           </div>
         </div>
-        <a routerLink="/campaigns" class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist">
+        <a
+          routerLink="/campaigns"
+          class="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-mist"
+        >
           Public gallery
         </a>
       </header>
@@ -55,7 +64,10 @@ type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
               <span class="text-sm font-medium text-ink">Onboarding</span>
-              <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1" [class]="statusCls(p.onboarding.status)">
+              <span
+                class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1"
+                [class]="statusCls(p.onboarding.status)"
+              >
                 {{ statusLabel(p.onboarding.status) }}
               </span>
             </div>
@@ -74,14 +86,21 @@ type SchoolTab = 'dashboard' | 'students' | 'campaigns' | 'payout' | 'webhooks';
         </div>
       }
 
-      <div class="mb-6 inline-flex flex-wrap rounded-xl bg-mist p-1 ring-1 ring-black/5" role="tablist">
+      <div
+        class="mb-6 inline-flex flex-wrap rounded-xl bg-mist p-1 ring-1 ring-black/5"
+        role="tablist"
+      >
         @for (tab of tabs; track tab.id) {
           <button
             type="button"
             role="tab"
             [attr.aria-selected]="selectedTab() === tab.id"
             class="rounded-lg px-4 py-2 text-sm font-semibold transition"
-            [class]="selectedTab() === tab.id ? 'bg-white text-ink shadow-card' : 'text-slate2 hover:text-ink'"
+            [class]="
+              selectedTab() === tab.id
+                ? 'bg-white text-ink shadow-card'
+                : 'text-slate2 hover:text-ink'
+            "
             (click)="selectedTab.set(tab.id)"
           >
             {{ tab.label }}

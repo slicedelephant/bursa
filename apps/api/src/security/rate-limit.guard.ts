@@ -1,14 +1,7 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { DomainException } from '../common/domain.exception';
-import {
-  RATE_LIMIT_KEY,
-  RateLimitOptions,
-} from './rate-limit.decorator';
+import { RATE_LIMIT_KEY, RateLimitOptions } from './rate-limit.decorator';
 import { RateLimitStore } from './rate-limit.store';
 
 /** Resolves the best-effort client IP from proxy headers or the socket. */

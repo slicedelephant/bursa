@@ -22,13 +22,19 @@ describe('SchoolWebhookService', () => {
     const service = new SchoolWebhookService(prisma as never);
     await service.emit(event);
     expect(prisma.schoolWebhookEvent.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({ schoolId: 'school1', type: 'campaign.approved', status: 'LOGGED' }),
+      data: expect.objectContaining({
+        schoolId: 'school1',
+        type: 'campaign.approved',
+        status: 'LOGGED',
+      }),
     });
   });
 
   it('swallows persistence errors so the business flow is never broken', async () => {
     const prisma = makePrisma();
-    prisma.schoolWebhookEvent.create.mockRejectedValueOnce(new Error('db down'));
+    prisma.schoolWebhookEvent.create.mockRejectedValueOnce(
+      new Error('db down'),
+    );
     const service = new SchoolWebhookService(prisma as never);
     await expect(service.emit(event)).resolves.toBeUndefined();
   });

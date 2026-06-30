@@ -17,12 +17,13 @@ import { DELETE_CONFIRM_TEXT } from './account-security';
 
       @if (anonymized()) {
         <p class="mt-2 text-sm text-slate2" data-testid="anonymized">
-          This account has been anonymised. Your personal data was removed; your
-          past donations remain recorded without it.
+          This account has been anonymised. Your personal data was removed; your past donations
+          remain recorded without it.
         </p>
       } @else {
         <p class="mt-1 text-sm text-slate2">
-          Signed in as <span class="font-medium text-ink">{{ maskedEmail() }}</span>.
+          Signed in as <span class="font-medium text-ink">{{ maskedEmail() }}</span
+          >.
         </p>
 
         <div class="mt-4 flex flex-col gap-3 sm:flex-row">

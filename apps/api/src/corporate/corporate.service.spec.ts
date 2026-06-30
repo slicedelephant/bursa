@@ -25,7 +25,11 @@ const campaign = (over: Record<string, unknown> = {}) => ({
 function buildTx() {
   return {
     donation: {
-      create: jest.fn(({ data }) => ({ id: 'd1', createdAt: new Date('2026-06-01'), ...data })),
+      create: jest.fn(({ data }) => ({
+        id: 'd1',
+        createdAt: new Date('2026-06-01'),
+        ...data,
+      })),
     },
     corporateSponsorship: {
       create: jest.fn(({ data }) => ({ id: 'sp1', ...data })),
@@ -51,9 +55,18 @@ function buildPrisma(tx = buildTx()) {
     tx,
     campaign: { findUnique: jest.fn().mockResolvedValue(campaign()) },
     corporateProfile: {
-      findUnique: jest.fn().mockResolvedValue({ id: 'corp1', userId: 'u1', companyName: 'Acme Capital' }),
+      findUnique: jest
+        .fn()
+        .mockResolvedValue({
+          id: 'corp1',
+          userId: 'u1',
+          companyName: 'Acme Capital',
+        }),
     },
-    corporateSponsorship: { findMany: jest.fn().mockResolvedValue([]), findUnique: jest.fn() },
+    corporateSponsorship: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn(),
+    },
     invoice: { update: jest.fn() },
     $transaction: jest.fn(async (cb: (t: unknown) => unknown) => cb(tx)),
   };
@@ -61,11 +74,27 @@ function buildPrisma(tx = buildTx()) {
 
 function buildDeps(prisma = buildPrisma()) {
   const payments = {
-    chargeImmediately: jest.fn().mockResolvedValue({ status: 'SUCCEEDED', reference: 'mock_charge_1' }),
-    createSepaPledge: jest.fn().mockResolvedValue({ status: 'SUCCEEDED', reference: 'mock_sepa_1' }),
+    chargeImmediately: jest
+      .fn()
+      .mockResolvedValue({ status: 'SUCCEEDED', reference: 'mock_charge_1' }),
+    createSepaPledge: jest
+      .fn()
+      .mockResolvedValue({ status: 'SUCCEEDED', reference: 'mock_sepa_1' }),
   };
-  const donations = { captureCampaign: jest.fn().mockResolvedValue({ capturedIds: ['x'], failedIds: [], capturedCents: 12_000 }) };
-  const notifications = { deliver: jest.fn(), subscribe: jest.fn(), onDonation: jest.fn() };
+  const donations = {
+    captureCampaign: jest
+      .fn()
+      .mockResolvedValue({
+        capturedIds: ['x'],
+        failedIds: [],
+        capturedCents: 12_000,
+      }),
+  };
+  const notifications = {
+    deliver: jest.fn(),
+    subscribe: jest.fn(),
+    onDonation: jest.fn(),
+  };
   const svc = new CorporateService(
     prisma as never,
     payments as never,
@@ -75,16 +104,21 @@ function buildDeps(prisma = buildPrisma()) {
   return { svc, prisma, payments, donations, notifications };
 }
 
-const dto = (over: Partial<SponsorDto> = {}): SponsorDto => ({
-  tier: 'FULL',
-  method: 'CARD',
-  ...over,
-}) as SponsorDto;
+const dto = (over: Partial<SponsorDto> = {}): SponsorDto =>
+  ({
+    tier: 'FULL',
+    method: 'CARD',
+    ...over,
+  }) as SponsorDto;
 
 describe('CorporateService.sponsor', () => {
   it('full-tuition card closes the gap, funds the campaign, captures donor pledges', async () => {
     const { svc, prisma, payments, donations } = buildDeps();
-    const res = await svc.sponsor('c1', 'u1', dto({ tier: 'FULL', method: 'CARD' }));
+    const res = await svc.sponsor(
+      'c1',
+      'u1',
+      dto({ tier: 'FULL', method: 'CARD' }),
+    );
 
     expect(payments.chargeImmediately).toHaveBeenCalledWith(
       expect.objectContaining({ amountCents: 60_000, method: 'CARD' }),
@@ -94,16 +128,35 @@ describe('CorporateService.sponsor', () => {
     expect(res.sponsorship.fullTuition).toBe(true);
     expect(res.invoice.status).toBe('PAID');
     expect(donations.captureCampaign).toHaveBeenCalledWith('c1');
-    expect(res.capture).toEqual({ capturedIds: ['x'], failedIds: [], capturedCents: 12_000 });
+    expect(res.capture).toEqual({
+      capturedIds: ['x'],
+      failedIds: [],
+      capturedCents: 12_000,
+    });
     // donation net = remaining gap (60_000)
     expect(prisma.tx.donation.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ amountCents: 60_000, type: 'CORPORATE', status: 'SUCCEEDED' }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          amountCents: 60_000,
+          type: 'CORPORATE',
+          status: 'SUCCEEDED',
+        }),
+      }),
     );
   });
 
   it('logo recognition => SPONSORING invoice with 19% VAT and NAMED/LOGO kind', async () => {
     const { svc, prisma } = buildDeps();
-    await svc.sponsor('c1', 'u1', dto({ tier: 'FULL', method: 'CARD', logoRecognition: true, scholarshipName: 'The Acme Scholarship' }));
+    await svc.sponsor(
+      'c1',
+      'u1',
+      dto({
+        tier: 'FULL',
+        method: 'CARD',
+        logoRecognition: true,
+        scholarshipName: 'The Acme Scholarship',
+      }),
+    );
     const invoiceData = prisma.tx.invoice.create.mock.calls[0][0].data;
     expect(invoiceData.documentType).toBe('SPONSORING');
     expect(invoiceData.netCents).toBe(60_000);
@@ -120,14 +173,23 @@ describe('CorporateService.sponsor', () => {
     const invoiceData = prisma.tx.invoice.create.mock.calls[0][0].data;
     expect(invoiceData.documentType).toBe('DONATION');
     expect(invoiceData.vatCents).toBe(0);
-    expect(prisma.tx.corporateSponsorship.create.mock.calls[0][0].data.recognitionKind).toBe('ANONYMOUS');
-    expect(prisma.tx.donation.create.mock.calls[0][0].data.anonymous).toBe(true);
+    expect(
+      prisma.tx.corporateSponsorship.create.mock.calls[0][0].data
+        .recognitionKind,
+    ).toBe('ANONYMOUS');
+    expect(prisma.tx.donation.create.mock.calls[0][0].data.anonymous).toBe(
+      true,
+    );
   });
 
   it('SEPA partial sponsorship stays unfunded with a PENDING invoice and no capture', async () => {
     const prisma = buildPrisma();
     const { svc, payments, donations } = buildDeps(prisma);
-    const res = await svc.sponsor('c1', 'u1', dto({ tier: 'SEMESTER', method: 'SEPA' }));
+    const res = await svc.sponsor(
+      'c1',
+      'u1',
+      dto({ tier: 'SEMESTER', method: 'SEPA' }),
+    );
     expect(payments.createSepaPledge).toHaveBeenCalledWith(
       expect.objectContaining({ amountCents: 25_000, method: 'SEPA' }),
     );
@@ -139,11 +201,21 @@ describe('CorporateService.sponsor', () => {
 
   it('resolves a CUSTOM amount and rejects a non-positive one', async () => {
     const { svc, payments } = buildDeps();
-    await svc.sponsor('c1', 'u1', dto({ tier: 'CUSTOM', amountCents: 5_000, method: 'CARD' }));
+    await svc.sponsor(
+      'c1',
+      'u1',
+      dto({ tier: 'CUSTOM', amountCents: 5_000, method: 'CARD' }),
+    );
     expect(payments.chargeImmediately).toHaveBeenCalledWith(
       expect.objectContaining({ amountCents: 5_000 }),
     );
-    const code = await codeOf(() => buildDeps().svc.sponsor('c1', 'u1', dto({ tier: 'CUSTOM', method: 'CARD' })));
+    const code = await codeOf(() =>
+      buildDeps().svc.sponsor(
+        'c1',
+        'u1',
+        dto({ tier: 'CUSTOM', method: 'CARD' }),
+      ),
+    );
     expect(code).toBe('VALIDATION_ERROR');
   });
 
@@ -156,29 +228,45 @@ describe('CorporateService.sponsor', () => {
 
   it('rejects a failed payment with 402', async () => {
     const { svc, payments } = buildDeps();
-    payments.chargeImmediately.mockResolvedValue({ status: 'FAILED', reference: 'x', failureReason: 'declined' });
-    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe('PAYMENT_FAILED');
+    payments.chargeImmediately.mockResolvedValue({
+      status: 'FAILED',
+      reference: 'x',
+      failureReason: 'declined',
+    });
+    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe(
+      'PAYMENT_FAILED',
+    );
   });
 
   it('requires a corporate profile', async () => {
     const prisma = buildPrisma();
     prisma.corporateProfile.findUnique.mockResolvedValue(null);
     const { svc } = buildDeps(prisma);
-    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe('VALIDATION_ERROR');
+    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe(
+      'VALIDATION_ERROR',
+    );
   });
 
   it('rejects a campaign that is not live/verified', async () => {
     const prisma = buildPrisma();
-    prisma.campaign.findUnique.mockResolvedValue(campaign({ status: 'DRAFT', verification: { status: 'PENDING' } }));
+    prisma.campaign.findUnique.mockResolvedValue(
+      campaign({ status: 'DRAFT', verification: { status: 'PENDING' } }),
+    );
     const { svc } = buildDeps(prisma);
-    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe('NOT_FOUND');
+    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe(
+      'NOT_FOUND',
+    );
   });
 
   it('rejects an already fully funded campaign', async () => {
     const prisma = buildPrisma();
-    prisma.campaign.findUnique.mockResolvedValue(campaign({ raisedCents: 100_000 }));
+    prisma.campaign.findUnique.mockResolvedValue(
+      campaign({ raisedCents: 100_000 }),
+    );
     const { svc } = buildDeps(prisma);
-    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe('CAMPAIGN_FULLY_FUNDED');
+    expect(await codeOf(() => svc.sponsor('c1', 'u1', dto()))).toBe(
+      'CAMPAIGN_FULLY_FUNDED',
+    );
   });
 });
 
@@ -263,17 +351,25 @@ describe('CorporateService invoice + settle', () => {
 
   it('forbids a non-owner and 404s a missing sponsorship', async () => {
     const prisma = buildPrisma();
-    prisma.corporateSponsorship.findUnique.mockResolvedValue(owned({ corporateProfile: { userId: 'other' } }));
-    expect(await codeOf(() => buildDeps(prisma).svc.invoice('u1', 'sp1'))).toBe('FORBIDDEN');
+    prisma.corporateSponsorship.findUnique.mockResolvedValue(
+      owned({ corporateProfile: { userId: 'other' } }),
+    );
+    expect(await codeOf(() => buildDeps(prisma).svc.invoice('u1', 'sp1'))).toBe(
+      'FORBIDDEN',
+    );
 
     const prisma2 = buildPrisma();
     prisma2.corporateSponsorship.findUnique.mockResolvedValue(null);
-    expect(await codeOf(() => buildDeps(prisma2).svc.invoice('u1', 'sp1'))).toBe('NOT_FOUND');
+    expect(
+      await codeOf(() => buildDeps(prisma2).svc.invoice('u1', 'sp1')),
+    ).toBe('NOT_FOUND');
   });
 
   it('settles a pending SEPA invoice to PAID', async () => {
     const prisma = buildPrisma();
-    const pending = owned({ invoice: { ...owned().invoice, status: 'PENDING' } });
+    const pending = owned({
+      invoice: { ...owned().invoice, status: 'PENDING' },
+    });
     const paid = owned({ invoice: { ...owned().invoice, status: 'PAID' } });
     prisma.corporateSponsorship.findUnique
       .mockResolvedValueOnce(pending)
@@ -281,7 +377,9 @@ describe('CorporateService invoice + settle', () => {
     const { svc } = buildDeps(prisma);
     const doc = await svc.settle('u1', 'sp1');
     expect(prisma.invoice.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: 'PAID' }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ status: 'PAID' }),
+      }),
     );
     expect(doc.status).toBe('PAID');
   });
@@ -289,6 +387,8 @@ describe('CorporateService invoice + settle', () => {
   it('rejects settling an already paid invoice', async () => {
     const prisma = buildPrisma();
     prisma.corporateSponsorship.findUnique.mockResolvedValue(owned());
-    expect(await codeOf(() => buildDeps(prisma).svc.settle('u1', 'sp1'))).toBe('CONFLICT');
+    expect(await codeOf(() => buildDeps(prisma).svc.settle('u1', 'sp1'))).toBe(
+      'CONFLICT',
+    );
   });
 });

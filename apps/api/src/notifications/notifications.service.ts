@@ -140,7 +140,8 @@ export class NotificationsService {
 
   async markRead(userId: string, id: string) {
     const n = await this.prisma.notification.findUnique({ where: { id } });
-    if (!n) throw new DomainException('NOT_FOUND', 'Notification not found', 404);
+    if (!n)
+      throw new DomainException('NOT_FOUND', 'Notification not found', 404);
     if (n.userId !== userId) {
       throw new DomainException('FORBIDDEN', 'Not your notification', 403);
     }

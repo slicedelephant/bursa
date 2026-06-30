@@ -12,9 +12,7 @@ import { isEmbeddableVideoUrl } from '../video-url.util';
  * YouTube/Vimeo embed. Empty/undefined is left to `@IsOptional`.
  */
 @ValidatorConstraint({ name: 'isEmbeddableVideoUrl', async: false })
-export class IsEmbeddableVideoUrlConstraint
-  implements ValidatorConstraintInterface
-{
+export class IsEmbeddableVideoUrlConstraint implements ValidatorConstraintInterface {
   validate(value: unknown): boolean {
     if (typeof value !== 'string') return false;
     return isEmbeddableVideoUrl(value);

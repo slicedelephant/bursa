@@ -98,9 +98,7 @@ import { ShareToolkitComponent } from '../campaign/share-toolkit.component';
               [studentName]="studentName()"
               [firstBackers]="campaign().raisedCents === 0"
               [heading]="
-                campaign().raisedCents === 0
-                  ? 'Get your first 3 backers'
-                  : 'Share your campaign'
+                campaign().raisedCents === 0 ? 'Get your first 3 backers' : 'Share your campaign'
               "
               [subtext]="
                 campaign().raisedCents === 0

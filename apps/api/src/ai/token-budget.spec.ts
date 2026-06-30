@@ -13,9 +13,7 @@ describe('token-budget', () => {
   describe('estimateTokens', () => {
     it('estimates from combined input + output length', () => {
       const chars = 400; // 100 input + 300 output
-      expect(estimateTokens(100, 300)).toBe(
-        Math.ceil(chars / CHARS_PER_TOKEN),
-      );
+      expect(estimateTokens(100, 300)).toBe(Math.ceil(chars / CHARS_PER_TOKEN));
     });
 
     it('never returns less than the per-generation floor', () => {
@@ -46,7 +44,11 @@ describe('token-budget', () => {
   describe('isExhausted', () => {
     it('is false with plenty of budget', () => {
       expect(
-        isExhausted({ limitTokens: DEFAULT_TOKEN_LIMIT, usedTokens: 0, generations: 0 }),
+        isExhausted({
+          limitTokens: DEFAULT_TOKEN_LIMIT,
+          usedTokens: 0,
+          generations: 0,
+        }),
       ).toBe(false);
     });
 

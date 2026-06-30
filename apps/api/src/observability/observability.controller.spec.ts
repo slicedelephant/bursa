@@ -53,7 +53,9 @@ describe('AnalyticsController', () => {
 describe('ObservabilityController', () => {
   function make() {
     const analytics = {
-      funnel: jest.fn().mockResolvedValue({ steps: [], overallConversionPct: 0 }),
+      funnel: jest
+        .fn()
+        .mockResolvedValue({ steps: [], overallConversionPct: 0 }),
       onboardingFunnel: jest
         .fn()
         .mockResolvedValue({ steps: [], overallConversionPct: 0 }),
@@ -78,13 +80,13 @@ describe('ObservabilityController', () => {
     const out = await controller.funnel('c1');
     expect(out.donation).toBeDefined();
     expect(out.onboarding).toBeDefined();
-    expect((analytics.funnel as jest.Mock)).toHaveBeenCalledWith('c1');
+    expect(analytics.funnel as jest.Mock).toHaveBeenCalledWith('c1');
   });
 
   it('defaults to the platform-wide funnel when no campaign is given', async () => {
     const { controller, analytics } = make();
     await controller.funnel();
-    expect((analytics.funnel as jest.Mock)).toHaveBeenCalledWith(undefined);
+    expect(analytics.funnel as jest.Mock).toHaveBeenCalledWith(undefined);
   });
 
   it('exposes metrics, slo and payment alerts', async () => {

@@ -31,7 +31,12 @@ describe('EmailLogger', () => {
 
   it('defaults campaignId to null when omitted', async () => {
     const { prisma, logger } = build();
-    await logger.log({ userId: 'u1', type: 'MILESTONE', title: 'T', body: 'B' });
+    await logger.log({
+      userId: 'u1',
+      type: 'MILESTONE',
+      title: 'T',
+      body: 'B',
+    });
     expect(prisma.notification.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ campaignId: null }),
     });
@@ -40,7 +45,12 @@ describe('EmailLogger', () => {
   it('keeps a recent window of the sent log', async () => {
     const { logger } = build();
     for (let i = 0; i < 15; i++) {
-      await logger.log({ userId: `u${i}`, type: 'IMPACT_UPDATE', title: `t${i}`, body: 'b' });
+      await logger.log({
+        userId: `u${i}`,
+        type: 'IMPACT_UPDATE',
+        title: `t${i}`,
+        body: 'b',
+      });
     }
     expect(logger.count).toBe(15);
     expect(logger.recent(5)).toHaveLength(5);

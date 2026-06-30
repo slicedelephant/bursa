@@ -30,9 +30,15 @@ describe('MetricsService', () => {
 
   it('counts webhook-route failures only', () => {
     const { service } = make();
-    service.record(sample({ route: 'POST /payments/webhook', statusCode: 400 }));
-    service.record(sample({ route: 'POST /payments/webhook', statusCode: 200 }));
-    service.record(sample({ route: 'POST /campaigns/x/donations/card', statusCode: 402 }));
+    service.record(
+      sample({ route: 'POST /payments/webhook', statusCode: 400 }),
+    );
+    service.record(
+      sample({ route: 'POST /payments/webhook', statusCode: 200 }),
+    );
+    service.record(
+      sample({ route: 'POST /campaigns/x/donations/card', statusCode: 402 }),
+    );
     expect(service.webhookFailures()).toBe(1);
   });
 
@@ -44,7 +50,9 @@ describe('MetricsService', () => {
     }
     const report = service.slo(99.9, now);
     expect(report.alert).toBe('none');
-    expect(report.windows.find((w) => w.windowLabel === 'fast')?.sliPct).toBe(100);
+    expect(report.windows.find((w) => w.windowLabel === 'fast')?.sliPct).toBe(
+      100,
+    );
   });
 
   it('evaluates SLO with default objective and clock without throwing', () => {

@@ -53,7 +53,10 @@ export class RecurringService {
       orderBy: { createdAt: 'desc' },
       include: {
         campaign: {
-          select: { title: true, studentProfile: { select: { fullName: true } } },
+          select: {
+            title: true,
+            studentProfile: { select: { fullName: true } },
+          },
         },
       },
     });
@@ -71,13 +74,20 @@ export class RecurringService {
     return this.setStatus(donorUserId, id, 'CANCELLED');
   }
 
-  async runDue(donorUserId: string, now: Date = new Date()): Promise<RecurringRunResult> {
+  async runDue(
+    donorUserId: string,
+    now: Date = new Date(),
+  ): Promise<RecurringRunResult> {
     const pledges = await this.prisma.recurringPledge.findMany({
       where: { donorUserId, status: 'ACTIVE', nextRunAt: { lte: now } },
       include: { donorUser: { select: { displayName: true } } },
     });
 
-    const result: RecurringRunResult = { charged: [], failed: [], cancelled: [] };
+    const result: RecurringRunResult = {
+      charged: [],
+      failed: [],
+      cancelled: [],
+    };
 
     for (const pledge of pledges) {
       const campaign = await this.prisma.campaign.findUnique({
@@ -198,7 +208,9 @@ export class RecurringService {
         data: {
           raisedCents: newRaised,
           tipsCents: campaign.tipsCents + tip,
-          ...(funded && campaign.status !== 'FUNDED' ? { status: 'FUNDED' } : {}),
+          ...(funded && campaign.status !== 'FUNDED'
+            ? { status: 'FUNDED' }
+            : {}),
         },
       });
 
@@ -227,7 +239,11 @@ export class RecurringService {
     });
   }
 
-  private async setStatus(donorUserId: string, id: string, status: RecurringStatus) {
+  private async setStatus(
+    donorUserId: string,
+    id: string,
+    status: RecurringStatus,
+  ) {
     await this.owned(donorUserId, id);
     return this.prisma.recurringPledge.update({
       where: { id },
@@ -236,7 +252,9 @@ export class RecurringService {
   }
 
   private async owned(donorUserId: string, id: string) {
-    const pledge = await this.prisma.recurringPledge.findUnique({ where: { id } });
+    const pledge = await this.prisma.recurringPledge.findUnique({
+      where: { id },
+    });
     if (!pledge) {
       throw new DomainException('NOT_FOUND', 'Recurring pledge not found', 404);
     }

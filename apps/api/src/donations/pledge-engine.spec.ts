@@ -52,7 +52,9 @@ describe('pledge-engine', () => {
     });
 
     it('separates failures and only counts captured cents', () => {
-      const s = summarizeCapture(pledges, (p) => (p.id === 'b' ? null : `ref_${p.id}`));
+      const s = summarizeCapture(pledges, (p) =>
+        p.id === 'b' ? null : `ref_${p.id}`,
+      );
       expect(s.capturedIds).toEqual(['a', 'c']);
       expect(s.failedIds).toEqual(['b']);
       expect(s.capturedCents).toBe(4000);

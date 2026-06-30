@@ -16,7 +16,9 @@ export class DonorsService {
         where: { donorUserId },
         orderBy: { createdAt: 'desc' },
         include: {
-          campaign: { select: { title: true, school: { select: { name: true } } } },
+          campaign: {
+            select: { title: true, school: { select: { name: true } } },
+          },
         },
       }),
       this.prisma.recurringPledge.count({
@@ -40,7 +42,10 @@ export class DonorsService {
     }));
 
     const counted = rows.filter((r) => COUNTED.includes(r.status));
-    const totalDonatedCents = counted.reduce((sum, r) => sum + r.amountCents, 0);
+    const totalDonatedCents = counted.reduce(
+      (sum, r) => sum + r.amountCents,
+      0,
+    );
     const campaignsSupported = new Set(counted.map((r) => r.campaignId)).size;
 
     return {

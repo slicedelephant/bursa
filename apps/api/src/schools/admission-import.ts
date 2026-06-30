@@ -21,14 +21,22 @@ export interface AdmissionImportResult {
   readonly duplicates: number;
 }
 
-export const REQUIRED_COLUMNS = ['email', 'name', 'program', 'admissionref'] as const;
+export const REQUIRED_COLUMNS = [
+  'email',
+  'name',
+  'program',
+  'admissionref',
+] as const;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function splitLine(line: string): string[] {
-  return line
-    .split(',')
-    .map((cell) => cell.trim().replace(/^"(.*)"$/, '$1').trim());
+  return line.split(',').map((cell) =>
+    cell
+      .trim()
+      .replace(/^"(.*)"$/, '$1')
+      .trim(),
+  );
 }
 
 const empty = (message: string): AdmissionImportResult => ({
@@ -56,7 +64,10 @@ export function parseAdmissionCsv(csv: string): AdmissionImportResult {
   for (const column of REQUIRED_COLUMNS) {
     const idx = headerCols.indexOf(column);
     if (idx === -1) {
-      headerErrors.push({ line: headerIdx + 1, message: `Missing required column: ${column}` });
+      headerErrors.push({
+        line: headerIdx + 1,
+        message: `Missing required column: ${column}`,
+      });
     } else {
       colIndex[column] = idx;
     }

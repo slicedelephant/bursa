@@ -30,10 +30,18 @@ export class MockTextGenerationProvider implements TextGenerationProvider {
   }
 
   private detectKind(text: string): 'title' | 'story' | 'share' {
-    if (/3 short paragraphs|3 kurzen Absätzen|funding gap|Finanzierungslücke/i.test(text)) {
+    if (
+      /3 short paragraphs|3 kurzen Absätzen|funding gap|Finanzierungslücke/i.test(
+        text,
+      )
+    ) {
       return 'story';
     }
-    if (/WhatsApp|LinkedIn|subject line|Betreff|social-share|Social-Share/i.test(text)) {
+    if (
+      /WhatsApp|LinkedIn|subject line|Betreff|social-share|Social-Share/i.test(
+        text,
+      )
+    ) {
       return 'share';
     }
     return 'title';

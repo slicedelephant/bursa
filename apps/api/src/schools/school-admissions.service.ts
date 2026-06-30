@@ -30,7 +30,12 @@ export class SchoolAdmissionsService {
       await this.prisma.$transaction(
         parsed.records.map((record) =>
           this.prisma.admissionRecord.upsert({
-            where: { schoolId_admissionRef: { schoolId, admissionRef: record.admissionRef } },
+            where: {
+              schoolId_admissionRef: {
+                schoolId,
+                admissionRef: record.admissionRef,
+              },
+            },
             update: {
               studentEmail: record.studentEmail,
               studentName: record.studentName,
@@ -64,7 +69,10 @@ export class SchoolAdmissionsService {
 
   async verify(schoolId: string, recordId: string, reviewerId: string) {
     const record = await this.requireRecord(schoolId, recordId);
-    const lookup = await this.registrar.lookupAdmission(schoolId, record.admissionRef);
+    const lookup = await this.registrar.lookupAdmission(
+      schoolId,
+      record.admissionRef,
+    );
     if (!lookup.found) {
       throw new DomainException(
         'ADMISSION_NOT_ON_FILE',
@@ -85,7 +93,12 @@ export class SchoolAdmissionsService {
     return updated;
   }
 
-  async reject(schoolId: string, recordId: string, reviewerId: string, note: string) {
+  async reject(
+    schoolId: string,
+    recordId: string,
+    reviewerId: string,
+    note: string,
+  ) {
     await this.requireRecord(schoolId, recordId);
     const updated = await this.prisma.admissionRecord.update({
       where: { id: recordId },
@@ -102,7 +115,12 @@ export class SchoolAdmissionsService {
 
   private emitReported(
     schoolId: string,
-    record: { id: string; studentName: string; admissionRef: string; status: string },
+    record: {
+      id: string;
+      studentName: string;
+      admissionRef: string;
+      status: string;
+    },
   ): Promise<void> {
     return this.webhooks.emit(
       buildStudentReportedEvent(schoolId, {
@@ -125,7 +143,9 @@ export class SchoolAdmissionsService {
   }
 
   private async requireSchool(schoolId: string) {
-    const school = await this.prisma.school.findUnique({ where: { id: schoolId } });
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
     if (!school) {
       throw new DomainException('NOT_FOUND', 'School not found', 404);
     }

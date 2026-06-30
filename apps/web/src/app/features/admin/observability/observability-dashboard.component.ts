@@ -1,13 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/api.service';
-import {
-  HealthReport,
-  ObsFunnel,
-  ObsMetrics,
-  PaymentAlert,
-  SloReport,
-} from '../../../core/models';
+import { HealthReport, ObsFunnel, ObsMetrics, PaymentAlert, SloReport } from '../../../core/models';
 import { FunnelChartComponent } from './funnel-chart.component';
 import { MetricsPanelComponent } from './metrics-panel.component';
 import { SloPanelComponent } from './slo-panel.component';
@@ -20,12 +14,7 @@ import { SloPanelComponent } from './slo-panel.component';
 @Component({
   selector: 'app-observability-dashboard',
   standalone: true,
-  imports: [
-    RouterLink,
-    FunnelChartComponent,
-    MetricsPanelComponent,
-    SloPanelComponent,
-  ],
+  imports: [RouterLink, FunnelChartComponent, MetricsPanelComponent, SloPanelComponent],
   template: `
     <section class="mx-auto max-w-6xl px-4 py-10">
       <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -85,9 +74,7 @@ export class ObservabilityDashboardComponent {
     });
     this.api.obsMetrics().subscribe({ next: (m) => this.metrics.set(m) });
     this.api.obsSlo().subscribe({ next: (s) => this.slo.set(s) });
-    this.api
-      .obsPaymentAlerts()
-      .subscribe({ next: (a) => this.alerts.set(a.alerts) });
+    this.api.obsPaymentAlerts().subscribe({ next: (a) => this.alerts.set(a.alerts) });
     this.api.health().subscribe({ next: (h) => this.health.set(h) });
   }
 }

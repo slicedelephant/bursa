@@ -14,17 +14,31 @@ export interface GiftTierOption {
   readonly highlight?: boolean;
 }
 
-export function remainingGapCents(goalCents: number, raisedCents: number): number {
+export function remainingGapCents(
+  goalCents: number,
+  raisedCents: number,
+): number {
   return Math.max(0, goalCents - raisedCents);
 }
 
-export function giftTiers(goalCents: number, raisedCents: number): GiftTierOption[] {
+export function giftTiers(
+  goalCents: number,
+  raisedCents: number,
+): GiftTierOption[] {
   const gap = remainingGapCents(goalCents, raisedCents);
   if (gap <= 0) return [];
   const cap = (value: number) => Math.min(gap, value);
   const tiers: GiftTierOption[] = [
-    { tier: 'SEMESTER', label: 'One semester', amountCents: cap(Math.round(goalCents / 4)) },
-    { tier: 'YEAR', label: 'One year', amountCents: cap(Math.round(goalCents / 2)) },
+    {
+      tier: 'SEMESTER',
+      label: 'One semester',
+      amountCents: cap(Math.round(goalCents / 4)),
+    },
+    {
+      tier: 'YEAR',
+      label: 'One year',
+      amountCents: cap(Math.round(goalCents / 2)),
+    },
     { tier: 'FULL', label: 'Full tuition', amountCents: gap, highlight: true },
   ];
   return tiers.filter((t) => t.amountCents > 0);

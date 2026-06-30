@@ -49,7 +49,9 @@ export function aggregate(
   errorStatusFloor = 500,
 ): MetricsSnapshot {
   const total = samples.length;
-  const errorCount = samples.filter((s) => s.statusCode >= errorStatusFloor).length;
+  const errorCount = samples.filter(
+    (s) => s.statusCode >= errorStatusFloor,
+  ).length;
   const durations = samples.map((s) => s.durationMs);
   const payment = samples.filter((s) => s.isPaymentPath);
   const paymentFailed = samples.filter(isPaymentFailure).length;

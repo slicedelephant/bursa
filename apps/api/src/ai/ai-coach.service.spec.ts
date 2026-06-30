@@ -76,7 +76,9 @@ describe('AiCoachService', () => {
       expect(out.recommendedIndex).toBeGreaterThanOrEqual(0);
       expect(prisma.aiTokenBudget.update).toHaveBeenCalled();
       expect(prisma.aiGeneration.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ kind: 'TITLE' }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ kind: 'TITLE' }),
+        }),
       );
       expect(out.budget.remainingTokens).toBeLessThan(DEFAULT_TOKEN_LIMIT);
     });
@@ -90,9 +92,11 @@ describe('AiCoachService', () => {
       });
       const provider = { generate: jest.fn() };
       const service = makeService(prisma, provider as never);
-      await expect(service.generateTitle('u1', titleDto)).rejects.toMatchObject({
-        status: 429,
-      });
+      await expect(service.generateTitle('u1', titleDto)).rejects.toMatchObject(
+        {
+          status: 429,
+        },
+      );
       expect(provider.generate).not.toHaveBeenCalled();
       expect(prisma.aiGeneration.create).not.toHaveBeenCalled();
     });
@@ -119,7 +123,10 @@ describe('AiCoachService', () => {
         generations: 0,
       });
       const service = makeService(prisma);
-      const out = await service.generateTitle('u1', { ...titleDto, locale: 'de' });
+      const out = await service.generateTitle('u1', {
+        ...titleDto,
+        locale: 'de',
+      });
       expect(out.locale).toBe('de');
       expect(out.variants.map((v) => v.text).join(' ')).toMatch(/[äöüß]/);
     });
@@ -175,7 +182,9 @@ describe('AiCoachService', () => {
       const provider = {
         generate: jest.fn().mockResolvedValue({
           provider: 'mock',
-          variants: ['A single paragraph story without blank-line breaks. '.repeat(8)],
+          variants: [
+            'A single paragraph story without blank-line breaks. '.repeat(8),
+          ],
         }),
       };
       const service = makeService(prisma, provider as never);

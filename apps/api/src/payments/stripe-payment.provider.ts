@@ -51,7 +51,8 @@ export class StripePaymentProvider implements PaymentProvider {
     try {
       const intent = await this.stripe.setupIntents.create({
         usage: 'off_session',
-        payment_method_types: input.method === 'SEPA' ? ['sepa_debit'] : ['card'],
+        payment_method_types:
+          input.method === 'SEPA' ? ['sepa_debit'] : ['card'],
         metadata: { kind: 'pledge', description: input.description ?? '' },
       });
       return { status: 'AUTHORIZED', pledgeRef: intent.id };
@@ -119,7 +120,8 @@ export class StripePaymentProvider implements PaymentProvider {
         amount: input.amountCents,
         currency: input.currency.toLowerCase(),
         destination: input.accountRef,
-        description: input.description ?? `Tuition payout to ${input.schoolName}`,
+        description:
+          input.description ?? `Tuition payout to ${input.schoolName}`,
       });
       return { status: 'SENT', reference: transfer.id };
     } catch (error) {
@@ -134,12 +136,20 @@ export class StripePaymentProvider implements PaymentProvider {
 
   private failPledge(error: unknown): PledgeResult {
     this.logger.error('Stripe savePledge failed', error as Error);
-    return { status: 'FAILED', pledgeRef: 'stripe_pledge_failed', failureReason: this.reason(error) };
+    return {
+      status: 'FAILED',
+      pledgeRef: 'stripe_pledge_failed',
+      failureReason: this.reason(error),
+    };
   }
 
   private failPayment(error: unknown): PaymentResult {
     this.logger.error('Stripe charge failed', error as Error);
-    return { status: 'FAILED', reference: 'stripe_charge_failed', failureReason: this.reason(error) };
+    return {
+      status: 'FAILED',
+      reference: 'stripe_charge_failed',
+      failureReason: this.reason(error),
+    };
   }
 
   private reason(error: unknown): string {

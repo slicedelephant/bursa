@@ -31,7 +31,9 @@ export class ClaudeTextGenerationProvider implements TextGenerationProvider {
     model: string = ClaudeTextGenerationProvider.DEFAULT_MODEL,
   ) {
     if (!apiKey) {
-      throw new Error('ClaudeTextGenerationProvider requires ANTHROPIC_API_KEY');
+      throw new Error(
+        'ClaudeTextGenerationProvider requires ANTHROPIC_API_KEY',
+      );
     }
     this.model = ClaudeTextGenerationProvider.resolveModel(model);
   }

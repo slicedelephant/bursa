@@ -65,8 +65,7 @@ describe('PrivacyPanelComponent', () => {
   });
 
   it('shows the anonymised state and hides the actions', () => {
-    const el = render({ email: 'jane@example.com', anonymized: true })
-      .nativeElement as HTMLElement;
+    const el = render({ email: 'jane@example.com', anonymized: true }).nativeElement as HTMLElement;
     expect(el.querySelector('[data-testid="anonymized"]')).not.toBeNull();
     expect(buttonByText(el, 'Export my data')).toBeUndefined();
   });

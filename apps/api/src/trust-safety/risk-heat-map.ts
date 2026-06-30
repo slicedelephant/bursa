@@ -47,10 +47,7 @@ function emptyBucket(): Bucket {
 export function buildRiskHeatMap(input: HeatMapInput): HeatMapRow[] {
   const buckets = new Map<string, Bucket>();
 
-  const bump = (
-    entries: readonly GeoEntry[],
-    field: keyof Bucket,
-  ): void => {
+  const bump = (entries: readonly GeoEntry[], field: keyof Bucket): void => {
     for (const entry of entries) {
       const key = normalizeCountry(entry.country);
       const bucket = buckets.get(key) ?? emptyBucket();

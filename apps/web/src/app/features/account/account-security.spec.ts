@@ -1,8 +1,4 @@
-import {
-  DELETE_CONFIRM_TEXT,
-  exportFilename,
-  exportJson,
-} from './account-security';
+import { DELETE_CONFIRM_TEXT, exportFilename, exportJson } from './account-security';
 
 describe('exportFilename', () => {
   it('builds a date-stamped json filename', () => {

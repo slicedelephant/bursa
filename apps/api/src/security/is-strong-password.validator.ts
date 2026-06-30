@@ -22,7 +22,9 @@ export class IsStrongPasswordConstraint implements ValidatorConstraintInterface 
   defaultMessage(args: ValidationArguments): string {
     const value = args.value;
     const issues =
-      typeof value === 'string' ? assessPassword(value).issues : ['Invalid password.'];
+      typeof value === 'string'
+        ? assessPassword(value).issues
+        : ['Invalid password.'];
     return issues.join(' ');
   }
 }

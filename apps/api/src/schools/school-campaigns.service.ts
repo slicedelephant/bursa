@@ -43,7 +43,9 @@ export class SchoolCampaignsService {
           status: VerificationStatus.VERIFIED,
           verifiedById: reviewerId,
           verifiedAt: new Date(),
-          ...(dto.admissionRef !== undefined ? { admissionRef: dto.admissionRef } : {}),
+          ...(dto.admissionRef !== undefined
+            ? { admissionRef: dto.admissionRef }
+            : {}),
           ...(dto.note !== undefined ? { note: dto.note } : {}),
         },
         create: {
@@ -79,7 +81,12 @@ export class SchoolCampaignsService {
     return updated;
   }
 
-  async reject(schoolId: string, campaignId: string, reviewerId: string, note: string) {
+  async reject(
+    schoolId: string,
+    campaignId: string,
+    reviewerId: string,
+    note: string,
+  ) {
     await this.requireCampaign(schoolId, campaignId);
     return this.prisma.$transaction(async (tx) => {
       await tx.admissionVerification.upsert({
@@ -106,7 +113,9 @@ export class SchoolCampaignsService {
   }
 
   private async requireActiveSchool(schoolId: string) {
-    const school = await this.prisma.school.findUnique({ where: { id: schoolId } });
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
     if (!school) {
       throw new DomainException('NOT_FOUND', 'School not found', 404);
     }

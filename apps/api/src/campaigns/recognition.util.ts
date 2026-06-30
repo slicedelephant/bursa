@@ -8,7 +8,10 @@ import { RecognitionKind } from '@prisma/client';
 export interface SponsorshipForRecognition {
   readonly recognitionKind: RecognitionKind;
   readonly scholarshipName: string | null;
-  readonly corporateProfile: { companyName: string; logoUrl: string | null } | null;
+  readonly corporateProfile: {
+    companyName: string;
+    logoUrl: string | null;
+  } | null;
 }
 
 export interface RecognitionEntry {

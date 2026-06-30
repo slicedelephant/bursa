@@ -1,14 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
-import {
-  HealthReport,
-  ObsMetrics,
-  PaymentAlert,
-} from '../../../core/models';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { HealthReport, ObsMetrics, PaymentAlert } from '../../../core/models';
 import {
   formatUptime,
   healthClass,

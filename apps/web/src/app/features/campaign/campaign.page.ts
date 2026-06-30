@@ -173,7 +173,9 @@ import { UpdatesTimelineComponent } from './updates-timeline.component';
                 [title]="c.title"
                 [studentName]="c.studentName"
                 [firstBackers]="c.donorCount < 3"
-                [heading]="c.donorCount < 3 ? 'Be the first to back ' + c.studentName : 'Share this campaign'"
+                [heading]="
+                  c.donorCount < 3 ? 'Be the first to back ' + c.studentName : 'Share this campaign'
+                "
                 [subtext]="
                   c.donorCount < 3
                     ? 'A few early backers create the momentum that pulls in strangers.'

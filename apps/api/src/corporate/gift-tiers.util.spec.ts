@@ -1,4 +1,9 @@
-import { giftTiers, isFullTuition, remainingGapCents, tierAmount } from './gift-tiers.util';
+import {
+  giftTiers,
+  isFullTuition,
+  remainingGapCents,
+  tierAmount,
+} from './gift-tiers.util';
 
 describe('remainingGapCents', () => {
   it('returns the open gap', () => {

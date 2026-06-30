@@ -19,7 +19,10 @@ export class MetricsStore {
 
   /** Appends a sample, evicting the oldest when over capacity. Input is not mutated. */
   record(sample: RequestSample): void {
-    const next = this.buffer.length >= this.capacity ? this.buffer.slice(1) : this.buffer.slice();
+    const next =
+      this.buffer.length >= this.capacity
+        ? this.buffer.slice(1)
+        : this.buffer.slice();
     next.push(sample);
     this.buffer = next;
   }

@@ -1,12 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { MoneyPipe } from '../../core/money.pipe';
 import { CampaignStatus } from '../../core/models';
-import {
-  deadlineInfo,
-  milestoneLabel,
-  percentToGoal,
-  remainingCents,
-} from './goal-math';
+import { deadlineInfo, milestoneLabel, percentToGoal, remainingCents } from './goal-math';
 
 /**
  * All-or-Nothing goal mechanic: remaining amount, the 80/90% milestone push,
@@ -29,7 +24,9 @@ import {
       </div>
 
       <div class="mt-3 flex items-baseline justify-between">
-        <span class="font-display text-2xl font-semibold text-ink">{{ raisedCents() | money }}</span>
+        <span class="font-display text-2xl font-semibold text-ink">{{
+          raisedCents() | money
+        }}</span>
         <span class="text-sm text-slate2">of {{ goalCents() | money }}</span>
       </div>
 
@@ -82,13 +79,8 @@ export class CampaignProgressComponent {
   readonly percent = computed(() => percentToGoal(this.raisedCents(), this.goalCents()));
   readonly remaining = computed(() => remainingCents(this.raisedCents(), this.goalCents()));
   readonly funded = computed(
-    () =>
-      this.status() === 'FUNDED' ||
-      this.status() === 'DISBURSED' ||
-      this.remaining() === 0,
+    () => this.status() === 'FUNDED' || this.status() === 'DISBURSED' || this.remaining() === 0,
   );
-  readonly milestoneText = computed(() =>
-    this.funded() ? null : milestoneLabel(this.percent()),
-  );
+  readonly milestoneText = computed(() => (this.funded() ? null : milestoneLabel(this.percent())));
   readonly deadlineMeta = computed(() => deadlineInfo(this.deadline()));
 }

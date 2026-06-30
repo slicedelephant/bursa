@@ -2,11 +2,7 @@ import { Component, EventEmitter, Input, Output, inject, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { MoneyPipe } from '../../core/money.pipe';
-import {
-  CorporateSponsorshipResult,
-  SponsorBody,
-  SponsorshipTier,
-} from '../../core/models';
+import { CorporateSponsorshipResult, SponsorBody, SponsorshipTier } from '../../core/models';
 import { documentTypeLabel, invoiceStatusLabel } from './esg-format';
 import { giftTiers, isFullTuition } from './gift-tiers';
 
@@ -24,7 +20,8 @@ import { giftTiers, isFullTuition } from './gift-tiers';
   template: `
     <div class="rounded-2xl bg-white p-6 shadow-card ring-1 ring-black/5">
       <div class="flex items-center gap-2">
-        <span class="rounded-full bg-brand-blue/10 px-2.5 py-1 text-xs font-semibold text-brand-blue"
+        <span
+          class="rounded-full bg-brand-blue/10 px-2.5 py-1 text-xs font-semibold text-brand-blue"
           >Corporate</span
         >
         <h3 class="font-display text-lg font-semibold text-ink">Sponsor this scholarship</h3>
@@ -53,7 +50,9 @@ import { giftTiers, isFullTuition } from './gift-tiers';
           </div>
           <div class="flex justify-between">
             <span class="text-slate2">Gross</span>
-            <span class="font-semibold text-brand-green">{{ r.invoice.grossCents | money: true }}</span>
+            <span class="font-semibold text-brand-green">{{
+              r.invoice.grossCents | money: true
+            }}</span>
           </div>
           <div class="flex justify-between gap-4">
             <span class="text-slate2">Status</span>
@@ -107,7 +106,8 @@ import { giftTiers, isFullTuition } from './gift-tiers';
             </span>
             @if (tier() === 'CUSTOM') {
               <span class="relative">
-                <span class="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-slate2"
+                <span
+                  class="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-slate2"
                   >€</span
                 >
                 <input

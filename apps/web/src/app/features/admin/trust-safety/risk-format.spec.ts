@@ -1,10 +1,4 @@
-import {
-  formatEur,
-  formatPct,
-  riskLevelClass,
-  riskLevelLabel,
-  scoreBarWidth,
-} from './risk-format';
+import { formatEur, formatPct, riskLevelClass, riskLevelLabel, scoreBarWidth } from './risk-format';
 
 describe('risk-format', () => {
   it('formats EUR from cents', () => {

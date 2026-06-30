@@ -13,12 +13,18 @@ describe('onboarding-token', () => {
     expect(created.token).toBe('a'.repeat(64));
     expect(created.tokenHash).toBe(hashToken(created.token));
     expect(created.tokenHash).not.toBe(created.token);
-    expect(created.expiresAt.getTime()).toBe(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    expect(created.expiresAt.getTime()).toBe(
+      now.getTime() + 7 * 24 * 60 * 60 * 1000,
+    );
   });
 
   it('honours a custom ttl', () => {
     const now = new Date('2026-06-29T00:00:00.000Z');
-    const created = createOnboardingToken({ now, ttlMs: 1000, bytes: fixedBytes });
+    const created = createOnboardingToken({
+      now,
+      ttlMs: 1000,
+      bytes: fixedBytes,
+    });
     expect(created.expiresAt.getTime()).toBe(now.getTime() + 1000);
   });
 
@@ -26,7 +32,11 @@ describe('onboarding-token', () => {
     const now = new Date('2026-06-29T00:00:00.000Z');
     const created = createOnboardingToken({ now, bytes: fixedBytes });
     const result = validateOnboardingToken(
-      { tokenHash: created.tokenHash, expiresAt: created.expiresAt, usedAt: null },
+      {
+        tokenHash: created.tokenHash,
+        expiresAt: created.expiresAt,
+        usedAt: null,
+      },
       created.token,
       now,
     );
@@ -75,7 +85,11 @@ describe('onboarding-token', () => {
       bytes: fixedBytes,
     });
     const result = validateOnboardingToken(
-      { tokenHash: created.tokenHash, expiresAt: created.expiresAt, usedAt: null },
+      {
+        tokenHash: created.tokenHash,
+        expiresAt: created.expiresAt,
+        usedAt: null,
+      },
       created.token,
       new Date('2026-06-29T00:00:00.000Z'),
     );

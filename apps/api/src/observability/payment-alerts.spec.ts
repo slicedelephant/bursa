@@ -19,14 +19,18 @@ describe('derivePaymentAlerts', () => {
   });
 
   it('warns on an elevated card failure rate', () => {
-    const alerts = derivePaymentAlerts(input({ cardRecent: 20, cardFailed: 7 }));
+    const alerts = derivePaymentAlerts(
+      input({ cardRecent: 20, cardFailed: 7 }),
+    );
     const a = alerts.find((x) => x.kind === 'card_decline_wave');
     expect(a?.severity).toBe('warning');
     expect(a?.value).toBe(35);
   });
 
   it('escalates a severe card decline wave to critical', () => {
-    const alerts = derivePaymentAlerts(input({ cardRecent: 20, cardFailed: 12 }));
+    const alerts = derivePaymentAlerts(
+      input({ cardRecent: 20, cardFailed: 12 }),
+    );
     expect(alerts.find((x) => x.kind === 'card_decline_wave')?.severity).toBe(
       'critical',
     );
@@ -60,7 +64,12 @@ describe('derivePaymentAlerts', () => {
 
   it('can return multiple alerts at once', () => {
     const alerts = derivePaymentAlerts(
-      input({ cardRecent: 10, cardFailed: 9, stuckPledges: 1, webhookFailures: 1 }),
+      input({
+        cardRecent: 10,
+        cardFailed: 9,
+        stuckPledges: 1,
+        webhookFailures: 1,
+      }),
     );
     expect(alerts.map((a) => a.kind).sort()).toEqual([
       'card_decline_wave',

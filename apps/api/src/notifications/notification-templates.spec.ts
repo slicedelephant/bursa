@@ -14,7 +14,10 @@ describe('notification templates', () => {
   });
 
   it('formats thousands in the thank-you amount', () => {
-    const n = thankYouNotification({ studentName: 'Amara', amountCents: 1500000 });
+    const n = thankYouNotification({
+      studentName: 'Amara',
+      amountCents: 1500000,
+    });
     expect(n.body).toContain('€15,000');
   });
 
@@ -41,7 +44,10 @@ describe('notification templates', () => {
   });
 
   it('builds a recurring-charge notification', () => {
-    const n = recurringChargeNotification({ studentName: 'Amara', amountCents: 2500 });
+    const n = recurringChargeNotification({
+      studentName: 'Amara',
+      amountCents: 2500,
+    });
     expect(n.type).toBe('RECURRING_CHARGE');
     expect(n.body).toContain('€25');
   });

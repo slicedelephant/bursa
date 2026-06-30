@@ -18,10 +18,7 @@ import { FlagReason } from '../../core/models';
     } @else if (open()) {
       <div class="rounded-xl border border-slate-200 p-3">
         <label class="block text-xs font-medium text-slate2">Reason</label>
-        <select
-          #reason
-          class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
-        >
+        <select #reason class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm">
           <option value="SCAM">Looks like a scam</option>
           <option value="DUPLICATE">Duplicate campaign</option>
           <option value="INAPPROPRIATE">Inappropriate content</option>

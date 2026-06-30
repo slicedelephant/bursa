@@ -11,7 +11,10 @@ export interface RegistrarLookupResult {
 }
 
 export interface RegistrarProvider {
-  lookupAdmission(schoolId: string, admissionRef: string): Promise<RegistrarLookupResult>;
+  lookupAdmission(
+    schoolId: string,
+    admissionRef: string,
+  ): Promise<RegistrarLookupResult>;
 }
 
 export const REGISTRAR_PROVIDER = Symbol('REGISTRAR_PROVIDER');

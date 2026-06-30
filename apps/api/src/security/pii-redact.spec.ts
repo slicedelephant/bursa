@@ -14,12 +14,16 @@ describe('redact', () => {
   });
 
   it('masks a card-like number (13-19 digits, with spaces/dashes)', () => {
-    expect(redact('card 4242 4242 4242 4242 used')).toBe(`card ${REDACTED} used`);
+    expect(redact('card 4242 4242 4242 4242 used')).toBe(
+      `card ${REDACTED} used`,
+    );
     expect(redact('pan 4242-4242-4242-4242')).toBe(`pan ${REDACTED}`);
   });
 
   it('masks an IBAN', () => {
-    expect(redact('iban DE89370400440532013000 ok')).toBe(`iban ${REDACTED} ok`);
+    expect(redact('iban DE89370400440532013000 ok')).toBe(
+      `iban ${REDACTED} ok`,
+    );
   });
 
   it('returns non-string primitives unchanged', () => {

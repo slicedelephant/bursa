@@ -1,11 +1,7 @@
 // Pure presentation helpers for the system-metrics + payment-alert panel and the
 // health badge. No Angular, no I/O.
 
-import {
-  AlertSeverity,
-  HealthReport,
-  ObsMetrics,
-} from '../../../core/models';
+import { AlertSeverity, HealthReport, ObsMetrics } from '../../../core/models';
 
 export interface MetricTile {
   readonly label: string;

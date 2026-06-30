@@ -73,20 +73,21 @@ export class DonationsService {
       );
     }
 
-    const { donation, campaign: updated, funded } = await this.recordPledge(
-      campaign,
-      {
-        amountToGoal,
-        tip,
-        pledgeRef: pledge.pledgeRef,
-        message: dto.message,
-        anonymous: dto.anonymous ?? false,
-        donorName: dto.donorName,
-        donorUserId,
-        tributeType: dto.tributeType,
-        tributeName: dto.tributeName,
-      },
-    );
+    const {
+      donation,
+      campaign: updated,
+      funded,
+    } = await this.recordPledge(campaign, {
+      amountToGoal,
+      tip,
+      pledgeRef: pledge.pledgeRef,
+      message: dto.message,
+      anonymous: dto.anonymous ?? false,
+      donorName: dto.donorName,
+      donorUserId,
+      tributeType: dto.tributeType,
+      tributeName: dto.tributeName,
+    });
 
     await this.notifyDonation(
       campaign,
@@ -103,9 +104,10 @@ export class DonationsService {
     const finalDonation = await this.prisma.donation.findUnique({
       where: { id: donation.id },
     });
-    const receipt = (finalDonation?.status ?? donation.status) === 'CAPTURED'
-      ? this.receiptFor(campaign, finalDonation ?? donation)
-      : undefined;
+    const receipt =
+      (finalDonation?.status ?? donation.status) === 'CAPTURED'
+        ? this.receiptFor(campaign, finalDonation ?? donation)
+        : undefined;
 
     return {
       donation: finalDonation ?? donation,
@@ -182,7 +184,10 @@ export class DonationsService {
 
   async listDonations(campaignId: string) {
     const donations = await this.prisma.donation.findMany({
-      where: { campaignId, status: { in: ['SUCCEEDED', 'PLEDGED', 'CAPTURED'] } },
+      where: {
+        campaignId,
+        status: { in: ['SUCCEEDED', 'PLEDGED', 'CAPTURED'] },
+      },
       orderBy: { createdAt: 'desc' },
       take: 20,
       include: { corporateProfile: { select: { companyName: true } } },
@@ -220,7 +225,11 @@ export class DonationsService {
     }
 
     const summary = summarizeCapture(
-      pledges.map((p) => ({ id: p.id, amountCents: p.amountCents, pledgeRef: p.pledgeRef })),
+      pledges.map((p) => ({
+        id: p.id,
+        amountCents: p.amountCents,
+        pledgeRef: p.pledgeRef,
+      })),
       (p) => captureRefs.get(p.id) ?? null,
     );
 
@@ -322,7 +331,9 @@ export class DonationsService {
         data: {
           raisedCents: newRaised,
           tipsCents: campaign.tipsCents + input.tip,
-          ...(funded && campaign.status !== 'FUNDED' ? { status: 'FUNDED' } : {}),
+          ...(funded && campaign.status !== 'FUNDED'
+            ? { status: 'FUNDED' }
+            : {}),
         },
       });
 
@@ -368,7 +379,9 @@ export class DonationsService {
         data: {
           raisedCents: newRaised,
           tipsCents: campaign.tipsCents + input.tip,
-          ...(funded && campaign.status !== 'FUNDED' ? { status: 'FUNDED' } : {}),
+          ...(funded && campaign.status !== 'FUNDED'
+            ? { status: 'FUNDED' }
+            : {}),
         },
       });
 
@@ -389,7 +402,12 @@ export class DonationsService {
 
   private receiptFor(
     campaign: Campaign,
-    donation: { id: string; createdAt: Date; amountCents: number; donorName: string | null },
+    donation: {
+      id: string;
+      createdAt: Date;
+      amountCents: number;
+      donorName: string | null;
+    },
   ) {
     return buildReceipt({
       donationId: donation.id,

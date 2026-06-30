@@ -70,7 +70,10 @@ import {
                   <span class="text-slate2">{{ row.amountLabel }} · {{ row.donationCount }}</span>
                 </div>
                 <div class="h-2 w-full rounded-full bg-mist">
-                  <div class="h-2 rounded-full bg-brand-green" [style.width]="row.widthPercent"></div>
+                  <div
+                    class="h-2 rounded-full bg-brand-green"
+                    [style.width]="row.widthPercent"
+                  ></div>
                 </div>
               </div>
             }

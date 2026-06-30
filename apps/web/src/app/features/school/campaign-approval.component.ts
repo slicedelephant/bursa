@@ -14,15 +14,26 @@ import { formatEur } from './school-dashboard-format';
       <header class="mb-4 flex items-center justify-between gap-4">
         <div>
           <h3 class="font-display text-lg font-semibold text-ink">Campaigns awaiting approval</h3>
-          <p class="text-sm text-slate2">Approve a campaign to publish it. Approval requires an active portal.</p>
+          <p class="text-sm text-slate2">
+            Approve a campaign to publish it. Approval requires an active portal.
+          </p>
         </div>
-        <button type="button" class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-mist" (click)="load()">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-mist"
+          (click)="load()"
+        >
           Refresh
         </button>
       </header>
 
       @if (error()) {
-        <p class="mb-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange" role="alert">{{ error() }}</p>
+        <p
+          class="mb-3 rounded-lg bg-brand-orange/10 px-4 py-3 text-sm text-brand-orange"
+          role="alert"
+        >
+          {{ error() }}
+        </p>
       }
       @if (campaigns().length === 0) {
         <p class="text-sm text-slate2">Nothing in the queue. New submissions will appear here.</p>
@@ -59,9 +70,25 @@ import { formatEur } from './school-dashboard-format';
             </div>
             @if (rejectingId() === c.id) {
               <div class="mt-2 flex items-center gap-2">
-                <input [(ngModel)]="rejectNote" class="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm" placeholder="Reason (required)" />
-                <button type="button" class="rounded-lg bg-brand-orange px-3 py-1.5 text-xs font-semibold text-white" (click)="reject(c)">Confirm</button>
-                <button type="button" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs" (click)="cancelReject()">Cancel</button>
+                <input
+                  [(ngModel)]="rejectNote"
+                  class="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                  placeholder="Reason (required)"
+                />
+                <button
+                  type="button"
+                  class="rounded-lg bg-brand-orange px-3 py-1.5 text-xs font-semibold text-white"
+                  (click)="reject(c)"
+                >
+                  Confirm
+                </button>
+                <button
+                  type="button"
+                  class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+                  (click)="cancelReject()"
+                >
+                  Cancel
+                </button>
               </div>
             }
           </li>

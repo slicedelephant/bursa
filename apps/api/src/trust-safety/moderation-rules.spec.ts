@@ -24,9 +24,9 @@ describe('moderation-rules', () => {
         country: 'DE',
       });
       expect(result.autoFlagged).toBe(true);
-      expect(result.reasons.some((r) => r.startsWith('suspicious_keyword'))).toBe(
-        true,
-      );
+      expect(
+        result.reasons.some((r) => r.startsWith('suspicious_keyword')),
+      ).toBe(true);
     });
 
     it('flags a sanctioned country strongly', () => {
@@ -36,9 +36,9 @@ describe('moderation-rules', () => {
         country: 'KP',
       });
       expect(result.autoFlagged).toBe(true);
-      expect(result.reasons.some((r) => r.startsWith('sanctioned_country'))).toBe(
-        true,
-      );
+      expect(
+        result.reasons.some((r) => r.startsWith('sanctioned_country')),
+      ).toBe(true);
     });
 
     it('flags near-duplicate campaigns', () => {
@@ -53,9 +53,9 @@ describe('moderation-rules', () => {
           },
         ],
       });
-      expect(result.reasons.some((r) => r.startsWith('duplicate_campaign'))).toBe(
-        true,
-      );
+      expect(
+        result.reasons.some((r) => r.startsWith('duplicate_campaign')),
+      ).toBe(true);
     });
 
     it('accumulates community-flag pressure', () => {

@@ -1,7 +1,4 @@
-import {
-  assessPassword,
-  validateStrongPassword,
-} from './password-policy';
+import { assessPassword, validateStrongPassword } from './password-policy';
 
 describe('assessPassword', () => {
   it('accepts a strong password', () => {

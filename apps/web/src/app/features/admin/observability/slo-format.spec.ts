@@ -1,11 +1,5 @@
 import { SloReport } from '../../../core/models';
-import {
-  alertClass,
-  alertLabel,
-  burnClass,
-  objectiveLabel,
-  windowRows,
-} from './slo-format';
+import { alertClass, alertLabel, burnClass, objectiveLabel, windowRows } from './slo-format';
 
 const report = (alert: SloReport['alert']): SloReport => ({
   objectivePct: 99.9,
@@ -41,8 +35,6 @@ describe('slo-format', () => {
   });
 
   it('summarises the objective and budget', () => {
-    expect(objectiveLabel(report('none'))).toBe(
-      'Objective 99.9% · error budget 0.1%',
-    );
+    expect(objectiveLabel(report('none'))).toBe('Objective 99.9% · error budget 0.1%');
   });
 });

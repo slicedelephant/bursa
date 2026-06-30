@@ -338,39 +338,27 @@ export class ApiService {
 
   // ---- Donor account (E4) ----
   donorHistory(): Observable<DonorHistory> {
-    return this.unwrap(
-      this.http.get<Envelope<DonorHistory>>(`${API_BASE}/donors/me/history`),
-    );
+    return this.unwrap(this.http.get<Envelope<DonorHistory>>(`${API_BASE}/donors/me/history`));
   }
 
   donorReceipt(donationId: string): Observable<Receipt> {
     return this.unwrap(
-      this.http.get<Envelope<Receipt>>(
-        `${API_BASE}/donors/me/donations/${donationId}/receipt`,
-      ),
+      this.http.get<Envelope<Receipt>>(`${API_BASE}/donors/me/donations/${donationId}/receipt`),
     );
   }
 
   listNotifications(): Observable<NotificationFeed> {
-    return this.unwrap(
-      this.http.get<Envelope<NotificationFeed>>(`${API_BASE}/notifications`),
-    );
+    return this.unwrap(this.http.get<Envelope<NotificationFeed>>(`${API_BASE}/notifications`));
   }
 
   markNotificationRead(id: string): Observable<DonorNotification> {
     return this.unwrap(
-      this.http.post<Envelope<DonorNotification>>(
-        `${API_BASE}/notifications/${id}/read`,
-        {},
-      ),
+      this.http.post<Envelope<DonorNotification>>(`${API_BASE}/notifications/${id}/read`, {}),
     );
   }
 
   // ---- Recurring (simulated) ----
-  createRecurring(body: {
-    campaignId: string;
-    amountCents: number;
-  }): Observable<RecurringPledge> {
+  createRecurring(body: { campaignId: string; amountCents: number }): Observable<RecurringPledge> {
     return this.unwrap(
       this.http.post<Envelope<RecurringPledge>>(`${API_BASE}/donors/me/recurring`, body),
     );
@@ -396,10 +384,7 @@ export class ApiService {
 
   runRecurring(): Observable<RecurringRunResult> {
     return this.unwrap(
-      this.http.post<Envelope<RecurringRunResult>>(
-        `${API_BASE}/donors/me/recurring/run`,
-        {},
-      ),
+      this.http.post<Envelope<RecurringRunResult>>(`${API_BASE}/donors/me/recurring/run`, {}),
     );
   }
 
@@ -410,10 +395,7 @@ export class ApiService {
   }
 
   // ---- Corporate channel (E5) ----
-  corporateSponsor(
-    campaignId: string,
-    body: SponsorBody,
-  ): Observable<CorporateSponsorshipResult> {
+  corporateSponsor(campaignId: string, body: SponsorBody): Observable<CorporateSponsorshipResult> {
     return this.unwrap(
       this.http.post<Envelope<CorporateSponsorshipResult>>(
         `${API_BASE}/campaigns/${campaignId}/corporate/sponsor`,
@@ -470,10 +452,7 @@ export class ApiService {
   /** Privacy-aware product/funnel event ingest (anonymous visitorId, no PII). */
   trackEvent(body: TrackEventBody): Observable<{ recorded: boolean }> {
     return this.unwrap(
-      this.http.post<Envelope<{ recorded: boolean }>>(
-        `${API_BASE}/analytics/events`,
-        body,
-      ),
+      this.http.post<Envelope<{ recorded: boolean }>>(`${API_BASE}/analytics/events`, body),
     );
   }
 
@@ -492,22 +471,16 @@ export class ApiService {
   }
 
   obsMetrics(): Observable<ObsMetrics> {
-    return this.unwrap(
-      this.http.get<Envelope<ObsMetrics>>(`${API_BASE}/observability/metrics`),
-    );
+    return this.unwrap(this.http.get<Envelope<ObsMetrics>>(`${API_BASE}/observability/metrics`));
   }
 
   obsSlo(): Observable<SloReport> {
-    return this.unwrap(
-      this.http.get<Envelope<SloReport>>(`${API_BASE}/observability/slo`),
-    );
+    return this.unwrap(this.http.get<Envelope<SloReport>>(`${API_BASE}/observability/slo`));
   }
 
   obsPaymentAlerts(): Observable<PaymentAlerts> {
     return this.unwrap(
-      this.http.get<Envelope<PaymentAlerts>>(
-        `${API_BASE}/observability/payment-alerts`,
-      ),
+      this.http.get<Envelope<PaymentAlerts>>(`${API_BASE}/observability/payment-alerts`),
     );
   }
 
@@ -521,7 +494,9 @@ export class ApiService {
   }
 
   schoolSavePayout(body: PayoutFormBody): Observable<SchoolProfileRaw> {
-    return this.unwrap(this.http.put<Envelope<SchoolProfileRaw>>(`${API_BASE}/school/payout`, body));
+    return this.unwrap(
+      this.http.put<Envelope<SchoolProfileRaw>>(`${API_BASE}/school/payout`, body),
+    );
   }
 
   schoolSignAgreement(body: { signerName: string }): Observable<SchoolProfileRaw> {
@@ -532,7 +507,9 @@ export class ApiService {
 
   schoolImportAdmissions(csv: string): Observable<AdmissionImportResult> {
     return this.unwrap(
-      this.http.post<Envelope<AdmissionImportResult>>(`${API_BASE}/school/admissions/import`, { csv }),
+      this.http.post<Envelope<AdmissionImportResult>>(`${API_BASE}/school/admissions/import`, {
+        csv,
+      }),
     );
   }
 
@@ -552,7 +529,9 @@ export class ApiService {
 
   schoolRejectAdmission(id: string, note: string): Observable<AdmissionRecord> {
     return this.unwrap(
-      this.http.post<Envelope<AdmissionRecord>>(`${API_BASE}/school/admissions/${id}/reject`, { note }),
+      this.http.post<Envelope<AdmissionRecord>>(`${API_BASE}/school/admissions/${id}/reject`, {
+        note,
+      }),
     );
   }
 
@@ -570,7 +549,9 @@ export class ApiService {
 
   schoolRejectCampaign(id: string, note: string): Observable<OwnerCampaign> {
     return this.unwrap(
-      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/school/campaigns/${id}/reject`, { note }),
+      this.http.post<Envelope<OwnerCampaign>>(`${API_BASE}/school/campaigns/${id}/reject`, {
+        note,
+      }),
     );
   }
 
@@ -607,9 +588,7 @@ export class ApiService {
   }
 
   trustHeatMap(): Observable<TrustHeatMap> {
-    return this.unwrap(
-      this.http.get<Envelope<TrustHeatMap>>(`${API_BASE}/trust-safety/heat-map`),
-    );
+    return this.unwrap(this.http.get<Envelope<TrustHeatMap>>(`${API_BASE}/trust-safety/heat-map`));
   }
 
   trustModeration(status?: string): Observable<ModerationCaseItem[]> {
@@ -665,9 +644,9 @@ export class ApiService {
     );
   }
 
-  trustFraudSignals(query: { donorUserId?: string; kind?: string } = {}): Observable<
-    FraudSignalItem[]
-  > {
+  trustFraudSignals(
+    query: { donorUserId?: string; kind?: string } = {},
+  ): Observable<FraudSignalItem[]> {
     let params = new HttpParams();
     for (const [k, v] of Object.entries(query)) {
       if (v) params = params.set(k, v);

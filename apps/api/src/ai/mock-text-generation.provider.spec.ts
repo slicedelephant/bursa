@@ -1,5 +1,9 @@
 import { MockTextGenerationProvider } from './mock-text-generation.provider';
-import { buildSharePrompt, buildStoryPrompt, buildTitlePrompt } from './prompt-builder';
+import {
+  buildSharePrompt,
+  buildStoryPrompt,
+  buildTitlePrompt,
+} from './prompt-builder';
 
 describe('MockTextGenerationProvider', () => {
   const provider = new MockTextGenerationProvider();

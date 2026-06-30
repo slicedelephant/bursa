@@ -21,7 +21,10 @@ function pad10(n: number): string {
   return n.toString().padStart(10, '0');
 }
 
-export function buildSimplePdf(title: string, lines: readonly string[]): string {
+export function buildSimplePdf(
+  title: string,
+  lines: readonly string[],
+): string {
   const allLines = [title, '', ...lines];
 
   // Build the content stream (text object). First line is the heading.

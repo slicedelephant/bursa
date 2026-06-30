@@ -24,20 +24,28 @@ describe('payment-provider.factory', () => {
 
     it('is false when flag is mock even with a key', () => {
       expect(
-        shouldUseStripe({ PAYMENT_PROVIDER: 'mock', STRIPE_SECRET_KEY: 'sk_test' }),
+        shouldUseStripe({
+          PAYMENT_PROVIDER: 'mock',
+          STRIPE_SECRET_KEY: 'sk_test',
+        }),
       ).toBe(false);
     });
 
     it('is true only when flag is stripe and a key is present', () => {
       expect(
-        shouldUseStripe({ PAYMENT_PROVIDER: 'STRIPE', STRIPE_SECRET_KEY: 'sk_test' }),
+        shouldUseStripe({
+          PAYMENT_PROVIDER: 'STRIPE',
+          STRIPE_SECRET_KEY: 'sk_test',
+        }),
       ).toBe(true);
     });
   });
 
   describe('createPaymentProvider', () => {
     it('returns Mock by default', () => {
-      expect(createPaymentProvider({}, silentLogger)).toBeInstanceOf(MockPaymentProvider);
+      expect(createPaymentProvider({}, silentLogger)).toBeInstanceOf(
+        MockPaymentProvider,
+      );
     });
 
     it('returns Mock when stripe requested but key missing', () => {
@@ -47,11 +55,11 @@ describe('payment-provider.factory', () => {
     });
 
     it('returns Stripe when flag + key present and the SDK loads', () => {
-      jest
-        .spyOn(StripePaymentProvider, 'loadSdk')
-        .mockReturnValue(class FakeStripe {
+      jest.spyOn(StripePaymentProvider, 'loadSdk').mockReturnValue(
+        class FakeStripe {
           constructor(public key: string) {}
-        });
+        },
+      );
       const provider = createPaymentProvider(
         { PAYMENT_PROVIDER: 'stripe', STRIPE_SECRET_KEY: 'sk_test_123' },
         silentLogger,

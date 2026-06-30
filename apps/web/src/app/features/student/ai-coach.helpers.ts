@@ -31,10 +31,7 @@ export function kindLabel(kind: CoachKind): string {
 }
 
 /** Compact "X of Y tokens left" string for the budget meter. */
-export function formatRemainingBudget(
-  remainingTokens: number,
-  limitTokens: number,
-): string {
+export function formatRemainingBudget(remainingTokens: number, limitTokens: number): string {
   const remaining = Math.max(0, Math.floor(remainingTokens));
   const limit = Math.max(0, Math.floor(limitTokens));
   return `${remaining.toLocaleString('en-US')} of ${limit.toLocaleString('en-US')} tokens left`;
@@ -55,9 +52,7 @@ export function variantPreview(text: string, maxChars = 120): string {
 }
 
 /** Pick the recommended variant (or the first), null when there are none. */
-export function recommendedVariant<T extends AiVariant>(
-  variants: readonly T[],
-): T | null {
+export function recommendedVariant<T extends AiVariant>(variants: readonly T[]): T | null {
   if (!variants || variants.length === 0) {
     return null;
   }

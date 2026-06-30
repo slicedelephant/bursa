@@ -154,7 +154,10 @@ describe('ModerationService', () => {
       riskScore: 50,
     });
     const { service, audit } = makeService(prisma);
-    await service.decide('m1', 'admin1', { action: 'APPROVE', note: 'looks fine' });
+    await service.decide('m1', 'admin1', {
+      action: 'APPROVE',
+      note: 'looks fine',
+    });
     expect(audit.record).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'moderation.approve',
@@ -179,7 +182,9 @@ describe('ModerationService', () => {
         moderationCase: {
           update: jest
             .fn()
-            .mockImplementation(({ data }) => Promise.resolve({ id: 'm1', ...data })),
+            .mockImplementation(({ data }) =>
+              Promise.resolve({ id: 'm1', ...data }),
+            ),
         },
         campaign: { update: campaignUpdate },
       }),

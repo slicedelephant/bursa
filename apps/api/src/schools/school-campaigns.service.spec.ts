@@ -1,15 +1,26 @@
 import { SchoolCampaignsService } from './school-campaigns.service';
 
-const activeSchool = { id: 's1', onboardingStatus: 'ACTIVE', payoutVerified: true };
+const activeSchool = {
+  id: 's1',
+  onboardingStatus: 'ACTIVE',
+  payoutVerified: true,
+};
 
 function buildPrisma() {
   const txApi = {
     admissionVerification: { upsert: jest.fn().mockResolvedValue({}) },
     campaignUpdate: { create: jest.fn().mockResolvedValue({}) },
     campaign: {
-      update: jest.fn().mockImplementation(({ data }) =>
-        Promise.resolve({ id: 'c1', title: 'MBA tuition', goalCents: 100_000, ...data }),
-      ),
+      update: jest
+        .fn()
+        .mockImplementation(({ data }) =>
+          Promise.resolve({
+            id: 'c1',
+            title: 'MBA tuition',
+            goalCents: 100_000,
+            ...data,
+          }),
+        ),
     },
   };
   return {
@@ -25,7 +36,10 @@ function buildPrisma() {
 
 function makeService(prisma: ReturnType<typeof buildPrisma>) {
   const webhooks = { emit: jest.fn().mockResolvedValue(undefined) };
-  return { service: new SchoolCampaignsService(prisma as never, webhooks as never), webhooks };
+  return {
+    service: new SchoolCampaignsService(prisma as never, webhooks as never),
+    webhooks,
+  };
 }
 
 describe('SchoolCampaignsService', () => {
@@ -52,7 +66,10 @@ describe('SchoolCampaignsService', () => {
   it('approves with an explicit admissionRef and note', async () => {
     const prisma = buildPrisma();
     const { service } = makeService(prisma);
-    const updated = await service.approve('s1', 'c1', 'admin1', { admissionRef: 'ADM-7', note: 'looks good' });
+    const updated = await service.approve('s1', 'c1', 'admin1', {
+      admissionRef: 'ADM-7',
+      note: 'looks good',
+    });
     expect(updated.status).toBe('LIVE');
     expect(prisma._txApi.admissionVerification.upsert).toHaveBeenCalled();
   });
@@ -61,16 +78,24 @@ describe('SchoolCampaignsService', () => {
     const prisma = buildPrisma();
     prisma.school.findUnique.mockResolvedValue(null);
     const { service } = makeService(prisma);
-    await expect(service.approve('s1', 'c1', 'admin1', {})).rejects.toMatchObject({
+    await expect(
+      service.approve('s1', 'c1', 'admin1', {}),
+    ).rejects.toMatchObject({
       response: { code: 'NOT_FOUND' },
     });
   });
 
   it('blocks approval when the school is not yet active', async () => {
     const prisma = buildPrisma();
-    prisma.school.findUnique.mockResolvedValue({ id: 's1', onboardingStatus: 'SUBMITTED', payoutVerified: false });
+    prisma.school.findUnique.mockResolvedValue({
+      id: 's1',
+      onboardingStatus: 'SUBMITTED',
+      payoutVerified: false,
+    });
     const { service } = makeService(prisma);
-    await expect(service.approve('s1', 'c1', 'admin1', {})).rejects.toMatchObject({
+    await expect(
+      service.approve('s1', 'c1', 'admin1', {}),
+    ).rejects.toMatchObject({
       response: { code: 'SCHOOL_NOT_ACTIVE' },
     });
   });
@@ -78,7 +103,12 @@ describe('SchoolCampaignsService', () => {
   it('rejects a campaign with a reason', async () => {
     const prisma = buildPrisma();
     const { service } = makeService(prisma);
-    const updated = await service.reject('s1', 'c1', 'admin1', 'Story incomplete');
+    const updated = await service.reject(
+      's1',
+      'c1',
+      'admin1',
+      'Story incomplete',
+    );
     expect(updated.status).toBe('REJECTED');
     expect(prisma._txApi.admissionVerification.upsert).toHaveBeenCalled();
   });
@@ -87,7 +117,9 @@ describe('SchoolCampaignsService', () => {
     const prisma = buildPrisma();
     prisma.campaign.findFirst.mockResolvedValue(null);
     const { service } = makeService(prisma);
-    await expect(service.reject('s1', 'nope', 'admin1', 'x')).rejects.toMatchObject({
+    await expect(
+      service.reject('s1', 'nope', 'admin1', 'x'),
+    ).rejects.toMatchObject({
       response: { code: 'NOT_FOUND' },
     });
   });

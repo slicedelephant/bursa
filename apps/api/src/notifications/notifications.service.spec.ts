@@ -79,7 +79,9 @@ describe('NotificationsService', () => {
 
   it('onDonation for an anonymous donor only handles milestones, no thank-you', async () => {
     const prisma = buildPrisma();
-    prisma.updateSubscription.findMany.mockResolvedValue([{ donorUserId: 'u9' }]);
+    prisma.updateSubscription.findMany.mockResolvedValue([
+      { donorUserId: 'u9' },
+    ]);
     const email = buildEmail();
     const svc = new NotificationsService(prisma as never, email as never);
 
@@ -103,23 +105,36 @@ describe('NotificationsService', () => {
     const email = buildEmail();
     const svc = new NotificationsService(prisma as never, email as never);
 
-    await svc.onImpactUpdate({ campaignId: 'c1', studentName: 'Amara', updateTitle: 'Semester 1' });
+    await svc.onImpactUpdate({
+      campaignId: 'c1',
+      studentName: 'Amara',
+      updateTitle: 'Semester 1',
+    });
     expect(prisma.notification.create).not.toHaveBeenCalled();
 
     prisma.updateSubscription.findMany.mockResolvedValue([
       { donorUserId: 'u1' },
       { donorUserId: 'u2' },
     ]);
-    await svc.onImpactUpdate({ campaignId: 'c1', studentName: 'Amara', updateTitle: 'Semester 1' });
+    await svc.onImpactUpdate({
+      campaignId: 'c1',
+      studentName: 'Amara',
+      updateTitle: 'Semester 1',
+    });
     expect(prisma.notification.create).toHaveBeenCalledTimes(2);
     expect(email.log).toHaveBeenCalledTimes(2);
   });
 
   it('listForUser returns items and an unread count', async () => {
     const prisma = buildPrisma();
-    prisma.notification.findMany.mockResolvedValue([{ id: 'n1', readAt: null }]);
+    prisma.notification.findMany.mockResolvedValue([
+      { id: 'n1', readAt: null },
+    ]);
     prisma.notification.count.mockResolvedValue(1);
-    const svc = new NotificationsService(prisma as never, buildEmail() as never);
+    const svc = new NotificationsService(
+      prisma as never,
+      buildEmail() as never,
+    );
     const res = await svc.listForUser('u1');
     expect(res.items).toHaveLength(1);
     expect(res.unread).toBe(1);
@@ -127,22 +142,39 @@ describe('NotificationsService', () => {
 
   it('markRead enforces ownership', async () => {
     const prisma = buildPrisma();
-    prisma.notification.findUnique.mockResolvedValue({ id: 'n1', userId: 'owner' });
-    const svc = new NotificationsService(prisma as never, buildEmail() as never);
-    expect(await codeOf(() => svc.markRead('intruder', 'n1'))).toBe('FORBIDDEN');
+    prisma.notification.findUnique.mockResolvedValue({
+      id: 'n1',
+      userId: 'owner',
+    });
+    const svc = new NotificationsService(
+      prisma as never,
+      buildEmail() as never,
+    );
+    expect(await codeOf(() => svc.markRead('intruder', 'n1'))).toBe(
+      'FORBIDDEN',
+    );
   });
 
   it('markRead throws NOT_FOUND for an unknown notification', async () => {
     const prisma = buildPrisma();
     prisma.notification.findUnique.mockResolvedValue(null);
-    const svc = new NotificationsService(prisma as never, buildEmail() as never);
+    const svc = new NotificationsService(
+      prisma as never,
+      buildEmail() as never,
+    );
     expect(await codeOf(() => svc.markRead('u1', 'missing'))).toBe('NOT_FOUND');
   });
 
   it('markRead sets readAt for the owner', async () => {
     const prisma = buildPrisma();
-    prisma.notification.findUnique.mockResolvedValue({ id: 'n1', userId: 'u1' });
-    const svc = new NotificationsService(prisma as never, buildEmail() as never);
+    prisma.notification.findUnique.mockResolvedValue({
+      id: 'n1',
+      userId: 'u1',
+    });
+    const svc = new NotificationsService(
+      prisma as never,
+      buildEmail() as never,
+    );
     await svc.markRead('u1', 'n1');
     expect(prisma.notification.update).toHaveBeenCalledWith({
       where: { id: 'n1' },
@@ -163,11 +195,16 @@ describe('NotificationsService', () => {
 
   it('subscribe upserts on the compound key', async () => {
     const prisma = buildPrisma();
-    const svc = new NotificationsService(prisma as never, buildEmail() as never);
+    const svc = new NotificationsService(
+      prisma as never,
+      buildEmail() as never,
+    );
     await svc.subscribe('u1', 'c1');
     expect(prisma.updateSubscription.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { donorUserId_campaignId: { donorUserId: 'u1', campaignId: 'c1' } },
+        where: {
+          donorUserId_campaignId: { donorUserId: 'u1', campaignId: 'c1' },
+        },
       }),
     );
   });
@@ -175,10 +212,20 @@ describe('NotificationsService', () => {
   it('listSubscriptions maps campaign titles', async () => {
     const prisma = buildPrisma();
     prisma.updateSubscription.findMany.mockResolvedValue([
-      { campaignId: 'c1', campaign: { title: 'Help Amara' }, createdAt: new Date() },
+      {
+        campaignId: 'c1',
+        campaign: { title: 'Help Amara' },
+        createdAt: new Date(),
+      },
     ]);
-    const svc = new NotificationsService(prisma as never, buildEmail() as never);
+    const svc = new NotificationsService(
+      prisma as never,
+      buildEmail() as never,
+    );
     const res = await svc.listSubscriptions('u1');
-    expect(res[0]).toMatchObject({ campaignId: 'c1', campaignTitle: 'Help Amara' });
+    expect(res[0]).toMatchObject({
+      campaignId: 'c1',
+      campaignTitle: 'Help Amara',
+    });
   });
 });

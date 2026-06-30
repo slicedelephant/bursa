@@ -71,7 +71,9 @@ export class FraudService {
       recent.map((d) => d.createdAt),
       now,
     );
-    const failedRecentCount = recent.filter((d) => d.status === 'FAILED').length;
+    const failedRecentCount = recent.filter(
+      (d) => d.status === 'FAILED',
+    ).length;
 
     const donorRisk = scoreDonorRisk({
       country: donation.donorCountry,
@@ -86,7 +88,11 @@ export class FraudService {
       { score: donorRisk.score, reasons: donorRisk.reasons },
     ]);
 
-    const kind = this.primaryKind(cardTesting.flagged, donorRisk.reasons, velocity.exceeded);
+    const kind = this.primaryKind(
+      cardTesting.flagged,
+      donorRisk.reasons,
+      velocity.exceeded,
+    );
 
     const signal = await this.prisma.fraudSignal.create({
       data: {

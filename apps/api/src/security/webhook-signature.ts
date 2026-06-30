@@ -65,7 +65,9 @@ export function verifyWebhookSignature(input: VerifyInput): boolean {
   if (Math.abs(nowSec - timestamp) > tolerance) return false;
 
   const signedPayload = `${timestamp}.${rawBody}`;
-  const expected = createHmac('sha256', secret).update(signedPayload).digest('hex');
+  const expected = createHmac('sha256', secret)
+    .update(signedPayload)
+    .digest('hex');
 
   return signatures.some((sig) => safeEqualHex(sig, expected));
 }

@@ -1,8 +1,4 @@
-import {
-  evaluateSlo,
-  PAGE_BURN_THRESHOLD,
-  TICKET_BURN_THRESHOLD,
-} from './slo';
+import { evaluateSlo, PAGE_BURN_THRESHOLD, TICKET_BURN_THRESHOLD } from './slo';
 
 describe('evaluateSlo', () => {
   it('exposes the error budget derived from the objective', () => {

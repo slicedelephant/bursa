@@ -31,7 +31,12 @@ export class RateLimitStore {
    * Registers one hit for `key` and returns the decision. A fresh or expired
    * window starts a new bucket; otherwise the counter increments.
    */
-  hit(key: string, limit: number, windowMs: number, now: number): RateLimitDecision {
+  hit(
+    key: string,
+    limit: number,
+    windowMs: number,
+    now: number,
+  ): RateLimitDecision {
     const existing = this.buckets.get(key);
     const bucket =
       !existing || now >= existing.resetAt
@@ -44,9 +49,17 @@ export class RateLimitStore {
 
     const allowed = count <= limit;
     const remaining = Math.max(0, limit - count);
-    const retryAfterSec = allowed ? 0 : Math.ceil((bucket.resetAt - now) / 1000);
+    const retryAfterSec = allowed
+      ? 0
+      : Math.ceil((bucket.resetAt - now) / 1000);
 
-    return { allowed, limit, remaining, resetAt: bucket.resetAt, retryAfterSec };
+    return {
+      allowed,
+      limit,
+      remaining,
+      resetAt: bucket.resetAt,
+      retryAfterSec,
+    };
   }
 
   /** Drops expired buckets; safe to call periodically to bound memory. */

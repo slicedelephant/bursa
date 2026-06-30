@@ -154,7 +154,11 @@ export class SchoolOnboardingService {
     });
     const result = validateOnboardingToken(
       token
-        ? { tokenHash: token.tokenHash, expiresAt: token.expiresAt, usedAt: token.usedAt }
+        ? {
+            tokenHash: token.tokenHash,
+            expiresAt: token.expiresAt,
+            usedAt: token.usedAt,
+          }
         : null,
       rawToken ?? '',
     );
@@ -169,7 +173,9 @@ export class SchoolOnboardingService {
   }
 
   private async requireSchool(schoolId: string) {
-    const school = await this.prisma.school.findUnique({ where: { id: schoolId } });
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
     if (!school) {
       throw new DomainException('NOT_FOUND', 'School not found', 404);
     }

@@ -18,7 +18,11 @@ describe('RecognitionBannerComponent', () => {
 
   it('renders a named scholarship and the supporting company', () => {
     const el = render([
-      { companyName: 'Acme Capital', logoUrl: null, scholarshipName: 'The Acme Capital Scholarship' },
+      {
+        companyName: 'Acme Capital',
+        logoUrl: null,
+        scholarshipName: 'The Acme Capital Scholarship',
+      },
     ]);
     expect(el.textContent).toContain('Corporate supporters');
     expect(el.textContent).toContain('The Acme Capital Scholarship');

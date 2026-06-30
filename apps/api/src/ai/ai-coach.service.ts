@@ -66,10 +66,28 @@ export class AiCoachService {
       motivation: dto.motivation,
       locale,
     });
-    const inputChars = dto.country.length + dto.school.length + dto.program.length + dto.motivation.length;
-    const raw = await this.provider.generate({ prompt, variants: 3, seed: inputChars + dto.motivation });
+    const inputChars =
+      dto.country.length +
+      dto.school.length +
+      dto.program.length +
+      dto.motivation.length;
+    const raw = await this.provider.generate({
+      prompt,
+      variants: 3,
+      seed: inputChars + dto.motivation,
+    });
     const ranked = this.process(raw.variants, LENGTH_TARGETS.title, locale);
-    const budget = await this.charge(userId, state, inputChars, ranked.outputChars, 'TITLE', locale, raw.provider, ranked.variants.length, null);
+    const budget = await this.charge(
+      userId,
+      state,
+      inputChars,
+      ranked.outputChars,
+      'TITLE',
+      locale,
+      raw.provider,
+      ranked.variants.length,
+      null,
+    );
     return {
       kind: 'TITLE' as GenKind,
       locale,
@@ -90,11 +108,29 @@ export class AiCoachService {
       background: dto.background,
       locale,
     });
-    const inputChars = dto.school.length + dto.motivation.length + (dto.background?.length ?? 0);
-    const raw = await this.provider.generate({ prompt, variants: 2, seed: inputChars + dto.motivation });
+    const inputChars =
+      dto.school.length + dto.motivation.length + (dto.background?.length ?? 0);
+    const raw = await this.provider.generate({
+      prompt,
+      variants: 2,
+      seed: inputChars + dto.motivation,
+    });
     const ranked = this.process(raw.variants, LENGTH_TARGETS.story, locale);
-    const variants = ranked.variants.map((v) => ({ ...v, parts: this.splitStory(v.text) }));
-    const budget = await this.charge(userId, state, inputChars, ranked.outputChars, 'STORY', locale, raw.provider, variants.length, null);
+    const variants = ranked.variants.map((v) => ({
+      ...v,
+      parts: this.splitStory(v.text),
+    }));
+    const budget = await this.charge(
+      userId,
+      state,
+      inputChars,
+      ranked.outputChars,
+      'STORY',
+      locale,
+      raw.provider,
+      variants.length,
+      null,
+    );
     return {
       kind: 'STORY' as GenKind,
       locale,
@@ -109,11 +145,34 @@ export class AiCoachService {
     const locale: Locale = dto.locale ?? 'en';
     const channel: ShareChannel = dto.channel;
     const state = await this.guardBudget(userId);
-    const prompt = buildSharePrompt({ channel, title: dto.title, story: dto.story, locale });
+    const prompt = buildSharePrompt({
+      channel,
+      title: dto.title,
+      story: dto.story,
+      locale,
+    });
     const inputChars = dto.title.length + dto.story.length;
-    const raw = await this.provider.generate({ prompt, variants: 3, seed: inputChars + channel });
-    const ranked = this.process(raw.variants, LENGTH_TARGETS.share[channel], locale);
-    const budget = await this.charge(userId, state, inputChars, ranked.outputChars, 'SHARE', locale, raw.provider, ranked.variants.length, channel);
+    const raw = await this.provider.generate({
+      prompt,
+      variants: 3,
+      seed: inputChars + channel,
+    });
+    const ranked = this.process(
+      raw.variants,
+      LENGTH_TARGETS.share[channel],
+      locale,
+    );
+    const budget = await this.charge(
+      userId,
+      state,
+      inputChars,
+      ranked.outputChars,
+      'SHARE',
+      locale,
+      raw.provider,
+      ranked.variants.length,
+      channel,
+    );
     return {
       kind: 'SHARE' as GenKind,
       channel,
@@ -128,7 +187,9 @@ export class AiCoachService {
   // --- internals -----------------------------------------------------------
 
   private async loadBudget(userId: string): Promise<BudgetState> {
-    const existing = await this.prisma.aiTokenBudget.findUnique({ where: { userId } });
+    const existing = await this.prisma.aiTokenBudget.findUnique({
+      where: { userId },
+    });
     if (existing) {
       return {
         limitTokens: existing.limitTokens,
@@ -137,7 +198,12 @@ export class AiCoachService {
       };
     }
     const created = await this.prisma.aiTokenBudget.create({
-      data: { userId, limitTokens: DEFAULT_TOKEN_LIMIT, usedTokens: 0, generations: 0 },
+      data: {
+        userId,
+        limitTokens: DEFAULT_TOKEN_LIMIT,
+        usedTokens: 0,
+        generations: 0,
+      },
     });
     return {
       limitTokens: created.limitTokens,
@@ -168,7 +234,11 @@ export class AiCoachService {
     const toned = raw.map((text) => applyTone(text, locale));
     const ranked = rankVariants(toned, window);
     const outputChars = ranked.variants.reduce((sum, v) => sum + v.length, 0);
-    return { variants: ranked.variants, recommendedIndex: ranked.recommendedIndex, outputChars };
+    return {
+      variants: ranked.variants,
+      recommendedIndex: ranked.recommendedIndex,
+      outputChars,
+    };
   }
 
   /** Map a multi-paragraph draft onto the three E3 story parts. */
@@ -203,7 +273,15 @@ export class AiCoachService {
       data: { usedTokens: next.usedTokens, generations: next.generations },
     });
     await this.prisma.aiGeneration.create({
-      data: { userId, kind, channel, locale, provider, tokensCharged, variantCount },
+      data: {
+        userId,
+        kind,
+        channel,
+        locale,
+        provider,
+        tokensCharged,
+        variantCount,
+      },
     });
     const view = toBudgetView(next);
     return { remainingTokens: view.remainingTokens, exhausted: view.exhausted };

@@ -11,8 +11,12 @@ describe('MockRegistrarProvider', () => {
   });
 
   it('does not recognise the -UNKNOWN sentinel or an empty ref', async () => {
-    expect((await provider.lookupAdmission('s', 'ADM-99-UNKNOWN')).found).toBe(false);
+    expect((await provider.lookupAdmission('s', 'ADM-99-UNKNOWN')).found).toBe(
+      false,
+    );
     expect((await provider.lookupAdmission('s', '   ')).found).toBe(false);
-    expect((await provider.lookupAdmission('s', 'ADM-99-UNKNOWN')).programName).toBeUndefined();
+    expect(
+      (await provider.lookupAdmission('s', 'ADM-99-UNKNOWN')).programName,
+    ).toBeUndefined();
   });
 });

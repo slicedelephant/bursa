@@ -1,9 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  HealthReport,
-  ObsMetrics,
-  PaymentAlert,
-} from '../../../core/models';
+import { HealthReport, ObsMetrics, PaymentAlert } from '../../../core/models';
 import { MetricsPanelComponent } from './metrics-panel.component';
 
 const metrics: ObsMetrics = {
@@ -24,10 +20,7 @@ describe('MetricsPanelComponent', () => {
     }).compileComponents();
   });
 
-  function render(
-    alerts: PaymentAlert[] = [],
-    health: HealthReport | null = null,
-  ) {
+  function render(alerts: PaymentAlert[] = [], health: HealthReport | null = null) {
     const fixture = TestBed.createComponent(MetricsPanelComponent);
     fixture.componentRef.setInput('metrics', metrics);
     fixture.componentRef.setInput('alerts', alerts);
@@ -49,7 +42,12 @@ describe('MetricsPanelComponent', () => {
 
   it('lists payment alerts with severity', () => {
     const el = render([
-      { kind: 'card_decline_wave', severity: 'critical', message: 'Card failure rate 60%', value: 60 },
+      {
+        kind: 'card_decline_wave',
+        severity: 'critical',
+        message: 'Card failure rate 60%',
+        value: 60,
+      },
     ]);
     expect(el.textContent).toContain('Card failure rate 60%');
     expect(el.textContent?.toLowerCase()).toContain('critical');

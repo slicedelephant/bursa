@@ -17,7 +17,9 @@ function makeDeps(user: Record<string, unknown> | null) {
     updateSubscription: { findMany: jest.fn().mockResolvedValue([]) },
     $transaction: jest.fn((cb: (t: typeof tx) => unknown) => cb(tx)),
   } as unknown as PrismaService & Record<string, any>;
-  const audit = { record: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService & {
+  const audit = {
+    record: jest.fn().mockResolvedValue(undefined),
+  } as unknown as AuditService & {
     record: jest.Mock;
   };
   return { prisma, audit, tx };
@@ -68,7 +70,10 @@ describe('AccountService.anonymize', () => {
 
     const donationUpdate = tx.donation.updateMany.mock.calls[0][0];
     expect(donationUpdate.where).toEqual({ donorUserId: 'u1' });
-    expect(donationUpdate.data).toMatchObject({ donorName: null, message: null });
+    expect(donationUpdate.data).toMatchObject({
+      donorName: null,
+      message: null,
+    });
 
     expect(audit.record).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'account.delete', actorUserId: 'u1' }),

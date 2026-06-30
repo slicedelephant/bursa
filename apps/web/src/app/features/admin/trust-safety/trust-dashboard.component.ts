@@ -1,12 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { TrustDashboardData, TrustHeatMap } from '../../../core/models';
 import { backlogSummary } from './moderation-format';
-import {
-  formatPct,
-  riskLevelClass,
-  riskLevelLabel,
-  scoreBarWidth,
-} from './risk-format';
+import { formatPct, riskLevelClass, riskLevelLabel, scoreBarWidth } from './risk-format';
 
 /**
  * Read-only Trust-and-Safety dashboard: KPI tiles, fraud trend, chargeback rate,
@@ -27,7 +22,9 @@ import {
         <p class="mt-1 text-2xl font-semibold text-ink">
           {{ pct(data.chargebacks.chargebackRatePct) }}
         </p>
-        <p class="text-xs text-slate2">{{ data.chargebacks.open }} open of {{ data.chargebacks.total }}</p>
+        <p class="text-xs text-slate2">
+          {{ data.chargebacks.open }} open of {{ data.chargebacks.total }}
+        </p>
       </div>
       <div class="rounded-xl bg-white p-4 ring-1 ring-black/5">
         <p class="text-xs uppercase tracking-wide text-slate2">Moderation backlog</p>

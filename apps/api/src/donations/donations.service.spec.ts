@@ -83,9 +83,16 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
 
     const pay = provider();
-    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+    pay.savePledge.mockResolvedValue({
+      status: 'AUTHORIZED',
+      pledgeRef: 'pl_1',
+    });
 
-    const service = new DonationsService(prisma as never, pay, notif() as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
+    );
     const res = await service.donateCard('c1', { amountCents: 5000 });
 
     expect(pay.savePledge).toHaveBeenCalled();
@@ -125,10 +132,20 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     });
 
     const pay = provider();
-    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_2' });
-    pay.captureOnGoalReached.mockResolvedValue({ status: 'SUCCEEDED', reference: 'cap_2' });
+    pay.savePledge.mockResolvedValue({
+      status: 'AUTHORIZED',
+      pledgeRef: 'pl_2',
+    });
+    pay.captureOnGoalReached.mockResolvedValue({
+      status: 'SUCCEEDED',
+      reference: 'cap_2',
+    });
 
-    const service = new DonationsService(prisma as never, pay, notif() as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
+    );
     const res = await service.donateCard('c1', { amountCents: 5000 });
 
     expect(pay.captureOnGoalReached).toHaveBeenCalledTimes(1);
@@ -152,13 +169,19 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       failureReason: 'declined',
     });
 
-    const service = new DonationsService(prisma as never, pay, notif() as never);
-
-    expect(await codeOf(() => service.donateCard('c1', { amountCents: 5013 }))).toBe(
-      'PAYMENT_FAILED',
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
     );
+
+    expect(
+      await codeOf(() => service.donateCard('c1', { amountCents: 5013 })),
+    ).toBe('PAYMENT_FAILED');
     expect(prisma.donation.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: 'FAILED' }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ status: 'FAILED' }),
+      }),
     );
   });
 
@@ -166,18 +189,28 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const tx = buildTx();
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(null);
-    const service = new DonationsService(prisma as never, provider(), notif() as never);
-    expect(await codeOf(() => service.donateCard('missing', { amountCents: 5000 }))).toBe(
-      'NOT_FOUND',
+    const service = new DonationsService(
+      prisma as never,
+      provider(),
+      notif() as never,
     );
+    expect(
+      await codeOf(() => service.donateCard('missing', { amountCents: 5000 })),
+    ).toBe('NOT_FOUND');
   });
 
   it('throws when capturing an unknown campaign', async () => {
     const tx = buildTx();
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(null);
-    const service = new DonationsService(prisma as never, provider(), notif() as never);
-    expect(await codeOf(() => service.captureCampaign('nope'))).toBe('NOT_FOUND');
+    const service = new DonationsService(
+      prisma as never,
+      provider(),
+      notif() as never,
+    );
+    expect(await codeOf(() => service.captureCampaign('nope'))).toBe(
+      'NOT_FOUND',
+    );
   });
 
   it('processes a corporate SEPA donation immediately with a receipt', async () => {
@@ -195,13 +228,23 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     );
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
-    prisma.corporateProfile.findUnique.mockResolvedValue({ id: 'corp1', companyName: 'ACME' });
+    prisma.corporateProfile.findUnique.mockResolvedValue({
+      id: 'corp1',
+      companyName: 'ACME',
+    });
     prisma.school.findUnique.mockResolvedValue({ name: 'ESMT Berlin' });
 
     const pay = provider();
-    pay.createSepaPledge.mockResolvedValue({ status: 'SUCCEEDED', reference: 'sepa_1' });
+    pay.createSepaPledge.mockResolvedValue({
+      status: 'SUCCEEDED',
+      reference: 'sepa_1',
+    });
 
-    const service = new DonationsService(prisma as never, pay, notif() as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
+    );
     const res = await service.donateSepa('c1', 'u1', { amountCents: 8000 });
 
     expect(res.receipt.donor).toBe('ACME');
@@ -212,7 +255,10 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const tx = buildTx();
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
-    prisma.corporateProfile.findUnique.mockResolvedValue({ id: 'corp1', companyName: 'ACME' });
+    prisma.corporateProfile.findUnique.mockResolvedValue({
+      id: 'corp1',
+      companyName: 'ACME',
+    });
     prisma.donation.create.mockResolvedValue({ id: 'sdf' });
     const pay = provider();
     pay.createSepaPledge.mockResolvedValue({
@@ -220,10 +266,14 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       reference: 'sepa_x',
       failureReason: 'mandate rejected',
     });
-    const service = new DonationsService(prisma as never, pay, notif() as never);
-    expect(await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 }))).toBe(
-      'PAYMENT_FAILED',
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
     );
+    expect(
+      await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 })),
+    ).toBe('PAYMENT_FAILED');
   });
 
   it('requires a corporate profile before a SEPA pledge', async () => {
@@ -231,10 +281,14 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
     prisma.corporateProfile.findUnique.mockResolvedValue(null);
-    const service = new DonationsService(prisma as never, provider(), notif() as never);
-    expect(await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 }))).toBe(
-      'VALIDATION_ERROR',
+    const service = new DonationsService(
+      prisma as never,
+      provider(),
+      notif() as never,
     );
+    expect(
+      await codeOf(() => service.donateSepa('c1', 'u1', { amountCents: 8000 })),
+    ).toBe('VALIDATION_ERROR');
   });
 
   it('captureCampaign skips pledges without a ref and reports failed captures', async () => {
@@ -251,7 +305,11 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       reference: 'x',
       failureReason: 'auth required',
     });
-    const service = new DonationsService(prisma as never, pay, notif() as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
+    );
     const summary = await service.captureCampaign('c1');
     expect(summary.capturedIds).toEqual([]);
     expect(summary.failedIds).toEqual(['pa', 'pb']);
@@ -272,12 +330,24 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
       verifiedLiveCampaign({ raisedCents: 10000, status: 'FUNDED' }),
     );
     const prisma = buildPrisma(tx);
-    prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign({ raisedCents: 6000 }));
-    prisma.corporateProfile.findUnique.mockResolvedValue({ id: 'corp1', companyName: 'ACME' });
+    prisma.campaign.findUnique.mockResolvedValue(
+      verifiedLiveCampaign({ raisedCents: 6000 }),
+    );
+    prisma.corporateProfile.findUnique.mockResolvedValue({
+      id: 'corp1',
+      companyName: 'ACME',
+    });
     prisma.school.findUnique.mockResolvedValue({ name: 'ESMT Berlin' });
     const pay = provider();
-    pay.createSepaPledge.mockResolvedValue({ status: 'SUCCEEDED', reference: 'sepa_2' });
-    const service = new DonationsService(prisma as never, pay, notif() as never);
+    pay.createSepaPledge.mockResolvedValue({
+      status: 'SUCCEEDED',
+      reference: 'sepa_2',
+    });
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
+    );
     const res = await service.donateSepa('c1', 'u1', { amountCents: 8000 });
     expect(res.campaign.status).toBe('FUNDED');
     expect(tx.campaignUpdate.create).toHaveBeenCalled();
@@ -289,10 +359,14 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     prisma.campaign.findUnique.mockResolvedValue(
       verifiedLiveCampaign({ status: 'FUNDED', raisedCents: 10000 }),
     );
-    const service = new DonationsService(prisma as never, provider(), notif() as never);
-    expect(await codeOf(() => service.donateCard('c1', { amountCents: 5000 }))).toBe(
-      'CAMPAIGN_FULLY_FUNDED',
+    const service = new DonationsService(
+      prisma as never,
+      provider(),
+      notif() as never,
     );
+    expect(
+      await codeOf(() => service.donateCard('c1', { amountCents: 5000 })),
+    ).toBe('CAMPAIGN_FULLY_FUNDED');
   });
 
   it('rejects donations once the goal amount is already met while LIVE', async () => {
@@ -301,10 +375,14 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     prisma.campaign.findUnique.mockResolvedValue(
       verifiedLiveCampaign({ status: 'LIVE', raisedCents: 10000 }),
     );
-    const service = new DonationsService(prisma as never, provider(), notif() as never);
-    expect(await codeOf(() => service.donateCard('c1', { amountCents: 5000 }))).toBe(
-      'CAMPAIGN_FULLY_FUNDED',
+    const service = new DonationsService(
+      prisma as never,
+      provider(),
+      notif() as never,
     );
+    expect(
+      await codeOf(() => service.donateCard('c1', { amountCents: 5000 })),
+    ).toBe('CAMPAIGN_FULLY_FUNDED');
   });
 
   it('attributes the donation to a logged-in donor and fires onDonation', async () => {
@@ -323,10 +401,17 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
     const pay = provider();
-    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+    pay.savePledge.mockResolvedValue({
+      status: 'AUTHORIZED',
+      pledgeRef: 'pl_1',
+    });
     const notifications = notif();
 
-    const service = new DonationsService(prisma as never, pay, notifications as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notifications as never,
+    );
     await service.donateCard('c1', { amountCents: 5000 }, 'donor-1');
 
     expect(tx.donation.create).toHaveBeenCalledWith(
@@ -355,9 +440,16 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
     const pay = provider();
-    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+    pay.savePledge.mockResolvedValue({
+      status: 'AUTHORIZED',
+      pledgeRef: 'pl_1',
+    });
 
-    const service = new DonationsService(prisma as never, pay, notif() as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notif() as never,
+    );
     await service.donateCard('c1', {
       amountCents: 5000,
       tributeType: 'MEMORY',
@@ -366,7 +458,10 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
 
     expect(tx.donation.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ tributeType: 'MEMORY', tributeName: 'Ada' }),
+        data: expect.objectContaining({
+          tributeType: 'MEMORY',
+          tributeName: 'Ada',
+        }),
       }),
     );
   });
@@ -387,10 +482,17 @@ describe('DonationsService (All-or-Nothing card flow)', () => {
     const prisma = buildPrisma(tx);
     prisma.campaign.findUnique.mockResolvedValue(verifiedLiveCampaign());
     const pay = provider();
-    pay.savePledge.mockResolvedValue({ status: 'AUTHORIZED', pledgeRef: 'pl_1' });
+    pay.savePledge.mockResolvedValue({
+      status: 'AUTHORIZED',
+      pledgeRef: 'pl_1',
+    });
     const notifications = notif();
 
-    const service = new DonationsService(prisma as never, pay, notifications as never);
+    const service = new DonationsService(
+      prisma as never,
+      pay,
+      notifications as never,
+    );
     await service.donateCard('c1', { amountCents: 5000 });
 
     expect(notifications.onDonation).toHaveBeenCalledWith(

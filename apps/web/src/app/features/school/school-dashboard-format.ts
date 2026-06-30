@@ -1,12 +1,7 @@
 // Pure presentation helpers for the school dashboard (E8). Money formatting,
 // payout-status chips, KPI tiles and donor-geography bars. No Angular, no I/O.
 
-export type StudentPayoutStatus =
-  | 'NONE'
-  | 'AWAITING_FUNDING'
-  | 'READY'
-  | 'SENT'
-  | 'CONFIRMED';
+export type StudentPayoutStatus = 'NONE' | 'AWAITING_FUNDING' | 'READY' | 'SENT' | 'CONFIRMED';
 
 export function formatEur(cents: number): string {
   return new Intl.NumberFormat('en-IE', {

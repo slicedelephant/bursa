@@ -7,7 +7,9 @@ const SECRET = 'whsec_test';
 const BODY = '{"id":"evt_1","type":"ping"}';
 
 function header(body: string, ts: number, secret = SECRET): string {
-  const sig = createHmac('sha256', secret).update(`${ts}.${body}`).digest('hex');
+  const sig = createHmac('sha256', secret)
+    .update(`${ts}.${body}`)
+    .digest('hex');
   return `t=${ts},v1=${sig}`;
 }
 

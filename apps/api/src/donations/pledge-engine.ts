@@ -35,7 +35,10 @@ export function remainingCents(raisedCents: number, goalCents: number): number {
  * The donation status a fresh card pledge takes: it stays PLEDGED until the
  * goal is reached, at which point it is captured.
  */
-export function pledgeOutcome(raisedAfter: number, goalCents: number): PledgeOutcome {
+export function pledgeOutcome(
+  raisedAfter: number,
+  goalCents: number,
+): PledgeOutcome {
   return isGoalReached(raisedAfter, goalCents) ? 'CAPTURED' : 'PLEDGED';
 }
 

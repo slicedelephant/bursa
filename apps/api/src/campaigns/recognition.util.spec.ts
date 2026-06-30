@@ -1,6 +1,8 @@
 import { SponsorshipForRecognition, toRecognition } from './recognition.util';
 
-const sp = (over: Partial<SponsorshipForRecognition> = {}): SponsorshipForRecognition => ({
+const sp = (
+  over: Partial<SponsorshipForRecognition> = {},
+): SponsorshipForRecognition => ({
   recognitionKind: 'NAMED',
   scholarshipName: 'The Acme Capital Scholarship',
   corporateProfile: { companyName: 'Acme Capital', logoUrl: null },
@@ -11,11 +13,26 @@ describe('toRecognition', () => {
   it('includes named and logo sponsorships', () => {
     const out = toRecognition([
       sp(),
-      sp({ recognitionKind: 'LOGO', scholarshipName: null, corporateProfile: { companyName: 'Globex', logoUrl: 'http://x/logo.png' } }),
+      sp({
+        recognitionKind: 'LOGO',
+        scholarshipName: null,
+        corporateProfile: {
+          companyName: 'Globex',
+          logoUrl: 'http://x/logo.png',
+        },
+      }),
     ]);
     expect(out).toEqual([
-      { companyName: 'Acme Capital', logoUrl: null, scholarshipName: 'The Acme Capital Scholarship' },
-      { companyName: 'Globex', logoUrl: 'http://x/logo.png', scholarshipName: null },
+      {
+        companyName: 'Acme Capital',
+        logoUrl: null,
+        scholarshipName: 'The Acme Capital Scholarship',
+      },
+      {
+        companyName: 'Globex',
+        logoUrl: 'http://x/logo.png',
+        scholarshipName: null,
+      },
     ]);
   });
 

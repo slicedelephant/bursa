@@ -1,10 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ChargebackItem } from '../../../core/models';
-import {
-  chargebackStatusClass,
-  chargebackStatusLabel,
-  refundEligible,
-} from './chargeback-format';
+import { chargebackStatusClass, chargebackStatusLabel, refundEligible } from './chargeback-format';
 import { formatEur } from './risk-format';
 
 export interface EvidenceEvent {
@@ -22,9 +18,7 @@ export interface EvidenceEvent {
   standalone: true,
   template: `
     @if (!chargebacks.length) {
-      <p class="rounded-xl bg-white p-5 text-sm text-slate2 ring-1 ring-black/5">
-        No chargebacks.
-      </p>
+      <p class="rounded-xl bg-white p-5 text-sm text-slate2 ring-1 ring-black/5">No chargebacks.</p>
     } @else {
       <div class="space-y-3">
         @for (c of chargebacks; track c.id) {
@@ -33,13 +27,13 @@ export interface EvidenceEvent {
               <div>
                 <p class="font-medium text-ink">{{ eur(c.amountCents) }} · {{ c.reason }}</p>
                 <p class="text-xs text-slate2">
-                  {{ c.providerEventId }}@if (c.campaignId) { · campaign {{ c.campaignId }} }
+                  {{ c.providerEventId }}
+                  @if (c.campaignId) {
+                    · campaign {{ c.campaignId }}
+                  }
                 </p>
               </div>
-              <span
-                class="rounded-full px-2 py-0.5 text-xs ring-1"
-                [class]="statusClass(c.status)"
-              >
+              <span class="rounded-full px-2 py-0.5 text-xs ring-1" [class]="statusClass(c.status)">
                 {{ statusLabel(c.status) }}
               </span>
             </div>

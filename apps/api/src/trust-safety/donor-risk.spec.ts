@@ -20,9 +20,9 @@ describe('donor-risk', () => {
 
   it('adds risk for sanctioned geography', () => {
     const result = scoreDonorRisk({ country: 'ir', amountCents: 1_000 });
-    expect(result.reasons.some((r) => r.startsWith('sanctioned_geography'))).toBe(
-      true,
-    );
+    expect(
+      result.reasons.some((r) => r.startsWith('sanctioned_geography')),
+    ).toBe(true);
     expect(result.score).toBeGreaterThanOrEqual(30);
   });
 

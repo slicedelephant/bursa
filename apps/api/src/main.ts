@@ -24,7 +24,8 @@ async function bootstrap(): Promise<void> {
   // exact signed bytes; the normal JSON parser stays active for every other route.
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
-  const isProd = (config.get<string>('NODE_ENV') ?? 'development') === 'production';
+  const isProd =
+    (config.get<string>('NODE_ENV') ?? 'development') === 'production';
 
   app.setGlobalPrefix('api');
 
@@ -46,14 +47,21 @@ async function bootstrap(): Promise<void> {
 
   // Security headers on every response; the interactive docs route gets a
   // relaxed CSP so Swagger UI can load its inline assets.
-  app.use((req: { path?: string }, res: { setHeader: (k: string, v: string) => void }, next: () => void) => {
-    const headers = securityHeaders({
-      production: isProd,
-      relaxedCsp: (req.path ?? '').startsWith('/api/docs'),
-    });
-    for (const [key, value] of Object.entries(headers)) res.setHeader(key, value);
-    next();
-  });
+  app.use(
+    (
+      req: { path?: string },
+      res: { setHeader: (k: string, v: string) => void },
+      next: () => void,
+    ) => {
+      const headers = securityHeaders({
+        production: isProd,
+        relaxedCsp: (req.path ?? '').startsWith('/api/docs'),
+      });
+      for (const [key, value] of Object.entries(headers))
+        res.setHeader(key, value);
+      next();
+    },
+  );
 
   app.enableCors({
     origin: config.get<string>('CORS_ORIGIN') ?? 'http://localhost:4200',

@@ -29,7 +29,9 @@ export function tributeLine(
 ): string | null {
   const t = normalizeTribute({ type, name });
   if (!t) return null;
-  return t.type === 'MEMORY' ? `In memory of ${t.name}` : `In honour of ${t.name}`;
+  return t.type === 'MEMORY'
+    ? `In memory of ${t.name}`
+    : `In honour of ${t.name}`;
 }
 
 /** True when exactly one of type/name is set — an invalid half-filled tribute. */

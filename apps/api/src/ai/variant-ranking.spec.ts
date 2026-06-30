@@ -65,7 +65,10 @@ describe('variant-ranking', () => {
     });
 
     it('returns an empty result for all-empty input', () => {
-      const r = rankVariants(['', '   ', undefined as unknown as string], WINDOW);
+      const r = rankVariants(
+        ['', '   ', undefined as unknown as string],
+        WINDOW,
+      );
       expect(r.variants).toHaveLength(0);
       expect(r.recommendedIndex).toBe(-1);
     });

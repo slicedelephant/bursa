@@ -2,10 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { DonationStatus, School } from '@prisma/client';
 import { DomainException } from '../common/domain.exception';
 import { PrismaService } from '../prisma/prisma.service';
-import { onboardingChecklist, onboardingProgressPct } from './onboarding-status';
+import {
+  onboardingChecklist,
+  onboardingProgressPct,
+} from './onboarding-status';
 import { buildSchoolDashboard } from './school-dashboard';
 
-const COUNTED_DONATIONS: DonationStatus[] = ['SUCCEEDED', 'CAPTURED', 'PLEDGED'];
+const COUNTED_DONATIONS: DonationStatus[] = [
+  'SUCCEEDED',
+  'CAPTURED',
+  'PLEDGED',
+];
 
 function maskIban(iban?: string | null): string | null {
   if (!iban) return null;
@@ -23,16 +30,24 @@ export class SchoolPortalService {
   constructor(private readonly prisma: PrismaService) {}
 
   async resolveSchoolId(userId: string): Promise<string> {
-    const link = await this.prisma.schoolAdmin.findUnique({ where: { userId } });
+    const link = await this.prisma.schoolAdmin.findUnique({
+      where: { userId },
+    });
     if (!link) {
-      throw new DomainException('FORBIDDEN', 'You are not linked to a school', 403);
+      throw new DomainException(
+        'FORBIDDEN',
+        'You are not linked to a school',
+        403,
+      );
     }
     return link.schoolId;
   }
 
   async getMySchool(userId: string) {
     const schoolId = await this.resolveSchoolId(userId);
-    const school = await this.prisma.school.findUnique({ where: { id: schoolId } });
+    const school = await this.prisma.school.findUnique({
+      where: { id: schoolId },
+    });
     if (!school) {
       throw new DomainException('NOT_FOUND', 'School not found', 404);
     }

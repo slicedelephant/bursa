@@ -44,7 +44,9 @@ export class AnalyticsService {
           path: event.path ?? null,
           step: event.step ?? null,
           requestId: event.requestId ?? null,
-          metadata: event.metadata ? (redact(event.metadata) as object) : undefined,
+          metadata: event.metadata
+            ? (redact(event.metadata) as object)
+            : undefined,
         },
       });
     } catch (error) {

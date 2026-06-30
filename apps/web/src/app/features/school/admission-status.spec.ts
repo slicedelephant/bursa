@@ -25,16 +25,29 @@ describe('admission-status', () => {
 
   it('summarises an import with duplicates and errors (with pluralisation)', () => {
     expect(
-      importSummary({ imported: 3, duplicates: 1, errors: [{ line: 2, message: 'invalid email' }] }),
+      importSummary({
+        imported: 3,
+        duplicates: 1,
+        errors: [{ line: 2, message: 'invalid email' }],
+      }),
     ).toBe('3 imported · 1 duplicate skipped · 1 row error');
     expect(
-      importSummary({ imported: 0, duplicates: 2, errors: [{ line: 2, message: 'a' }, { line: 3, message: 'b' }] }),
+      importSummary({
+        imported: 0,
+        duplicates: 2,
+        errors: [
+          { line: 2, message: 'a' },
+          { line: 3, message: 'b' },
+        ],
+      }),
     ).toBe('0 imported · 2 duplicates skipped · 2 row errors');
   });
 
   it('flags whether an import had problems', () => {
     expect(hasImportProblems({ imported: 5, duplicates: 0, errors: [] })).toBe(false);
     expect(hasImportProblems({ imported: 5, duplicates: 1, errors: [] })).toBe(true);
-    expect(hasImportProblems({ imported: 5, duplicates: 0, errors: [{ line: 1, message: 'x' }] })).toBe(true);
+    expect(
+      hasImportProblems({ imported: 5, duplicates: 0, errors: [{ line: 1, message: 'x' }] }),
+    ).toBe(true);
   });
 });

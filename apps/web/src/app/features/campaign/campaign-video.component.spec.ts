@@ -19,9 +19,7 @@ describe('CampaignVideoComponent', () => {
     const el = render('https://youtu.be/dQw4w9WgXcQ');
     const iframe = el.querySelector('iframe');
     expect(iframe).not.toBeNull();
-    expect(iframe?.getAttribute('src')).toContain(
-      'youtube-nocookie.com/embed/dQw4w9WgXcQ',
-    );
+    expect(iframe?.getAttribute('src')).toContain('youtube-nocookie.com/embed/dQw4w9WgXcQ');
   });
 
   it('renders a vimeo player iframe', () => {

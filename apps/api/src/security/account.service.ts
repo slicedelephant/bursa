@@ -39,7 +39,9 @@ export class AccountService {
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.recurringPledge.findMany({ where: { donorUserId: userId } }),
-      this.prisma.updateSubscription.findMany({ where: { donorUserId: userId } }),
+      this.prisma.updateSubscription.findMany({
+        where: { donorUserId: userId },
+      }),
     ]);
 
     await this.audit.record({

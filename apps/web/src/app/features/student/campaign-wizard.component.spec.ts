@@ -2,10 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { CampaignWizardComponent } from './campaign-wizard.component';
-import {
-  WIZARD_STORAGE_KEY,
-  emptyWizardState,
-} from './campaign-wizard.storage';
+import { WIZARD_STORAGE_KEY, emptyWizardState } from './campaign-wizard.storage';
 
 const school = {
   id: 's1',
@@ -110,7 +107,9 @@ describe('CampaignWizardComponent', () => {
     comp.videoUrl.set('https://youtu.be/dQw4w9WgXcQ');
     fixture.detectChanges();
     expect(comp.videoInvalid()).toBe(false);
-    expect((fixture.nativeElement as HTMLElement).querySelector('app-campaign-video')).not.toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-campaign-video'),
+    ).not.toBeNull();
   });
 
   it('creates the campaign with the composed story, blocks and video', () => {

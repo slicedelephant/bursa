@@ -34,9 +34,7 @@ describe('ai-coach.helpers', () => {
 
   describe('formatRemainingBudget', () => {
     it('formats with thousands separators', () => {
-      expect(formatRemainingBudget(18800, 20000)).toBe(
-        '18,800 of 20,000 tokens left',
-      );
+      expect(formatRemainingBudget(18800, 20000)).toBe('18,800 of 20,000 tokens left');
     });
 
     it('clamps negatives to zero', () => {
@@ -57,9 +55,7 @@ describe('ai-coach.helpers', () => {
 
   describe('variantPreview', () => {
     it('collapses whitespace and keeps short text', () => {
-      expect(variantPreview('  hello   world\n\nagain ')).toBe(
-        'hello world again',
-      );
+      expect(variantPreview('  hello   world\n\nagain ')).toBe('hello world again');
     });
 
     it('truncates long text with an ellipsis', () => {

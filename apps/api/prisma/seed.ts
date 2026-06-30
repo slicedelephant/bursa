@@ -671,12 +671,36 @@ async function main(): Promise<void> {
     });
     await prisma.aiGeneration.createMany({
       data: [
-        { userId: amaraUserId, kind: 'TITLE', locale: 'en', provider: 'mock', tokensCharged: 400, variantCount: 3 },
-        { userId: amaraUserId, kind: 'STORY', locale: 'en', provider: 'mock', tokensCharged: 600, variantCount: 2 },
-        { userId: amaraUserId, kind: 'SHARE', channel: 'whatsapp', locale: 'en', provider: 'mock', tokensCharged: 200, variantCount: 3 },
+        {
+          userId: amaraUserId,
+          kind: 'TITLE',
+          locale: 'en',
+          provider: 'mock',
+          tokensCharged: 400,
+          variantCount: 3,
+        },
+        {
+          userId: amaraUserId,
+          kind: 'STORY',
+          locale: 'en',
+          provider: 'mock',
+          tokensCharged: 600,
+          variantCount: 2,
+        },
+        {
+          userId: amaraUserId,
+          kind: 'SHARE',
+          channel: 'whatsapp',
+          locale: 'en',
+          provider: 'mock',
+          tokensCharged: 200,
+          variantCount: 3,
+        },
       ],
     });
-    console.log('Created E10 AI-coach demo data (token budget + generation log for amara).');
+    console.log(
+      'Created E10 AI-coach demo data (token budget + generation log for amara).',
+    );
   }
 
   // --------------------------------------------------------------------------
@@ -848,7 +872,9 @@ async function main(): Promise<void> {
         where: { id: liveCampaign.id },
         data: { raisedCents: { increment: net } },
       });
-      console.log('Created corporate-channel demo data (named scholarship + invoice).');
+      console.log(
+        'Created corporate-channel demo data (named scholarship + invoice).',
+      );
     }
   }
 
@@ -889,7 +915,11 @@ async function main(): Promise<void> {
   };
   for (const [type, n] of Object.entries(funnelCounts)) {
     for (let i = 0; i < n; i++) {
-      funnelEvents.push({ type, campaignId: obsCampaignId, visitorId: `v_${type}_${i}` });
+      funnelEvents.push({
+        type,
+        campaignId: obsCampaignId,
+        visitorId: `v_${type}_${i}`,
+      });
     }
   }
   const onboardingCounts: Record<string, number> = {
@@ -921,11 +951,52 @@ async function main(): Promise<void> {
   const esmtId = schoolByKey['esmt'];
   await prisma.admissionRecord.createMany({
     data: [
-      { schoolId: esmtId, studentEmail: 'amara@bursa.test', studentName: 'Amara Okonkwo', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-AMARA-OKONKWO', status: 'VERIFIED', reviewedById: schoolAdminUser.id, reviewedAt: new Date() },
-      { schoolId: esmtId, studentEmail: 'aisha@bursa.test', studentName: 'Aisha Bello', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-AISHA-BELLO', status: 'VERIFIED', reviewedById: schoolAdminUser.id, reviewedAt: new Date() },
-      { schoolId: esmtId, studentEmail: 'grace@students.bursa.test', studentName: 'Grace Achieng', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-GRACE-ACHIENG', status: 'VERIFIED', reviewedById: schoolAdminUser.id, reviewedAt: new Date() },
-      { schoolId: esmtId, studentEmail: 'noor@students.bursa.test', studentName: 'Noor Hassan', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-NOOR-HASSAN', status: 'PENDING' },
-      { schoolId: esmtId, studentEmail: 'david@students.bursa.test', studentName: 'David Kone', programName: 'Full-Time MBA 2026', admissionRef: 'ADM-DAVID-KONE', status: 'PENDING' },
+      {
+        schoolId: esmtId,
+        studentEmail: 'amara@bursa.test',
+        studentName: 'Amara Okonkwo',
+        programName: 'Full-Time MBA 2026',
+        admissionRef: 'ADM-AMARA-OKONKWO',
+        status: 'VERIFIED',
+        reviewedById: schoolAdminUser.id,
+        reviewedAt: new Date(),
+      },
+      {
+        schoolId: esmtId,
+        studentEmail: 'aisha@bursa.test',
+        studentName: 'Aisha Bello',
+        programName: 'Full-Time MBA 2026',
+        admissionRef: 'ADM-AISHA-BELLO',
+        status: 'VERIFIED',
+        reviewedById: schoolAdminUser.id,
+        reviewedAt: new Date(),
+      },
+      {
+        schoolId: esmtId,
+        studentEmail: 'grace@students.bursa.test',
+        studentName: 'Grace Achieng',
+        programName: 'Full-Time MBA 2026',
+        admissionRef: 'ADM-GRACE-ACHIENG',
+        status: 'VERIFIED',
+        reviewedById: schoolAdminUser.id,
+        reviewedAt: new Date(),
+      },
+      {
+        schoolId: esmtId,
+        studentEmail: 'noor@students.bursa.test',
+        studentName: 'Noor Hassan',
+        programName: 'Full-Time MBA 2026',
+        admissionRef: 'ADM-NOOR-HASSAN',
+        status: 'PENDING',
+      },
+      {
+        schoolId: esmtId,
+        studentEmail: 'david@students.bursa.test',
+        studentName: 'David Kone',
+        programName: 'Full-Time MBA 2026',
+        admissionRef: 'ADM-DAVID-KONE',
+        status: 'PENDING',
+      },
     ],
     skipDuplicates: true,
   });
@@ -933,8 +1004,32 @@ async function main(): Promise<void> {
   const nowIso = new Date().toISOString();
   await prisma.schoolWebhookEvent.createMany({
     data: [
-      { schoolId: esmtId, type: 'student.reported', status: 'LOGGED', payload: { type: 'student.reported', schoolId: esmtId, occurredAt: nowIso, data: { studentName: 'Aisha Bello', admissionRef: 'ADM-AISHA-BELLO', status: 'VERIFIED' } } },
-      { schoolId: esmtId, type: 'campaign.approved', status: 'LOGGED', payload: { type: 'campaign.approved', schoolId: esmtId, occurredAt: nowIso, data: { title: 'Closing the SME credit gap', goalCents: eur(40000) } } },
+      {
+        schoolId: esmtId,
+        type: 'student.reported',
+        status: 'LOGGED',
+        payload: {
+          type: 'student.reported',
+          schoolId: esmtId,
+          occurredAt: nowIso,
+          data: {
+            studentName: 'Aisha Bello',
+            admissionRef: 'ADM-AISHA-BELLO',
+            status: 'VERIFIED',
+          },
+        },
+      },
+      {
+        schoolId: esmtId,
+        type: 'campaign.approved',
+        status: 'LOGGED',
+        payload: {
+          type: 'campaign.approved',
+          schoolId: esmtId,
+          occurredAt: nowIso,
+          data: { title: 'Closing the SME credit gap', goalCents: eur(40000) },
+        },
+      },
     ],
   });
 
@@ -946,8 +1041,12 @@ async function main(): Promise<void> {
       expiresAt: rsmToken.expiresAt,
     },
   });
-  console.log('Created E8 school-portal demo data (admissions, webhooks, onboarding link).');
-  console.log(`  Hosted onboarding demo (RSM): /school/onboarding/${rsmToken.token}`);
+  console.log(
+    'Created E8 school-portal demo data (admissions, webhooks, onboarding link).',
+  );
+  console.log(
+    `  Hosted onboarding demo (RSM): /school/onboarding/${rsmToken.token}`,
+  );
 
   // --------------------------------------------------------------------------
   // E9 — Trust-and-Safety demo data so /admin/trust-safety renders: an
@@ -959,7 +1058,10 @@ async function main(): Promise<void> {
   const flaggedCampaignId =
     campaignBySlug['kwame-mensah'] ?? e9CampaignIds[0] ?? null;
   const frozenCampaignId =
-    campaignBySlug['amara-okonkwo'] ?? e9CampaignIds[1] ?? e9CampaignIds[0] ?? null;
+    campaignBySlug['amara-okonkwo'] ??
+    e9CampaignIds[1] ??
+    e9CampaignIds[0] ??
+    null;
   const daysAgo = (d: number): Date => new Date(Date.now() - d * 86_400_000);
 
   if (flaggedCampaignId) {
@@ -1109,7 +1211,10 @@ async function main(): Promise<void> {
         actorUserId: admin.id,
         targetType: 'Campaign',
         targetId: frozenCampaignId,
-        metadata: { result: 'ESCALATED', note: 'Escalated after 3 chargebacks.' },
+        metadata: {
+          result: 'ESCALATED',
+          note: 'Escalated after 3 chargebacks.',
+        },
       },
       {
         action: 'moderation.approve',

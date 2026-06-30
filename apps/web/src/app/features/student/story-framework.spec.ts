@@ -1,17 +1,8 @@
-import {
-  STORY_MIN_LENGTH,
-  STORY_PROMPTS,
-  composeStory,
-  isStoryReady,
-} from './story-framework';
+import { STORY_MIN_LENGTH, STORY_PROMPTS, composeStory, isStoryReady } from './story-framework';
 
 describe('STORY_PROMPTS', () => {
   it('guides the student with three before/after prompts', () => {
-    expect(STORY_PROMPTS.map((p) => p.key)).toEqual([
-      'background',
-      'challenge',
-      'vision',
-    ]);
+    expect(STORY_PROMPTS.map((p) => p.key)).toEqual(['background', 'challenge', 'vision']);
   });
 
   it('each prompt carries a label, hint and placeholder', () => {
@@ -30,9 +21,7 @@ describe('composeStory', () => {
       challenge: 'The naira devalued.',
       vision: 'I will mentor founders.',
     });
-    expect(story).toBe(
-      'I come from Lagos.\n\nThe naira devalued.\n\nI will mentor founders.',
-    );
+    expect(story).toBe('I come from Lagos.\n\nThe naira devalued.\n\nI will mentor founders.');
   });
 
   it('skips empty/whitespace parts and trims each', () => {

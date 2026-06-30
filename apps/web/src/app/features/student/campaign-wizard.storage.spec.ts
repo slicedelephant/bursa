@@ -46,9 +46,7 @@ describe('wizard storage', () => {
   });
 
   it('returns null for corrupt JSON', () => {
-    expect(
-      loadWizardState(memoryStorage({ [WIZARD_STORAGE_KEY]: '{not json' })),
-    ).toBeNull();
+    expect(loadWizardState(memoryStorage({ [WIZARD_STORAGE_KEY]: '{not json' }))).toBeNull();
   });
 
   it('returns null when no storage is available', () => {

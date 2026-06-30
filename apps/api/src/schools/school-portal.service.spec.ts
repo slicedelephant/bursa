@@ -2,7 +2,9 @@ import { SchoolPortalService } from './school-portal.service';
 
 function buildPrisma() {
   return {
-    schoolAdmin: { findUnique: jest.fn().mockResolvedValue({ userId: 'u1', schoolId: 's1' }) },
+    schoolAdmin: {
+      findUnique: jest.fn().mockResolvedValue({ userId: 'u1', schoolId: 's1' }),
+    },
     school: {
       findUnique: jest.fn().mockResolvedValue({
         id: 's1',
@@ -32,7 +34,9 @@ function buildPrisma() {
       ]),
     },
     donation: {
-      findMany: jest.fn().mockResolvedValue([{ amountCents: 50_000, donorCountry: 'Germany' }]),
+      findMany: jest
+        .fn()
+        .mockResolvedValue([{ amountCents: 50_000, donorCountry: 'Germany' }]),
     },
   };
 }
@@ -82,9 +86,19 @@ describe('SchoolPortalService', () => {
       iban: 'DE12',
     });
     prisma.campaign.findMany.mockResolvedValue([
-      { id: 'c1', title: 't', status: 'DISBURSED', goalCents: 100, raisedCents: 100, studentProfile: null, payout: { status: 'SENT' } },
+      {
+        id: 'c1',
+        title: 't',
+        status: 'DISBURSED',
+        goalCents: 100,
+        raisedCents: 100,
+        studentProfile: null,
+        payout: { status: 'SENT' },
+      },
     ]);
-    prisma.donation.findMany.mockResolvedValue([{ amountCents: 10, donorCountry: null }]);
+    prisma.donation.findMany.mockResolvedValue([
+      { amountCents: 10, donorCountry: null },
+    ]);
     const service = new SchoolPortalService(prisma as never);
 
     const me = await service.getMySchool('u1');
@@ -116,6 +130,10 @@ describe('SchoolPortalService', () => {
     const dashboard = await service.dashboard('u1');
     expect(dashboard.totals.totalStudents).toBe(1);
     expect(dashboard.totals.fundedCampaigns).toBe(1);
-    expect(dashboard.donorGeography[0]).toEqual({ country: 'Germany', donationCount: 1, amountCents: 50_000 });
+    expect(dashboard.donorGeography[0]).toEqual({
+      country: 'Germany',
+      donationCount: 1,
+      amountCents: 50_000,
+    });
   });
 });

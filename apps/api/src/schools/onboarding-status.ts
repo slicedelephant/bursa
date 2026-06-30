@@ -34,7 +34,9 @@ export function nextOnboardingStatus(
 ): SchoolOnboardingStatus {
   const next = TRANSITIONS[current]?.[event];
   if (!next) {
-    throw new Error(`Invalid onboarding transition: ${current} --(${event})-->`);
+    throw new Error(
+      `Invalid onboarding transition: ${current} --(${event})-->`,
+    );
   }
   return next;
 }
@@ -68,7 +70,9 @@ export interface OnboardingState extends PayoutFields {
   readonly agreementSignedAt?: Date | null;
 }
 
-export function isOnboarded(state: { onboardingStatus: SchoolOnboardingStatus }): boolean {
+export function isOnboarded(state: {
+  onboardingStatus: SchoolOnboardingStatus;
+}): boolean {
   return state.onboardingStatus === 'ACTIVE';
 }
 
@@ -88,7 +92,11 @@ export interface OnboardingStep {
 
 export function onboardingChecklist(state: OnboardingState): OnboardingStep[] {
   return [
-    { key: 'payout', label: 'Payout & tax details', done: isPayoutDataComplete(state) },
+    {
+      key: 'payout',
+      label: 'Payout & tax details',
+      done: isPayoutDataComplete(state),
+    },
     {
       key: 'agreement',
       label: 'Signed funding agreement',
