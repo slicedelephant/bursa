@@ -29,6 +29,7 @@ import { ImpactFeedModule } from './impact-feed/impact-feed.module';
 import { GroupsModule } from './groups/groups.module';
 import { ScholarshipModule } from './scholarship/scholarship.module';
 import { FxModule } from './fx/fx.module';
+import { PayrollModule } from './payroll/payroll.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { FxModule } from './fx/fx.module';
     GroupsModule,
     ScholarshipModule,
     FxModule,
+    PayrollModule,
   ],
 })
 export class AppModule {}

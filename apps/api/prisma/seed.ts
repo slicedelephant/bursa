@@ -25,6 +25,7 @@ import { createAuditorToken } from '../src/esg/auditor-access-token';
 import { createApplicationToken } from '../src/scholarship/application-token';
 import { convertMinorUnits } from '../src/fx/currency-converter';
 import { MockFxRateProvider } from '../src/fx/mock-fx-rate.provider';
+import { applyPayrollMatchRule } from '../src/payroll/match-rule';
 
 const prisma = new PrismaClient();
 
@@ -392,6 +393,12 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E21 (delete before donation/campaign/school/user/corporateProfile; children first)
+  await prisma.payrollContribution.deleteMany();
+  await prisma.employeePayrollProfile.deleteMany();
+  await prisma.payrollMatchRule.deleteMany();
+  await prisma.payrollGivingProgram.deleteMany();
+  await prisma.hrisConnection.deleteMany();
   // E20 (delete before school — local payout accounts; child first)
   await prisma.schoolPayoutAccount.deleteMany();
   // E19 (delete before school/user/corporateProfile — scholarship manager; children first)
@@ -2550,6 +2557,161 @@ async function main(): Promise<void> {
     console.log(
       `Created E20 multi-currency demo (ESMT KES payout account, M-Pesa USD->KES ` +
         `donation @${lockedQuote.rate}, KES DISBURSEMENT to the school).`,
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // E21 — Payroll-Match & HRIS-Kopplung.
+  // ACME (the corporate sponsor) connects a mock ADP HRIS with read-only scopes,
+  // runs a 1:1 payroll-giving program (500 EUR/employee/year cap), activates two
+  // employees, and a matched payroll contribution is booked as a CORPORATE gift to
+  // a SCHOOL's campaign (never to an employee/student — Constitution II) with a
+  // ledger DONATION entry and an audit trail.
+  // --------------------------------------------------------------------------
+  const payrollCampaignId = campaignBySlug['aisha-bello'];
+  const payrollSchoolId = schoolByKey['esmt'];
+  if (payrollCampaignId && payrollSchoolId) {
+    const hrisConnection = await prisma.hrisConnection.create({
+      data: {
+        corporateProfileId: sponsorProfile.id,
+        provider: 'ADP',
+        scopes: ['employees.read', 'payroll.read'],
+        status: 'SYNCED',
+        externalRef: 'mock_hris_adp_seed',
+        lastSyncedAt: new Date(),
+      },
+    });
+
+    const payrollProgram = await prisma.payrollGivingProgram.create({
+      data: {
+        corporateProfileId: sponsorProfile.id,
+        hrisConnectionId: hrisConnection.id,
+        name: 'ACME Payroll Giving',
+      },
+    });
+
+    const matchRatio = 100; // 1:1
+    const perEmployeeCapCents = eur(500); // 500 EUR/employee/year
+    await prisma.payrollMatchRule.create({
+      data: {
+        programId: payrollProgram.id,
+        matchRatio,
+        perEmployeeCapCents,
+      },
+    });
+
+    // Two synced + activated employees (one linked to the demo donor user).
+    const emp1 = await prisma.employeePayrollProfile.create({
+      data: {
+        hrisConnectionId: hrisConnection.id,
+        userId: donor.id,
+        employeeExternalId: 'EMP-1001',
+        salaryBandCents: eur(60_000),
+        payrollCycle: 'MONTHLY',
+        preTaxEligible: true,
+        active: true,
+      },
+    });
+    await prisma.employeePayrollProfile.create({
+      data: {
+        hrisConnectionId: hrisConnection.id,
+        employeeExternalId: 'EMP-1002',
+        salaryBandCents: eur(45_000),
+        payrollCycle: 'BIWEEKLY',
+        preTaxEligible: false,
+        active: true,
+      },
+    });
+
+    // One matched payroll contribution: employee gives 100 EUR, ACME matches 1:1.
+    const contributionCents = eur(100);
+    const year = new Date().getFullYear();
+    const { matchCents, newUsedCents } = applyPayrollMatchRule({
+      contributionCents,
+      matchRatio,
+      perEmployeeCapCents,
+      usedCents: 0,
+    });
+
+    // The matched gift is a normal CORPORATE Donation on the SCHOOL's campaign.
+    const matchDonation = await prisma.donation.create({
+      data: {
+        campaignId: payrollCampaignId,
+        amountCents: matchCents,
+        method: 'SEPA',
+        type: 'CORPORATE',
+        status: 'SUCCEEDED',
+        providerRef: `mock_payroll_match_${emp1.id}_${year}`,
+        donorName: 'Payroll match',
+      },
+    });
+    await prisma.campaign.update({
+      where: { id: payrollCampaignId },
+      data: { raisedCents: { increment: matchCents } },
+    });
+
+    // Append-only ledger DONATION to the SCHOOL (continues that school's chain).
+    await appendLedger(
+      {
+        entryType: 'DONATION',
+        amountCents: matchCents,
+        currency: 'EUR',
+        schoolId: payrollSchoolId,
+        reason: 'Payroll-match gift to school',
+        refType: 'payroll_contribution',
+        refId: matchDonation.id,
+      },
+      new Date(),
+    );
+
+    await prisma.payrollContribution.create({
+      data: {
+        programId: payrollProgram.id,
+        employeeProfileId: emp1.id,
+        campaignId: payrollCampaignId,
+        schoolId: payrollSchoolId,
+        contributionCents,
+        matchCents,
+        preTax: false,
+        matchDonationId: matchDonation.id,
+        deductionRef: `mock_payroll_line_${emp1.id}_${year}`,
+        year,
+      },
+    });
+    await prisma.employeePayrollProfile.update({
+      where: { id: emp1.id },
+      data: { matchYear: year, matchUsedCents: newUsedCents },
+    });
+
+    // Compliance/sync audit trail (E6 AuditService rows, read-only).
+    await prisma.auditLog.create({
+      data: {
+        action: 'payroll.hris.connect',
+        targetType: 'HrisConnection',
+        targetId: hrisConnection.id,
+        metadata: { provider: 'ADP', scopeCount: 2 },
+      },
+    });
+    await prisma.auditLog.create({
+      data: {
+        action: 'payroll.hris.sync',
+        targetType: 'HrisConnection',
+        targetId: hrisConnection.id,
+        metadata: { provider: 'ADP', employeeCount: 2, readOnly: true },
+      },
+    });
+    await prisma.auditLog.create({
+      data: {
+        action: 'payroll.campaign.run',
+        targetType: 'PayrollGivingProgram',
+        targetId: payrollProgram.id,
+        metadata: { campaignId: payrollCampaignId, contributions: 1 },
+      },
+    });
+
+    console.log(
+      `Created E21 payroll-HRIS demo (ACME mock-ADP connection, 1:1 rule, 2 ` +
+        `employees, EUR ${matchCents / 100} matched gift to the school + ledger + audit).`,
     );
   }
 

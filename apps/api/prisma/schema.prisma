@@ -389,6 +389,39 @@ enum Gender {
   UNDISCLOSED
 }
 
+/// E21 Payroll-HRIS: the HRIS a corporate connection is coupled to. MOCK is the
+/// prototype default; the real ADP/Workday/… adapters are behind the swappable
+/// EmployeeDataProvider seam and never run in tests.
+enum HrisProvider {
+  MOCK
+  ADP
+  WORKDAY
+  PAYCHEX
+  PAYLOCITY
+  UKG
+  BAMBOOHR
+}
+
+/// E21 Payroll-HRIS: lifecycle of an HRIS connection. PENDING -> CONNECTED (after
+/// the read-only scope check) -> SYNCED (after the first employee sync).
+/// REVOKED/ERROR are terminal.
+enum HrisConnectionStatus {
+  PENDING
+  CONNECTED
+  SYNCED
+  REVOKED
+  ERROR
+}
+
+/// E21 Payroll-HRIS: an employee's payroll cadence. Feeds the pure
+/// `payroll-cycle.ts` scheduler decision (with an injected `now`).
+enum PayrollCycle {
+  WEEKLY
+  BIWEEKLY
+  SEMIMONTHLY
+  MONTHLY
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -464,6 +497,9 @@ model User {
 
   // ---- E19: scholarship manager (scholar relationships this user is the scholar of) ----
   scholarRelationships ScholarRelationship[] @relation("ScholarUser")
+
+  // ---- E21: payroll-giving profiles this user opted into (payroll is donor-funding) ----
+  payrollProfiles EmployeePayrollProfile[] @relation("EmployeePayrollUser")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -548,6 +584,9 @@ model School {
 
   // ---- E20: multi-currency local payout accounts (target is always the school) ----
   payoutAccounts SchoolPayoutAccount[]
+
+  // ---- E21: payroll-match contributions disbursed to this school (never a student) ----
+  payrollContributions PayrollContribution[]
 }
 
 /// E20 — a school's local payout account per country/currency. The tuition payout,
@@ -707,6 +746,9 @@ model Campaign {
   groupLinks  GroupCampaign[]   @relation("GroupCampaigns")
   voteOptions GroupVoteOption[] @relation("GroupVoteCampaign")
 
+  // ---- E21: payroll-match contributions booked onto this campaign (gift to the school) ----
+  payrollContributions PayrollContribution[]
+
   @@index([status])
   @@index([schoolId])
 }
@@ -783,6 +825,9 @@ model Donation {
 
   // ---- E18: groups engine (money-free circle contribution mirror) ----
   groupContribution GroupContribution? @relation("GroupContributionDonation")
+
+  // ---- E21: payroll-match (this donation IS the matched payroll gift to the school) ----
+  payrollContribution PayrollContribution? @relation("PayrollMatchDonation")
 
   @@index([campaignId])
   @@index([donorUserId])
@@ -909,6 +954,10 @@ model CorporateProfile {
 
   // ---- E19: scholarship manager (self-serve programs owned by this company) ----
   scholarshipPrograms ScholarshipProgram[]
+
+  // ---- E21: payroll-match & HRIS coupling (HRIS connections + payroll-giving programs) ----
+  hrisConnections HrisConnection[]
+  payrollPrograms PayrollGivingProgram[]
 }
 
 model Payout {
@@ -1804,4 +1853,116 @@ model ScholarRelationship {
   scholar User?              @relation("ScholarUser", fields: [scholarUserId], references: [id], onDelete: SetNull)
 
   @@index([programId, status])
+}
+
+// ============================================================================
+// E21 — Payroll-Match & HRIS-Kopplung (deep-tier corporate matching).
+// Payroll giving is a DONOR-side funding mechanism only: every matched gift is
+// booked as a CORPORATE Donation onto the SCHOOL's campaign and disbursed via the
+// E2/E12 path — never to an employee or student (Constitution II).
+// ============================================================================
+
+/// E21 — the OAuth2 coupling of a corporate sponsor to an HRIS. `scopes` are
+/// already read-only-validated at connect time (a write scope is rejected).
+/// `externalRef` is a mock connection reference — never a real OAuth token.
+model HrisConnection {
+  id                 String               @id @default(cuid())
+  corporateProfileId String
+  provider           HrisProvider
+  scopes             String[]
+  status             HrisConnectionStatus @default(PENDING)
+  externalRef        String?
+  lastSyncedAt       DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  corporateProfile CorporateProfile         @relation(fields: [corporateProfileId], references: [id], onDelete: Cascade)
+  program          PayrollGivingProgram?
+  employeeProfiles EmployeePayrollProfile[]
+
+  @@index([corporateProfileId])
+  @@index([status])
+}
+
+/// E21 — a sponsor's payroll-giving program, bound to exactly one HRIS connection.
+model PayrollGivingProgram {
+  id                 String   @id @default(cuid())
+  corporateProfileId String
+  hrisConnectionId   String   @unique
+  name               String
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  corporateProfile CorporateProfile      @relation(fields: [corporateProfileId], references: [id], onDelete: Cascade)
+  hrisConnection   HrisConnection        @relation(fields: [hrisConnectionId], references: [id], onDelete: Cascade)
+  matchRule        PayrollMatchRule?
+  contributions    PayrollContribution[]
+
+  @@index([corporateProfileId])
+}
+
+/// E21 — the firm-wide match rule of a program. `matchRatio` (×100) and
+/// `perEmployeeCapCents` feed the reused E13 `computeMatch` — no second algorithm.
+model PayrollMatchRule {
+  id                  String   @id @default(cuid())
+  programId           String   @unique
+  matchRatio          Int
+  perEmployeeCapCents Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  program PayrollGivingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+}
+
+/// E21 — an employee synced from the HRIS. `matchYear`/`matchUsedCents` track the
+/// per-employee annual cap usage, exactly like the E13 User-level balance.
+model EmployeePayrollProfile {
+  id                 String       @id @default(cuid())
+  hrisConnectionId   String
+  userId             String?
+  employeeExternalId String
+  salaryBandCents    Int
+  payrollCycle       PayrollCycle @default(MONTHLY)
+  preTaxEligible     Boolean      @default(false)
+  active             Boolean      @default(false)
+  matchYear          Int?
+  matchUsedCents     Int          @default(0)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  hrisConnection HrisConnection        @relation(fields: [hrisConnectionId], references: [id], onDelete: Cascade)
+  user           User?                 @relation("EmployeePayrollUser", fields: [userId], references: [id], onDelete: SetNull)
+  contributions  PayrollContribution[]
+
+  @@unique([hrisConnectionId, employeeExternalId])
+  @@index([userId])
+}
+
+/// E21 — one employee's payroll contribution + the automatically computed match.
+/// `matchDonationId` links the matched CORPORATE Donation that flows to the SCHOOL;
+/// `ledgerSequence` the append-only ledger entry. Money to the school, never a student.
+model PayrollContribution {
+  id                String   @id @default(cuid())
+  programId         String
+  employeeProfileId String
+  campaignId        String
+  schoolId          String
+  contributionCents Int
+  matchCents        Int
+  preTax            Boolean  @default(false)
+  matchDonationId   String?  @unique
+  ledgerSequence    Int?
+  deductionRef      String?
+  year              Int
+  createdAt         DateTime @default(now())
+
+  program         PayrollGivingProgram   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  employeeProfile EmployeePayrollProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  campaign        Campaign               @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  school          School                 @relation(fields: [schoolId], references: [id])
+  matchDonation   Donation?              @relation("PayrollMatchDonation", fields: [matchDonationId], references: [id], onDelete: SetNull)
+
+  @@index([programId])
+  @@index([employeeProfileId])
+  @@index([campaignId])
 }

@@ -1248,6 +1248,72 @@
         "branches": 80,
         "functions": 80,
         "lines": 80
+      },
+      "**/payroll/oauth-scope-validator.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/payroll-cycle.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/payroll-deduction.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/employee-eligibility.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/match-rule.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/sync-log.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/campaign-summary.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/mock-employee-data.provider.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/employee-data.provider.factory.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/hris-webhook.guard.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/payroll/payroll.service.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
       }
     }
   }
