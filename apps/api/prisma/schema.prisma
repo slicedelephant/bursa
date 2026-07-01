@@ -54,6 +54,44 @@ enum DonationType {
   CORPORATE
 }
 
+/// E20 — supported currencies for multi-currency payout (to the SCHOOL) and local
+/// donor deposit. Display metadata (decimals/symbol/name) lives in the pure registry
+/// `fx/currency.ts`; this enum only constrains the allowed codes.
+enum Currency {
+  EUR
+  USD
+  KES
+  NGN
+  GHS
+  BDT
+  PHP
+  VND
+}
+
+/// E20 — local donor-deposit methods (donor side only; money still goes to the school).
+enum LocalPaymentMethod {
+  CARD
+  SEPA
+  MPESA
+  MOBILE_MONEY
+  GCASH
+  BKASH
+  LOCAL_BANK_TRANSFER
+}
+
+/// E20 — payout routing decision for the school payout (never a student).
+enum PayoutRoute {
+  LOCAL_BANK
+  INTERNATIONAL
+}
+
+/// E20 — status of a local donor deposit; advances only via a signed webhook.
+enum LocalDepositStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
 enum DonationStatus {
   PENDING
   PLEDGED
@@ -507,6 +545,29 @@ model School {
 
   // ---- E19: scholarship manager (award disbursement target — always the school) ----
   scholarshipAwards ScholarshipAward[]
+
+  // ---- E20: multi-currency local payout accounts (target is always the school) ----
+  payoutAccounts SchoolPayoutAccount[]
+}
+
+/// E20 — a school's local payout account per country/currency. The tuition payout,
+/// in any currency, targets the SCHOOL through one of these accounts, never a student
+/// (Constitution II). Virtual IBAN is display-only (format-validated, not bank-verified).
+model SchoolPayoutAccount {
+  id            String   @id @default(cuid())
+  schoolId      String
+  country       String
+  currency      Currency
+  bankName      String
+  accountNumber String
+  virtualIban   String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, country, currency])
+  @@index([schoolId])
 }
 
 /// Binds a User (role SCHOOL_ADMIN) to exactly one School (E8). One user admins
@@ -688,6 +749,20 @@ model Donation {
   tributeType        TributeType?
   tributeName        String?
   createdAt          DateTime       @default(now())
+
+  // ---- E20: multi-currency + local deposit (donor side only; money goes to the school) ----
+  /// Currency the donor pays in (may differ from the school's payout currency).
+  depositCurrency    Currency?
+  /// Local method the donor used for the deposit (M-Pesa, GCash, …).
+  depositMethod      LocalPaymentMethod?
+  /// FX rate frozen at deposit time (deposit→payout). Only the RATE is a float; money stays integer.
+  lockedRate         Float?
+  /// Currency the SCHOOL is paid in.
+  payoutCurrency     Currency?
+  /// Reference from the LocalDepositProvider (mock) for this deposit.
+  localDepositRef    String?
+  /// PENDING → SUCCEEDED/FAILED, advanced only via a signed webhook.
+  localDepositStatus LocalDepositStatus?
 
   campaign         Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   donorUser        User?                 @relation("DonorDonations", fields: [donorUserId], references: [id])

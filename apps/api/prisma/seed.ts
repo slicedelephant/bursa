@@ -23,6 +23,8 @@ import { mapToStandard } from '../src/esg/esg-standard-mapper';
 import { buildAnnotations } from '../src/esg/audit-annotation';
 import { createAuditorToken } from '../src/esg/auditor-access-token';
 import { createApplicationToken } from '../src/scholarship/application-token';
+import { convertMinorUnits } from '../src/fx/currency-converter';
+import { MockFxRateProvider } from '../src/fx/mock-fx-rate.provider';
 
 const prisma = new PrismaClient();
 
@@ -390,6 +392,8 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E20 (delete before school — local payout accounts; child first)
+  await prisma.schoolPayoutAccount.deleteMany();
   // E19 (delete before school/user/corporateProfile — scholarship manager; children first)
   await prisma.reviewScore.deleteMany();
   await prisma.applicationAnswer.deleteMany();
@@ -2471,6 +2475,81 @@ async function main(): Promise<void> {
     console.log(
       `Created E19 scholarship program "${program.name}" (form + 3 applications, ` +
         `1 award disbursed to ESMT + a HELD second tranche, 1 SRM scholar).`,
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // E20 — Multi-Currency & local payment methods.
+  // A Kenyan donor pays in USD via M-Pesa; the rate is frozen at deposit time and
+  // the SCHOOL is paid in KES (never a student — Constitution II). ESMT gets a local
+  // KES payout account (display-only virtual IBAN) and a KES DISBURSEMENT ledger entry.
+  // --------------------------------------------------------------------------
+  const esmtE20Id = schoolByKey['esmt'];
+  const amaraE20CampaignId = campaignBySlug['amara-okonkwo'];
+  if (esmtE20Id && amaraE20CampaignId) {
+    // 1) ESMT local KES payout account (mod-97-valid virtual IBAN, display-only).
+    await prisma.schoolPayoutAccount.create({
+      data: {
+        schoolId: esmtE20Id,
+        country: 'KE',
+        currency: 'KES',
+        bankName: 'Equity Bank Kenya',
+        accountNumber: '0100123456789',
+        virtualIban: 'KE12ABC12345678',
+        active: true,
+      },
+    });
+
+    // 2) An M-Pesa donation: donor pays USD, rate frozen, school will receive KES.
+    const fxRates = new MockFxRateProvider(() => new Date());
+    const lockedQuote = await fxRates.getRate({ base: 'USD', quote: 'KES' });
+    const depositMinor = eur(50); // 50.00 USD in minor units
+    const payoutConversion = convertMinorUnits({
+      amountMinor: depositMinor,
+      from: 'USD',
+      to: 'KES',
+      lockedRate: lockedQuote.rate,
+    });
+
+    await prisma.donation.create({
+      data: {
+        campaignId: amaraE20CampaignId,
+        amountCents: depositMinor,
+        currency: 'USD',
+        method: 'CARD',
+        type: 'PRIVATE',
+        status: 'SUCCEEDED',
+        providerRef: 'mock_local_mpesa_seed',
+        anonymous: false,
+        donorName: 'Wanjiru (Nairobi)',
+        donorCountry: 'KE',
+        depositCurrency: 'USD',
+        depositMethod: 'MPESA',
+        lockedRate: lockedQuote.rate,
+        payoutCurrency: 'KES',
+        localDepositRef: 'mock_local_mpesa_seed',
+        localDepositStatus: 'SUCCEEDED',
+        capturedAt: new Date(),
+      },
+    });
+
+    // 3) DISBURSEMENT to the SCHOOL in KES (append-only ledger, continues the chain).
+    await appendLedger(
+      {
+        entryType: 'DISBURSEMENT',
+        amountCents: payoutConversion.amountMinor,
+        currency: 'KES',
+        schoolId: esmtE20Id,
+        reason: 'Tuition disbursement to school (local KES payout)',
+        refType: 'local_payout',
+        refId: 'mock_payout_kes_seed',
+      },
+      new Date(),
+    );
+
+    console.log(
+      `Created E20 multi-currency demo (ESMT KES payout account, M-Pesa USD->KES ` +
+        `donation @${lockedQuote.rate}, KES DISBURSEMENT to the school).`,
     );
   }
 

@@ -28,6 +28,7 @@ import { ReferralModule } from './referral/referral.module';
 import { ImpactFeedModule } from './impact-feed/impact-feed.module';
 import { GroupsModule } from './groups/groups.module';
 import { ScholarshipModule } from './scholarship/scholarship.module';
+import { FxModule } from './fx/fx.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { ScholarshipModule } from './scholarship/scholarship.module';
     ImpactFeedModule,
     GroupsModule,
     ScholarshipModule,
+    FxModule,
   ],
 })
 export class AppModule {}
