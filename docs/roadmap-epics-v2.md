@@ -27,7 +27,9 @@
 
 ## Gesamtstatus Welle 2 (Stand 01.07.2026)
 
-**ALLE 14 Epics (E8-E21) umgesetzt und gemerged.** Finaler `main` (a3b75b7): beide Builds gruen, Seed laeuft, 21 Migrationen sauber, prettier-clean. Testsumme API 1603 / 207 Suites, Web 608 / 112 Suites. Alle externen Dienste hinter austauschbaren Providern gemockt (Default `mock`). Welle A + B deployed auf littleBrother (bursa.slicedelephant.de); Welle C (E18-E21) noch nicht deployed.
+**ALLE 14 Epics (E8-E21) umgesetzt und gemerged.** Finaler `main` (7fbde4b): beide Builds gruen, Seed laeuft, 21 Migrationen sauber, prettier-clean, API bootet sauber (DI-Graph vollstaendig). Testsumme API 1603 / 207 Suites, Web 608 / 112 Suites. Alle externen Dienste hinter austauschbaren Providern gemockt (Default `mock`). **KOMPLETT E8-E21 deployed und live auf littleBrother (bursa.slicedelephant.de).**
+
+Hinweis Deploy 01.07.2026: E21 `PayrollService` hatte einen Nest-DI-Wiring-Bug (`now: () => Date` als Injektions-Param ohne `@Optional()`), der weder von `test:cov` noch `nest build` gefangen wurde und die API in Prod mit 502 crashte. Fix: `@Optional()` am `now`-Param (Commit 7fbde4b). Konsequenz: ein echter API-Boot-Smoke-Test (`node dist/main` + `curl /api/health`) gehoert ab jetzt zur Verifikation, nicht nur test:cov + build.
 
 ## Kurzfazit
 
