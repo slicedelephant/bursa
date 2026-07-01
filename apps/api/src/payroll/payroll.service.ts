@@ -11,7 +11,7 @@
  * applied by the global interceptor. Boundary errors throw `DomainException`.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { Campaign } from '@prisma/client';
 import { DomainException } from '../common/domain.exception';
 import { splitContribution } from '../donations/contribution.util';
@@ -45,7 +45,7 @@ export class PayrollService {
     private readonly audit: AuditService,
     @Inject(EMPLOYEE_DATA_PROVIDER)
     private readonly employees: EmployeeDataProvider,
-    private readonly now: () => Date = () => new Date(),
+    @Optional() private readonly now: () => Date = () => new Date(),
   ) {}
 
   // ---- HRIS connection ------------------------------------------------------
