@@ -5,7 +5,13 @@
  * no I/O; returns new objects, never mutates inputs.
  */
 
-export type FieldType = 'TEXT' | 'LONG_TEXT' | 'NUMBER' | 'SELECT' | 'BOOLEAN' | 'EMAIL';
+export type FieldType =
+  | 'TEXT'
+  | 'LONG_TEXT'
+  | 'NUMBER'
+  | 'SELECT'
+  | 'BOOLEAN'
+  | 'EMAIL';
 
 export interface FormFieldSpec {
   readonly fieldKey: string;

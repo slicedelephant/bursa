@@ -48,7 +48,12 @@ export class ScholarStatusDto {
   event!: ScholarEventDtoValue;
 }
 
-const MESSAGING_CHANNELS = ['WHATSAPP', 'TELEGRAM', 'MESSENGER', 'PUSH'] as const;
+const MESSAGING_CHANNELS = [
+  'WHATSAPP',
+  'TELEGRAM',
+  'MESSENGER',
+  'PUSH',
+] as const;
 
 /** Message a scholar via the reused E17 messaging seam (mock in the prototype). */
 export class MessageScholarDto {

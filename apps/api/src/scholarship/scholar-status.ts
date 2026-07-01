@@ -17,7 +17,11 @@ export type ScholarEvent = 'enroll' | 'graduate' | 'employ' | 'withdraw';
 
 export interface StatusTransition {
   readonly status: ScholarStatus;
-  readonly milestoneField: 'enrolledAt' | 'graduatedAt' | 'employedAt' | 'withdrawnAt';
+  readonly milestoneField:
+    | 'enrolledAt'
+    | 'graduatedAt'
+    | 'employedAt'
+    | 'withdrawnAt';
   readonly at: Date;
 }
 
@@ -32,7 +36,11 @@ const TERMINAL: ReadonlySet<ScholarStatus> = new Set(['WITHDRAWN']);
 
 const TRANSITIONS: Record<
   ScholarEvent,
-  { from: readonly ScholarStatus[]; to: ScholarStatus; field: StatusTransition['milestoneField'] }
+  {
+    from: readonly ScholarStatus[];
+    to: ScholarStatus;
+    field: StatusTransition['milestoneField'];
+  }
 > = {
   enroll: { from: ['AWARDED'], to: 'ENROLLED', field: 'enrolledAt' },
   graduate: { from: ['ENROLLED'], to: 'GRADUATED', field: 'graduatedAt' },

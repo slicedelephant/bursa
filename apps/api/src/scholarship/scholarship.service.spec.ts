@@ -36,9 +36,17 @@ function buildPrisma(overrides: Record<string, unknown> = {}) {
       findMany: jest.fn(),
       create: jest.fn(),
     },
-    programCycle: { findUnique: jest.fn(), findFirst: jest.fn(), create: jest.fn() },
+    programCycle: {
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
     applicationForm: { findUnique: jest.fn() },
-    programReviewer: { count: jest.fn(), create: jest.fn(), findFirst: jest.fn() },
+    programReviewer: {
+      count: jest.fn(),
+      create: jest.fn(),
+      findFirst: jest.fn(),
+    },
     application: {
       findUnique: jest.fn(),
       findUniqueOrThrow: jest.fn(),
@@ -68,7 +76,10 @@ function buildLedger() {
 
 function buildPayments() {
   return {
-    createPayout: jest.fn(async () => ({ status: 'SENT', reference: 'mock_payout_1' })),
+    createPayout: jest.fn(async () => ({
+      status: 'SENT',
+      reference: 'mock_payout_1',
+    })),
   } as never;
 }
 
@@ -81,7 +92,9 @@ function make(prisma: ReturnType<typeof buildPrisma>) {
 }
 
 function m(prisma: unknown, path: string): AnyFn {
-  return path.split('.').reduce((o: never, k) => (o as never)[k], prisma as never);
+  return path
+    .split('.')
+    .reduce((o: never, k) => (o as never)[k], prisma as never);
 }
 
 const OWNER = { id: 'prof_1' };
@@ -104,12 +117,21 @@ describe('ScholarshipService', () => {
     it('rejects a taken slug', async () => {
       const prisma = buildPrisma();
       withOwner(prisma);
-      m(prisma, 'scholarshipProgram.findUnique').mockResolvedValue({ id: 'p9' });
+      m(prisma, 'scholarshipProgram.findUnique').mockResolvedValue({
+        id: 'p9',
+      });
       const { service } = make(prisma);
-      const dto = { slug: 'x', name: 'X', year: 2026, budgetCents: 0, slots: 0, awardCents: 0 };
-      expect(await codeOf(() => service.createProgram('u1', dto as never))).toBe(
-        'SLUG_TAKEN',
-      );
+      const dto = {
+        slug: 'x',
+        name: 'X',
+        year: 2026,
+        budgetCents: 0,
+        slots: 0,
+        awardCents: 0,
+      };
+      expect(
+        await codeOf(() => service.createProgram('u1', dto as never)),
+      ).toBe('SLUG_TAKEN');
     });
 
     it('creates a program with an initial cycle', async () => {
@@ -148,21 +170,28 @@ describe('ScholarshipService', () => {
       const prisma = buildPrisma();
       ownedProgram(prisma);
       const { service } = make(prisma);
-      const dto = { title: 'T', fields: [{ fieldKey: 'a', label: '', type: 'TEXT' }] };
-      expect(await codeOf(() => service.setForm('u1', 'p1', dto as never))).toBe(
-        'INVALID_FORM_SCHEMA',
-      );
+      const dto = {
+        title: 'T',
+        fields: [{ fieldKey: 'a', label: '', type: 'TEXT' }],
+      };
+      expect(
+        await codeOf(() => service.setForm('u1', 'p1', dto as never)),
+      ).toBe('INVALID_FORM_SCHEMA');
     });
 
     it('persists a valid schema (new form)', async () => {
       const prisma = buildPrisma();
       ownedProgram(prisma);
       m(prisma, '__tx.applicationForm.findUnique').mockResolvedValue(null);
-      m(prisma, '__tx.applicationForm.findUniqueOrThrow').mockResolvedValue({ id: 'frm1' });
+      m(prisma, '__tx.applicationForm.findUniqueOrThrow').mockResolvedValue({
+        id: 'frm1',
+      });
       const { service } = make(prisma);
       const dto = {
         title: 'T',
-        fields: [{ fieldKey: 'why', label: 'Why', type: 'LONG_TEXT', rubricWeight: 3 }],
+        fields: [
+          { fieldKey: 'why', label: 'Why', type: 'LONG_TEXT', rubricWeight: 3 },
+        ],
       };
       const res = await service.setForm('u1', 'p1', dto as never);
       expect(res.fieldCount).toBe(1);
@@ -171,8 +200,12 @@ describe('ScholarshipService', () => {
     it('replaces the fields of an existing form', async () => {
       const prisma = buildPrisma();
       ownedProgram(prisma);
-      m(prisma, '__tx.applicationForm.findUnique').mockResolvedValue({ id: 'frm1' });
-      m(prisma, '__tx.applicationForm.findUniqueOrThrow').mockResolvedValue({ id: 'frm1' });
+      m(prisma, '__tx.applicationForm.findUnique').mockResolvedValue({
+        id: 'frm1',
+      });
+      m(prisma, '__tx.applicationForm.findUniqueOrThrow').mockResolvedValue({
+        id: 'frm1',
+      });
       const { service } = make(prisma);
       const dto = {
         title: 'T2',
@@ -241,7 +274,9 @@ describe('ScholarshipService', () => {
         school: { payoutVerified: true },
       });
       const { service } = make(prisma);
-      expect(await codeOf(() => service.disburse('u1', 'a1'))).toBe('ALREADY_DISBURSED');
+      expect(await codeOf(() => service.disburse('u1', 'a1'))).toBe(
+        'ALREADY_DISBURSED',
+      );
     });
 
     it('blocks an unverified school', async () => {
@@ -253,7 +288,9 @@ describe('ScholarshipService', () => {
         school: { payoutVerified: false, name: 'S' },
       });
       const { service } = make(prisma);
-      expect(await codeOf(() => service.disburse('u1', 'a1'))).toBe('SCHOOL_NOT_VERIFIED');
+      expect(await codeOf(() => service.disburse('u1', 'a1'))).toBe(
+        'SCHOOL_NOT_VERIFIED',
+      );
     });
 
     it('disburses to the school and appends a DISBURSEMENT ledger entry', async () => {
@@ -265,7 +302,11 @@ describe('ScholarshipService', () => {
         amountCents: 2000000,
         currency: 'EUR',
         payoutRef: null,
-        school: { payoutVerified: true, name: 'ESMT', payoutAccountRef: 'DE00' },
+        school: {
+          payoutVerified: true,
+          name: 'ESMT',
+          payoutAccountRef: 'DE00',
+        },
       });
       const { service, payments, ledger } = make(prisma);
       const res = await service.disburse('u1', 'a1');
@@ -274,7 +315,10 @@ describe('ScholarshipService', () => {
         expect.objectContaining({ schoolName: 'ESMT', amountCents: 2000000 }),
       );
       expect(m(ledger, 'append')).toHaveBeenCalledWith(
-        expect.objectContaining({ entryType: 'DISBURSEMENT', schoolId: 'sch1' }),
+        expect.objectContaining({
+          entryType: 'DISBURSEMENT',
+          schoolId: 'sch1',
+        }),
       );
     });
   });
@@ -299,9 +343,9 @@ describe('ScholarshipService', () => {
         school: { payoutVerified: true },
       });
       const { service } = make(prisma);
-      expect(await codeOf(() => service.releaseTranche('u1', 'a1', { gpa: 3.9 }))).toBe(
-        'NO_TRANCHE_CONFIGURED',
-      );
+      expect(
+        await codeOf(() => service.releaseTranche('u1', 'a1', { gpa: 3.9 })),
+      ).toBe('NO_TRANCHE_CONFIGURED');
     });
 
     it('holds when the gpa is below threshold', async () => {
@@ -330,14 +374,21 @@ describe('ScholarshipService', () => {
         trancheStatus: 'HELD',
         trancheCents: 1000000,
         gpaThreshold: 3.5,
-        school: { payoutVerified: true, name: 'ESMT', payoutAccountRef: 'DE00' },
+        school: {
+          payoutVerified: true,
+          name: 'ESMT',
+          payoutAccountRef: 'DE00',
+        },
       });
       const { service, payments, ledger } = make(prisma);
       const res = await service.releaseTranche('u1', 'a1', { gpa: 3.8 });
       expect(res.decision).toBe('RELEASE');
       expect(m(payments, 'createPayout')).toHaveBeenCalled();
       expect(m(ledger, 'append')).toHaveBeenCalledWith(
-        expect.objectContaining({ entryType: 'DISBURSEMENT', schoolId: 'sch1' }),
+        expect.objectContaining({
+          entryType: 'DISBURSEMENT',
+          schoolId: 'sch1',
+        }),
       );
     });
   });
@@ -349,7 +400,10 @@ describe('ScholarshipService', () => {
       const { service } = make(prisma);
       expect(
         await codeOf(() =>
-          service.scoreApplication('u1', 'nope', { reviewerId: 'r', scores: [] }),
+          service.scoreApplication('u1', 'nope', {
+            reviewerId: 'r',
+            scores: [],
+          }),
         ),
       ).toBe('NOT_FOUND');
     });
@@ -357,7 +411,10 @@ describe('ScholarshipService', () => {
     it('scoreApplication rejects a reviewer not on the program', async () => {
       const prisma = buildPrisma();
       withOwner(prisma);
-      m(prisma, 'application.findUnique').mockResolvedValue({ id: 'app1', programId: 'p1' });
+      m(prisma, 'application.findUnique').mockResolvedValue({
+        id: 'app1',
+        programId: 'p1',
+      });
       m(prisma, 'scholarshipProgram.findUnique').mockResolvedValue({
         id: 'p1',
         corporateProfileId: OWNER.id,
@@ -366,7 +423,10 @@ describe('ScholarshipService', () => {
       const { service } = make(prisma);
       expect(
         await codeOf(() =>
-          service.scoreApplication('u1', 'app1', { reviewerId: 'ghost', scores: [] }),
+          service.scoreApplication('u1', 'app1', {
+            reviewerId: 'ghost',
+            scores: [],
+          }),
         ),
       ).toBe('UNKNOWN_REVIEWER');
     });
@@ -380,9 +440,9 @@ describe('ScholarshipService', () => {
       });
       m(prisma, 'programCycle.findUnique').mockResolvedValue(null);
       const { service } = make(prisma);
-      expect(await codeOf(() => service.decide('u1', 'p1', { cycleYear: 2099 }))).toBe(
-        'NO_CYCLE',
-      );
+      expect(
+        await codeOf(() => service.decide('u1', 'p1', { cycleYear: 2099 })),
+      ).toBe('NO_CYCLE');
     });
 
     it('decide rejects when no verified school exists', async () => {
@@ -402,16 +462,18 @@ describe('ScholarshipService', () => {
       ]);
       m(prisma, 'school.findFirst').mockResolvedValue(null);
       const { service } = make(prisma);
-      expect(await codeOf(() => service.decide('u1', 'p1', { cycleYear: 2026 }))).toBe(
-        'NO_VERIFIED_SCHOOL',
-      );
+      expect(
+        await codeOf(() => service.decide('u1', 'p1', { cycleYear: 2026 })),
+      ).toBe('NO_VERIFIED_SCHOOL');
     });
 
     it('disburse rejects an unknown award', async () => {
       const prisma = buildPrisma();
       m(prisma, 'scholarshipAward.findUnique').mockResolvedValue(null);
       const { service } = make(prisma);
-      expect(await codeOf(() => service.disburse('u1', 'nope'))).toBe('NOT_FOUND');
+      expect(await codeOf(() => service.disburse('u1', 'nope'))).toBe(
+        'NOT_FOUND',
+      );
     });
 
     it('setScholarStatus rejects an unknown scholar', async () => {
@@ -419,7 +481,9 @@ describe('ScholarshipService', () => {
       m(prisma, 'scholarRelationship.findUnique').mockResolvedValue(null);
       const { service } = make(prisma);
       expect(
-        await codeOf(() => service.setScholarStatus('u1', 'nope', { event: 'enroll' })),
+        await codeOf(() =>
+          service.setScholarStatus('u1', 'nope', { event: 'enroll' }),
+        ),
       ).toBe('NOT_FOUND');
     });
 
@@ -441,7 +505,9 @@ describe('ScholarshipService', () => {
         programId: 'p1',
         status: 'SUBMITTED',
       });
-      m(prisma, 'scholarshipProgram.findUniqueOrThrow').mockResolvedValue({ form: null });
+      m(prisma, 'scholarshipProgram.findUniqueOrThrow').mockResolvedValue({
+        form: null,
+      });
       const { service } = make(prisma);
       expect(
         await codeOf(() =>
@@ -470,7 +536,9 @@ describe('ScholarshipService', () => {
       });
       m(prisma, 'programCycle.findUnique').mockResolvedValue({ id: 'cyc2' });
       const { service } = make(prisma);
-      expect(await codeOf(() => service.renew('u1', 'p1', {}))).toBe('CYCLE_EXISTS');
+      expect(await codeOf(() => service.renew('u1', 'p1', {}))).toBe(
+        'CYCLE_EXISTS',
+      );
     });
   });
 
@@ -491,9 +559,16 @@ describe('ScholarshipService', () => {
         { id: 'app_a', consensusScore: 95 },
         { id: 'app_b', consensusScore: 80 },
       ]);
-      m(prisma, 'school.findFirst').mockResolvedValue({ id: 'sch1', payoutVerified: true });
-      m(prisma, '__tx.application.update').mockResolvedValue({ applicantName: 'Amara' });
-      m(prisma, '__tx.scholarshipAward.create').mockResolvedValue({ id: 'awd1' });
+      m(prisma, 'school.findFirst').mockResolvedValue({
+        id: 'sch1',
+        payoutVerified: true,
+      });
+      m(prisma, '__tx.application.update').mockResolvedValue({
+        applicantName: 'Amara',
+      });
+      m(prisma, '__tx.scholarshipAward.create').mockResolvedValue({
+        id: 'awd1',
+      });
       m(prisma, '__tx.scholarRelationship.create').mockResolvedValue({});
       const { service } = make(prisma);
       const res = await service.decide('u1', 'p1', { cycleYear: 2026 });
@@ -530,7 +605,10 @@ describe('ScholarshipService', () => {
   });
 
   describe('setScholarStatus', () => {
-    function ownedScholar(prisma: ReturnType<typeof buildPrisma>, status: string) {
+    function ownedScholar(
+      prisma: ReturnType<typeof buildPrisma>,
+      status: string,
+    ) {
       withOwner(prisma);
       m(prisma, 'scholarRelationship.findUnique').mockResolvedValue({
         id: 'scl1',
@@ -551,7 +629,9 @@ describe('ScholarshipService', () => {
         status: 'ENROLLED',
       });
       const { service } = make(prisma);
-      const res = await service.setScholarStatus('u1', 'scl1', { event: 'enroll' });
+      const res = await service.setScholarStatus('u1', 'scl1', {
+        event: 'enroll',
+      });
       expect(res.status).toBe('ENROLLED');
     });
 
@@ -560,7 +640,9 @@ describe('ScholarshipService', () => {
       ownedScholar(prisma, 'WITHDRAWN');
       const { service } = make(prisma);
       expect(
-        await codeOf(() => service.setScholarStatus('u1', 'scl1', { event: 'enroll' })),
+        await codeOf(() =>
+          service.setScholarStatus('u1', 'scl1', { event: 'enroll' }),
+        ),
       ).toBe('INVALID_STATUS_TRANSITION');
     });
   });
@@ -596,13 +678,22 @@ describe('ScholarshipService', () => {
         name: 'Acme',
         corporateProfileId: OWNER.id,
       });
-      m(prisma, 'programCycle.findFirst').mockResolvedValue({ id: 'cyc1', year: 2026 });
+      m(prisma, 'programCycle.findFirst').mockResolvedValue({
+        id: 'cyc1',
+        year: 2026,
+      });
       m(prisma, 'scholarRelationship.findMany').mockResolvedValue([
         {
           status: 'GRADUATED',
           alumniNetwork: true,
           country: 'NG',
-          scholar: { studentProfile: { gender: 'FEMALE', birthYear: 1996, firstGen: true } },
+          scholar: {
+            studentProfile: {
+              gender: 'FEMALE',
+              birthYear: 1996,
+              firstGen: true,
+            },
+          },
         },
       ]);
     }
@@ -641,7 +732,10 @@ describe('ScholarshipService', () => {
         awardCents: 2000000,
       });
       m(prisma, 'programCycle.findUnique').mockResolvedValue(null);
-      m(prisma, 'programCycle.create').mockResolvedValue({ year: 2027, budgetCents: 6000000 });
+      m(prisma, 'programCycle.create').mockResolvedValue({
+        year: 2027,
+        budgetCents: 6000000,
+      });
       m(prisma, 'applicationForm.findUnique').mockResolvedValue({
         fields: [{ id: 'f1' }, { id: 'f2' }],
       });
@@ -677,7 +771,12 @@ describe('ScholarshipService', () => {
       withOwner(prisma);
       m(prisma, 'scholarshipProgram.findUnique')
         .mockResolvedValueOnce({ id: 'p1', corporateProfileId: OWNER.id })
-        .mockResolvedValueOnce({ id: 'p1', name: 'Acme', form: null, reviewers: [] });
+        .mockResolvedValueOnce({
+          id: 'p1',
+          name: 'Acme',
+          form: null,
+          reviewers: [],
+        });
       const { service } = make(prisma);
       const res = await service.getProgram('u1', 'p1');
       expect(res?.id).toBe('p1');
@@ -687,7 +786,9 @@ describe('ScholarshipService', () => {
       const prisma = buildPrisma();
       m(prisma, 'scholarshipProgram.findUnique').mockResolvedValue(null);
       const { service } = make(prisma);
-      expect(await codeOf(() => service.getProgram('u1', 'nope'))).toBe('NOT_FOUND');
+      expect(await codeOf(() => service.getProgram('u1', 'nope'))).toBe(
+        'NOT_FOUND',
+      );
     });
 
     it('rejects a program owned by someone else', async () => {
@@ -698,7 +799,9 @@ describe('ScholarshipService', () => {
         corporateProfileId: 'other',
       });
       const { service } = make(prisma);
-      expect(await codeOf(() => service.getProgram('u1', 'p1'))).toBe('FORBIDDEN');
+      expect(await codeOf(() => service.getProgram('u1', 'p1'))).toBe(
+        'FORBIDDEN',
+      );
     });
 
     it('lists applications with an awarded flag', async () => {
@@ -777,7 +880,14 @@ describe('ScholarshipService', () => {
         form: {
           title: 'T',
           intro: null,
-          fields: [{ fieldKey: 'why', label: 'Why', type: 'LONG_TEXT', required: true }],
+          fields: [
+            {
+              fieldKey: 'why',
+              label: 'Why',
+              type: 'LONG_TEXT',
+              required: true,
+            },
+          ],
         },
       });
       const { service } = make(prisma);
@@ -791,7 +901,9 @@ describe('ScholarshipService', () => {
         id: 'app1',
         programId: 'p1',
       });
-      m(prisma, 'scholarshipProgram.findUniqueOrThrow').mockResolvedValue({ form: null });
+      m(prisma, 'scholarshipProgram.findUniqueOrThrow').mockResolvedValue({
+        form: null,
+      });
       const { service } = make(prisma);
       expect(await codeOf(() => service.publicForm('tok'))).toBe('NO_FORM');
     });
@@ -802,7 +914,9 @@ describe('ScholarshipService', () => {
       const prisma = buildPrisma();
       m(prisma, 'application.findUnique').mockResolvedValue(null);
       const { service } = make(prisma);
-      expect(await codeOf(() => service.applicationStatus('bad'))).toBe('INVALID_TOKEN');
+      expect(await codeOf(() => service.applicationStatus('bad'))).toBe(
+        'INVALID_TOKEN',
+      );
     });
 
     it('validates and stores answers for a valid submission', async () => {
@@ -814,7 +928,14 @@ describe('ScholarshipService', () => {
       });
       m(prisma, 'scholarshipProgram.findUniqueOrThrow').mockResolvedValue({
         form: {
-          fields: [{ fieldKey: 'why', label: 'Why', type: 'LONG_TEXT', required: true }],
+          fields: [
+            {
+              fieldKey: 'why',
+              label: 'Why',
+              type: 'LONG_TEXT',
+              required: true,
+            },
+          ],
         },
       });
       m(prisma, '__tx.application.update').mockResolvedValue({ id: 'app1' });
@@ -836,7 +957,14 @@ describe('ScholarshipService', () => {
       });
       m(prisma, 'scholarshipProgram.findUniqueOrThrow').mockResolvedValue({
         form: {
-          fields: [{ fieldKey: 'why', label: 'Why', type: 'LONG_TEXT', required: true }],
+          fields: [
+            {
+              fieldKey: 'why',
+              label: 'Why',
+              type: 'LONG_TEXT',
+              required: true,
+            },
+          ],
         },
       });
       const { service } = make(prisma);

@@ -110,7 +110,11 @@ export class ScholarshipService {
       select: { id: true },
     });
     if (clash) {
-      throw new DomainException('SLUG_TAKEN', 'That slug is already in use', 409);
+      throw new DomainException(
+        'SLUG_TAKEN',
+        'That slug is already in use',
+        409,
+      );
     }
 
     const program = await this.prisma.scholarshipProgram.create({
@@ -152,7 +156,9 @@ export class ScholarshipService {
       where: { corporateProfileId },
       include: {
         cycles: { orderBy: { year: 'desc' } },
-        _count: { select: { applications: true, awards: true, reviewers: true } },
+        _count: {
+          select: { applications: true, awards: true, reviewers: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -246,7 +252,9 @@ export class ScholarshipService {
 
   async addReviewer(userId: string, programId: string, dto: AddReviewerDto) {
     await this.ownedProgram(userId, programId);
-    const count = await this.prisma.programReviewer.count({ where: { programId } });
+    const count = await this.prisma.programReviewer.count({
+      where: { programId },
+    });
     if (count >= MAX_REVIEWERS) {
       throw new DomainException(
         'REVIEWER_LIMIT',
@@ -320,9 +328,17 @@ export class ScholarshipService {
     }));
 
     const visibility = evaluateVisibility(specs, dto.answers);
-    const result = validateAnswers({ fields: specs, answers: dto.answers, visibility });
+    const result = validateAnswers({
+      fields: specs,
+      answers: dto.answers,
+      visibility,
+    });
     if (!result.valid) {
-      throw new DomainException('INVALID_ANSWERS', result.errors.join('; '), 400);
+      throw new DomainException(
+        'INVALID_ANSWERS',
+        result.errors.join('; '),
+        400,
+      );
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -335,7 +351,9 @@ export class ScholarshipService {
           submittedAt: new Date(),
         },
       });
-      await tx.applicationAnswer.deleteMany({ where: { applicationId: app.id } });
+      await tx.applicationAnswer.deleteMany({
+        where: { applicationId: app.id },
+      });
       const visibleAnswers = Object.entries(dto.answers).filter(
         ([key]) => visibility[key] !== false,
       );
@@ -365,7 +383,11 @@ export class ScholarshipService {
       where: { tokenHash },
     });
     if (!application || !isTokenActive({ tokenHash })) {
-      throw new DomainException('INVALID_TOKEN', 'Invalid application token', 401);
+      throw new DomainException(
+        'INVALID_TOKEN',
+        'Invalid application token',
+        401,
+      );
     }
     return application;
   }
@@ -397,7 +419,10 @@ export class ScholarshipService {
     await this.ownedProgram(userId, programId);
     const applications = await this.prisma.application.findMany({
       where: { programId },
-      include: { _count: { select: { answers: true, scores: true } }, award: true },
+      include: {
+        _count: { select: { answers: true, scores: true } },
+        award: true,
+      },
       orderBy: { consensusScore: 'desc' },
     });
     return applications.map((a) => ({
@@ -419,7 +444,9 @@ export class ScholarshipService {
   ) {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
-      include: { program: { include: { form: { include: { fields: true } } } } },
+      include: {
+        program: { include: { form: { include: { fields: true } } } },
+      },
     });
     if (!application) {
       throw new DomainException('NOT_FOUND', 'Application not found', 404);
@@ -431,7 +458,11 @@ export class ScholarshipService {
       select: { id: true },
     });
     if (!reviewer) {
-      throw new DomainException('UNKNOWN_REVIEWER', 'Reviewer not on this program', 400);
+      throw new DomainException(
+        'UNKNOWN_REVIEWER',
+        'Reviewer not on this program',
+        400,
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -511,8 +542,11 @@ export class ScholarshipService {
     const targetSchool = await this.defaultAwardSchool();
 
     const winners = await this.prisma.$transaction(async (tx) => {
-      const created: { applicationId: string; amountCents: number; awardId: string }[] =
-        [];
+      const created: {
+        applicationId: string;
+        amountCents: number;
+        awardId: string;
+      }[] = [];
       for (const w of decision.winners) {
         const app = await tx.application.update({
           where: { id: w.appId },
@@ -561,7 +595,11 @@ export class ScholarshipService {
   async disburse(userId: string, awardId: string) {
     const award = await this.loadOwnedAward(userId, awardId);
     if (award.payoutRef) {
-      throw new DomainException('ALREADY_DISBURSED', 'Award already disbursed', 409);
+      throw new DomainException(
+        'ALREADY_DISBURSED',
+        'Award already disbursed',
+        409,
+      );
     }
     if (!award.school.payoutVerified) {
       throw new DomainException(
@@ -603,7 +641,11 @@ export class ScholarshipService {
     };
   }
 
-  async releaseTranche(userId: string, awardId: string, dto: ReleaseTrancheDto) {
+  async releaseTranche(
+    userId: string,
+    awardId: string,
+    dto: ReleaseTrancheDto,
+  ) {
     const award = await this.loadOwnedAward(userId, awardId);
     if (award.trancheStatus === 'NONE' || award.trancheCents <= 0) {
       throw new DomainException(
@@ -702,7 +744,11 @@ export class ScholarshipService {
     }));
   }
 
-  async setScholarStatus(userId: string, scholarId: string, dto: ScholarStatusDto) {
+  async setScholarStatus(
+    userId: string,
+    scholarId: string,
+    dto: ScholarStatusDto,
+  ) {
     const scholar = await this.prisma.scholarRelationship.findUnique({
       where: { id: scholarId },
     });
@@ -745,7 +791,11 @@ export class ScholarshipService {
     };
   }
 
-  async messageScholar(userId: string, scholarId: string, dto: MessageScholarDto) {
+  async messageScholar(
+    userId: string,
+    scholarId: string,
+    dto: MessageScholarDto,
+  ) {
     const scholar = await this.prisma.scholarRelationship.findUnique({
       where: { id: scholarId },
     });
@@ -793,7 +843,12 @@ export class ScholarshipService {
       cycle.year,
     );
 
-    return { programName: program.name, cycleYear: cycle.year, outcome, diversity };
+    return {
+      programName: program.name,
+      cycleYear: cycle.year,
+      outcome,
+      diversity,
+    };
   }
 
   async reportCsv(userId: string, programId: string): Promise<string> {

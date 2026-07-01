@@ -40,7 +40,10 @@ export class ScholarshipController {
   constructor(private readonly scholarship: ScholarshipService) {}
 
   @Post('programs')
-  createProgram(@CurrentUser('id') userId: string, @Body() dto: CreateProgramDto) {
+  createProgram(
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateProgramDto,
+  ) {
     return this.scholarship.createProgram(userId, dto);
   }
 

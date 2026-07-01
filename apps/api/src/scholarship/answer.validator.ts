@@ -29,13 +29,17 @@ function isBlank(value: string | undefined): boolean {
 function typeError(field: FormFieldSpec, value: string): string | null {
   switch (field.type) {
     case 'NUMBER':
-      return Number.isFinite(Number(value)) ? null : `${field.fieldKey} must be a number`;
+      return Number.isFinite(Number(value))
+        ? null
+        : `${field.fieldKey} must be a number`;
     case 'BOOLEAN':
       return value === 'true' || value === 'false'
         ? null
         : `${field.fieldKey} must be true or false`;
     case 'EMAIL':
-      return EMAIL_PATTERN.test(value) ? null : `${field.fieldKey} must be a valid email`;
+      return EMAIL_PATTERN.test(value)
+        ? null
+        : `${field.fieldKey} must be a valid email`;
     case 'SELECT':
       return (field.options ?? []).includes(value)
         ? null
@@ -46,7 +50,9 @@ function typeError(field: FormFieldSpec, value: string): string | null {
 }
 
 /** Validates required + typed answers, skipping fields hidden by conditional logic. */
-export function validateAnswers(input: AnswerValidationInput): AnswerValidation {
+export function validateAnswers(
+  input: AnswerValidationInput,
+): AnswerValidation {
   const errors: string[] = [];
 
   for (const field of input.fields) {

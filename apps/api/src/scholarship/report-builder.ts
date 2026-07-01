@@ -39,7 +39,10 @@ export function toReportCsv(view: ReportView): string {
     ['First-gen share %', String(view.diversity.firstGenSharePct)],
     ['Countries reached', String(view.diversity.countriesReached)],
   ];
-  const lines = ['Metric,Value', ...rows.map(([k, v]) => `${cell(k)},${cell(v)}`)];
+  const lines = [
+    'Metric,Value',
+    ...rows.map(([k, v]) => `${cell(k)},${cell(v)}`),
+  ];
   return lines.join('\n') + '\n';
 }
 

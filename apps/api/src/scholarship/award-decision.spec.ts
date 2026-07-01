@@ -9,31 +9,60 @@ const ranked: RankedApplication[] = [
 
 describe('decideAwards', () => {
   it('selects the highest-scoring applications up to the slot count', () => {
-    const res = decideAwards({ ranked, budgetCents: 10_000_000, slots: 2, awardCents: 2_000_000 });
+    const res = decideAwards({
+      ranked,
+      budgetCents: 10_000_000,
+      slots: 2,
+      awardCents: 2_000_000,
+    });
     expect(res.winners.map((w) => w.appId)).toEqual(['app_a', 'app_b']);
     expect(res.spentCents).toBe(4_000_000);
   });
 
   it('breaks score ties deterministically by appId ascending', () => {
-    const res = decideAwards({ ranked, budgetCents: 10_000_000, slots: 3, awardCents: 2_000_000 });
+    const res = decideAwards({
+      ranked,
+      budgetCents: 10_000_000,
+      slots: 3,
+      awardCents: 2_000_000,
+    });
     // 95: app_a, then 90 tie -> app_b before app_c
-    expect(res.winners.map((w) => w.appId)).toEqual(['app_a', 'app_b', 'app_c']);
+    expect(res.winners.map((w) => w.appId)).toEqual([
+      'app_a',
+      'app_b',
+      'app_c',
+    ]);
   });
 
   it('stops when the budget is exhausted before the slots', () => {
-    const res = decideAwards({ ranked, budgetCents: 3_000_000, slots: 5, awardCents: 2_000_000 });
+    const res = decideAwards({
+      ranked,
+      budgetCents: 3_000_000,
+      slots: 5,
+      awardCents: 2_000_000,
+    });
     expect(res.winners).toHaveLength(1);
     expect(res.spentCents).toBe(2_000_000);
   });
 
   it('awards nobody when awardCents is zero', () => {
-    const res = decideAwards({ ranked, budgetCents: 10_000_000, slots: 3, awardCents: 0 });
+    const res = decideAwards({
+      ranked,
+      budgetCents: 10_000_000,
+      slots: 3,
+      awardCents: 0,
+    });
     expect(res.winners).toHaveLength(0);
     expect(res.spentCents).toBe(0);
   });
 
   it('awards nobody when budget cannot cover a single award', () => {
-    const res = decideAwards({ ranked, budgetCents: 1_000_000, slots: 3, awardCents: 2_000_000 });
+    const res = decideAwards({
+      ranked,
+      budgetCents: 1_000_000,
+      slots: 3,
+      awardCents: 2_000_000,
+    });
     expect(res.winners).toHaveLength(0);
   });
 
@@ -49,7 +78,11 @@ describe('decideAwards', () => {
       slots: 3,
       awardCents: 1_000_000,
     });
-    expect(res.winners.map((w) => w.appId)).toEqual(['app_x', 'app_y', 'app_z']);
+    expect(res.winners.map((w) => w.appId)).toEqual([
+      'app_x',
+      'app_y',
+      'app_z',
+    ]);
   });
 
   it('treats identical appIds as equal in the tie-break', () => {
@@ -68,7 +101,12 @@ describe('decideAwards', () => {
 
   it('does not mutate the ranked input', () => {
     const copy = [...ranked];
-    decideAwards({ ranked, budgetCents: 10_000_000, slots: 2, awardCents: 2_000_000 });
+    decideAwards({
+      ranked,
+      budgetCents: 10_000_000,
+      slots: 2,
+      awardCents: 2_000_000,
+    });
     expect(ranked).toEqual(copy);
   });
 });

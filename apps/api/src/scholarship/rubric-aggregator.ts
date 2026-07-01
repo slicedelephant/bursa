@@ -44,10 +44,14 @@ export function aggregateRubric(input: RubricInput): RubricResult {
   const weighted = input.fields.filter((f) => f.rubricWeight > 0);
 
   const perField: PerFieldAverage[] = weighted.map((field) => {
-    const fieldScores = input.scores.filter((s) => s.fieldKey === field.fieldKey);
+    const fieldScores = input.scores.filter(
+      (s) => s.fieldKey === field.fieldKey,
+    );
     const count = fieldScores.length;
     const average =
-      count === 0 ? 0 : round1(fieldScores.reduce((sum, s) => sum + s.score, 0) / count);
+      count === 0
+        ? 0
+        : round1(fieldScores.reduce((sum, s) => sum + s.score, 0) / count);
     return { fieldKey: field.fieldKey, average, count };
   });
 
@@ -58,7 +62,8 @@ export function aggregateRubric(input: RubricInput): RubricResult {
   }
 
   const weightedSum = weighted.reduce((sum, field) => {
-    const avg = perField.find((p) => p.fieldKey === field.fieldKey)?.average ?? 0;
+    const avg =
+      perField.find((p) => p.fieldKey === field.fieldKey)?.average ?? 0;
     return sum + avg * field.rubricWeight;
   }, 0);
 

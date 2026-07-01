@@ -1,4 +1,10 @@
-import { IsEmail, IsObject, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsObject,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 /**
  * E19 — a public applicant submits their answers via the token link. Answers are

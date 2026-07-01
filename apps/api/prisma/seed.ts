@@ -22,6 +22,7 @@ import { buildEsgAggregate } from '../src/esg/esg-aggregate';
 import { mapToStandard } from '../src/esg/esg-standard-mapper';
 import { buildAnnotations } from '../src/esg/audit-annotation';
 import { createAuditorToken } from '../src/esg/auditor-access-token';
+import { createApplicationToken } from '../src/scholarship/application-token';
 
 const prisma = new PrismaClient();
 
@@ -389,6 +390,17 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E19 (delete before school/user/corporateProfile — scholarship manager; children first)
+  await prisma.reviewScore.deleteMany();
+  await prisma.applicationAnswer.deleteMany();
+  await prisma.scholarRelationship.deleteMany();
+  await prisma.scholarshipAward.deleteMany();
+  await prisma.application.deleteMany();
+  await prisma.programReviewer.deleteMany();
+  await prisma.formField.deleteMany();
+  await prisma.applicationForm.deleteMany();
+  await prisma.programCycle.deleteMany();
+  await prisma.scholarshipProgram.deleteMany();
   // E18 (delete before campaign/donation/user — groups engine; children first)
   await prisma.groupVoteBallot.deleteMany();
   await prisma.groupVoteOption.deleteMany();
@@ -2248,6 +2260,217 @@ async function main(): Promise<void> {
     console.log(
       `Created E18 giving circle "Lagos Alumni Giving Circle" (3 members, ` +
         `${donorDonations.length} contributions, 1 vote, 1 chat message).`,
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // E19 — Self-Serve Corporate Scholarship Program Manager.
+  // A branded program owned by the seeded sponsor (Acme Capital), with a form,
+  // three applications (one awarded), reviewer scores, one award DISBURSED to a
+  // verified school (ESMT) + a conditional second tranche still HELD, and an SRM
+  // record. Money goes to the SCHOOL, never the scholar (Constitution II).
+  // --------------------------------------------------------------------------
+  const esmtSchoolId = schoolByKey['esmt'];
+  if (esmtSchoolId) {
+    const program = await prisma.scholarshipProgram.create({
+      data: {
+        corporateProfileId: sponsorProfile.id,
+        name: 'Acme Future Leaders Scholarship',
+        slug: 'acme-future-leaders',
+        brandPrimary: '#4d977c',
+        brandSecondary: '#6ca5c3',
+        tagline: 'Investing in tomorrow’s MBA leaders',
+        cycles: {
+          create: {
+            year: 2026,
+            budgetCents: eur(60000),
+            slots: 2,
+            awardCents: eur(20000),
+          },
+        },
+      },
+      include: { cycles: true },
+    });
+    const cycle = program.cycles[0];
+
+    const form = await prisma.applicationForm.create({
+      data: {
+        programId: program.id,
+        title: 'Acme Future Leaders — Application 2026',
+        intro: 'Tell us why you are a future leader.',
+      },
+    });
+    await prisma.formField.createMany({
+      data: [
+        {
+          formId: form.id,
+          fieldKey: 'motivation',
+          label: 'Why do you deserve this scholarship?',
+          type: 'LONG_TEXT',
+          required: true,
+          rubricWeight: 3,
+          order: 0,
+        },
+        {
+          formId: form.id,
+          fieldKey: 'leadership',
+          label: 'Leadership role',
+          type: 'SELECT',
+          required: true,
+          options: ['None', 'Team lead', 'Founder'],
+          rubricWeight: 2,
+          order: 1,
+        },
+        {
+          formId: form.id,
+          fieldKey: 'ventureStory',
+          label: 'Describe your venture',
+          type: 'LONG_TEXT',
+          required: true,
+          rubricWeight: 2,
+          showIfFieldId: 'leadership',
+          showIfValue: 'Founder',
+          order: 2,
+        },
+      ],
+    });
+
+    const reviewer = await prisma.programReviewer.create({
+      data: {
+        programId: program.id,
+        reviewerName: 'Jordan Reyes',
+        reviewerEmail: 'jordan@acme.test',
+      },
+    });
+
+    const applicants = [
+      {
+        name: 'Amara Okonkwo',
+        email: 'amara@bursa.test',
+        leadership: 'Founder',
+        score: 5,
+      },
+      {
+        name: 'Kwame Mensah',
+        email: 'kwame@students.bursa.test',
+        leadership: 'Team lead',
+        score: 4,
+      },
+      {
+        name: 'Priya Sharma',
+        email: 'priya@students.bursa.test',
+        leadership: 'None',
+        score: 3,
+      },
+    ];
+
+    let winnerApplicationId: string | null = null;
+    for (const [index, a] of applicants.entries()) {
+      const { tokenHash } = createApplicationToken();
+      const consensus = index === 0 ? 96 : index === 1 ? 80 : 60;
+      const application = await prisma.application.create({
+        data: {
+          programId: program.id,
+          cycleId: cycle.id,
+          tokenHash,
+          applicantName: a.name,
+          applicantEmail: a.email,
+          status: index === 0 ? 'AWARDED' : 'UNDER_REVIEW',
+          consensusScore: consensus,
+        },
+      });
+      await prisma.applicationAnswer.createMany({
+        data: [
+          {
+            applicationId: application.id,
+            fieldKey: 'motivation',
+            value: 'I lead with impact.',
+          },
+          {
+            applicationId: application.id,
+            fieldKey: 'leadership',
+            value: a.leadership,
+          },
+          ...(a.leadership === 'Founder'
+            ? [
+                {
+                  applicationId: application.id,
+                  fieldKey: 'ventureStory',
+                  value: 'Built a fintech for the diaspora.',
+                },
+              ]
+            : []),
+        ],
+      });
+      await prisma.reviewScore.createMany({
+        data: [
+          {
+            applicationId: application.id,
+            reviewerId: reviewer.id,
+            fieldKey: 'motivation',
+            score: a.score,
+            comment: 'Solid motivation.',
+          },
+          {
+            applicationId: application.id,
+            reviewerId: reviewer.id,
+            fieldKey: 'leadership',
+            score: a.score,
+          },
+        ],
+      });
+      if (index === 0) {
+        winnerApplicationId = application.id;
+      }
+    }
+
+    if (winnerApplicationId) {
+      const award = await prisma.scholarshipAward.create({
+        data: {
+          programId: program.id,
+          applicationId: winnerApplicationId,
+          schoolId: esmtSchoolId,
+          amountCents: eur(20000),
+          payoutRef: `mock_payout_seed_${program.id.slice(-6)}`,
+          // Conditional second tranche: still HELD (GPA not yet recorded/met).
+          trancheCents: eur(10000),
+          gpaThreshold: 3.0,
+          trancheStatus: 'HELD',
+        },
+      });
+
+      // Record the disbursement in the append-only ledger — to the SCHOOL.
+      await appendLedger(
+        {
+          entryType: 'DISBURSEMENT',
+          amountCents: eur(20000),
+          schoolId: esmtSchoolId,
+          reason: `Scholarship award disbursement (program ${program.id})`,
+          actorUserId: sponsorUser.id,
+          refType: 'scholarship_award',
+          refId: award.id,
+        },
+        new Date(),
+      );
+
+      // SRM record: an enrolled scholar linked to the awarded student.
+      await prisma.scholarRelationship.create({
+        data: {
+          programId: program.id,
+          awardId: award.id,
+          scholarUserId: userIdBySlug['amara-okonkwo'] ?? null,
+          fullName: 'Amara Okonkwo',
+          country: 'Nigeria',
+          gpa: 3.8,
+          status: 'ENROLLED',
+          enrolledAt: new Date(),
+        },
+      });
+    }
+
+    console.log(
+      `Created E19 scholarship program "${program.name}" (form + 3 applications, ` +
+        `1 award disbursed to ESMT + a HELD second tranche, 1 SRM scholar).`,
     );
   }
 

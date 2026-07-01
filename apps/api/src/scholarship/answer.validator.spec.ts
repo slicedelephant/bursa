@@ -6,7 +6,13 @@ const fields: FormFieldSpec[] = [
   { fieldKey: 'why', label: 'Why', type: 'LONG_TEXT', required: true },
   { fieldKey: 'age', label: 'Age', type: 'NUMBER', required: true },
   { fieldKey: 'email', label: 'Email', type: 'EMAIL', required: true },
-  { fieldKey: 'leadership', label: 'Lead', type: 'SELECT', required: true, options: ['None', 'Founder'] },
+  {
+    fieldKey: 'leadership',
+    label: 'Lead',
+    type: 'SELECT',
+    required: true,
+    options: ['None', 'Founder'],
+  },
   {
     fieldKey: 'founderStory',
     label: 'Story',
@@ -41,29 +47,56 @@ describe('validateAnswers', () => {
   });
 
   it('skips a hidden conditional required field', () => {
-    const res = validate({ why: 'x', age: '29', email: 'a@b.co', leadership: 'None' });
+    const res = validate({
+      why: 'x',
+      age: '29',
+      email: 'a@b.co',
+      leadership: 'None',
+    });
     expect(res.valid).toBe(true);
   });
 
   it('requires a shown conditional field', () => {
-    const res = validate({ why: 'x', age: '29', email: 'a@b.co', leadership: 'Founder' });
+    const res = validate({
+      why: 'x',
+      age: '29',
+      email: 'a@b.co',
+      leadership: 'Founder',
+    });
     expect(res.valid).toBe(false);
     expect(res.errors).toContain('founderStory is required');
   });
 
   it('rejects a non-numeric NUMBER', () => {
-    const res = validate({ why: 'x', age: 'old', email: 'a@b.co', leadership: 'None' });
+    const res = validate({
+      why: 'x',
+      age: 'old',
+      email: 'a@b.co',
+      leadership: 'None',
+    });
     expect(res.errors).toContain('age must be a number');
   });
 
   it('rejects an invalid email', () => {
-    const res = validate({ why: 'x', age: '1', email: 'nope', leadership: 'None' });
+    const res = validate({
+      why: 'x',
+      age: '1',
+      email: 'nope',
+      leadership: 'None',
+    });
     expect(res.errors).toContain('email must be a valid email');
   });
 
   it('rejects a SELECT value outside the options', () => {
-    const res = validate({ why: 'x', age: '1', email: 'a@b.co', leadership: 'Wizard' });
-    expect(res.errors).toContain('leadership must be one of the allowed options');
+    const res = validate({
+      why: 'x',
+      age: '1',
+      email: 'a@b.co',
+      leadership: 'Wizard',
+    });
+    expect(res.errors).toContain(
+      'leadership must be one of the allowed options',
+    );
   });
 
   it('rejects a non-boolean BOOLEAN', () => {

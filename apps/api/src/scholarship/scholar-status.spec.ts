@@ -9,20 +9,32 @@ const NOW = new Date('2026-09-01T00:00:00.000Z');
 describe('nextScholarStatus', () => {
   it('advances AWARDED -> ENROLLED and stamps enrolledAt', () => {
     const res = nextScholarStatus('AWARDED', 'enroll', NOW);
-    expect(res).toEqual({ status: 'ENROLLED', milestoneField: 'enrolledAt', at: NOW });
+    expect(res).toEqual({
+      status: 'ENROLLED',
+      milestoneField: 'enrolledAt',
+      at: NOW,
+    });
   });
 
   it('advances ENROLLED -> GRADUATED', () => {
-    expect(nextScholarStatus('ENROLLED', 'graduate', NOW).status).toBe('GRADUATED');
+    expect(nextScholarStatus('ENROLLED', 'graduate', NOW).status).toBe(
+      'GRADUATED',
+    );
   });
 
   it('advances GRADUATED -> WORKING', () => {
-    expect(nextScholarStatus('GRADUATED', 'employ', NOW).status).toBe('WORKING');
+    expect(nextScholarStatus('GRADUATED', 'employ', NOW).status).toBe(
+      'WORKING',
+    );
   });
 
   it('allows withdraw from any non-terminal state', () => {
-    expect(nextScholarStatus('ENROLLED', 'withdraw', NOW).status).toBe('WITHDRAWN');
-    expect(nextScholarStatus('WORKING', 'withdraw', NOW).milestoneField).toBe('withdrawnAt');
+    expect(nextScholarStatus('ENROLLED', 'withdraw', NOW).status).toBe(
+      'WITHDRAWN',
+    );
+    expect(nextScholarStatus('WORKING', 'withdraw', NOW).milestoneField).toBe(
+      'withdrawnAt',
+    );
   });
 
   it('rejects skipping a stage', () => {

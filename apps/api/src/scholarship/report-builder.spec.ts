@@ -25,7 +25,13 @@ const diversity: DiversityAggregate = {
   femaleSharePct: 50,
   countryCounts: { NG: 2, KE: 1, IN: 1 },
   countriesReached: 3,
-  ageBandCounts: { UNDER_25: 0, '25_29': 2, '30_34': 2, '35_PLUS': 0, UNKNOWN: 0 },
+  ageBandCounts: {
+    UNDER_25: 0,
+    '25_29': 2,
+    '30_34': 2,
+    '35_PLUS': 0,
+    UNKNOWN: 0,
+  },
   firstGenSharePct: 66.7,
 };
 
@@ -61,12 +67,16 @@ describe('toReportPdfLines', () => {
     const lines = toReportPdfLines(view);
     expect(lines).toContain('- Graduated: 1');
     expect(lines).toContain('- Female share: 50%');
-    expect(lines.some((l) => l.includes('First-generation share: 66.7%'))).toBe(true);
+    expect(lines.some((l) => l.includes('First-generation share: 66.7%'))).toBe(
+      true,
+    );
   });
 });
 
 describe('reportPdfTitle', () => {
   it('builds a titled heading', () => {
-    expect(reportPdfTitle(view)).toBe('Acme Future Leaders — Impact Report 2026');
+    expect(reportPdfTitle(view)).toBe(
+      'Acme Future Leaders — Impact Report 2026',
+    );
   });
 });

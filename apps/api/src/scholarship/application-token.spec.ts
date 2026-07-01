@@ -17,7 +17,9 @@ describe('hashToken', () => {
 
 describe('createApplicationToken', () => {
   it('returns a raw token whose hash matches', () => {
-    const created = createApplicationToken(() => Buffer.from('0102030405060708', 'hex'));
+    const created = createApplicationToken(() =>
+      Buffer.from('0102030405060708', 'hex'),
+    );
     expect(created.tokenHash).toBe(hashToken(created.token));
     expect(created.token).toBe('0102030405060708');
   });
@@ -41,18 +43,24 @@ describe('isTokenActive', () => {
 
   it('is active when expiry is in the future', () => {
     const future = new Date('2026-07-01T00:00:00.000Z');
-    expect(isTokenActive({ tokenHash: 'x', expiresAt: future }, NOW)).toBe(true);
+    expect(isTokenActive({ tokenHash: 'x', expiresAt: future }, NOW)).toBe(
+      true,
+    );
   });
 });
 
 describe('tokenMatches', () => {
   it('matches a raw token to its own hash', () => {
-    const created = createApplicationToken(() => Buffer.from('aabbccdd', 'hex'));
+    const created = createApplicationToken(() =>
+      Buffer.from('aabbccdd', 'hex'),
+    );
     expect(tokenMatches(created.token, created.tokenHash)).toBe(true);
   });
 
   it('rejects a wrong token', () => {
-    const created = createApplicationToken(() => Buffer.from('aabbccdd', 'hex'));
+    const created = createApplicationToken(() =>
+      Buffer.from('aabbccdd', 'hex'),
+    );
     expect(tokenMatches('deadbeef', created.tokenHash)).toBe(false);
   });
 

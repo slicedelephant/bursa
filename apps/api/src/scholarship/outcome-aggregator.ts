@@ -26,7 +26,9 @@ export interface ProgramOutcome {
 }
 
 function pct(numerator: number, denominator: number): number {
-  return denominator === 0 ? 0 : Math.round((numerator / denominator) * 1000) / 10;
+  return denominator === 0
+    ? 0
+    : Math.round((numerator / denominator) * 1000) / 10;
 }
 
 /** Counts scholars per status and derives retention + graduation rates. */
@@ -34,7 +36,8 @@ export function buildProgramOutcome(
   scholars: readonly ScholarOutcome[],
 ): ProgramOutcome {
   const total = scholars.length;
-  const count = (s: ScholarStatus) => scholars.filter((x) => x.status === s).length;
+  const count = (s: ScholarStatus) =>
+    scholars.filter((x) => x.status === s).length;
 
   const awarded = count('AWARDED');
   const enrolled = count('ENROLLED');

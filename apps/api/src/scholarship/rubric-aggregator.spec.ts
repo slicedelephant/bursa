@@ -21,7 +21,10 @@ describe('aggregateRubric', () => {
   });
 
   it('ignores fields with zero rubric weight', () => {
-    const res = aggregateRubric({ fields, scores: [{ fieldKey: 'note', score: 5 }] });
+    const res = aggregateRubric({
+      fields,
+      scores: [{ fieldKey: 'note', score: 5 }],
+    });
     expect(res.perField.some((p) => p.fieldKey === 'note')).toBe(false);
   });
 

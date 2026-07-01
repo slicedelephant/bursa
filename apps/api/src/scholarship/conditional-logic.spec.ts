@@ -2,7 +2,12 @@ import { evaluateVisibility } from './conditional-logic';
 import { FormFieldSpec } from './form-schema.validator';
 
 const fields: FormFieldSpec[] = [
-  { fieldKey: 'leadership', label: 'Leadership', type: 'SELECT', options: ['None', 'Founder'] },
+  {
+    fieldKey: 'leadership',
+    label: 'Leadership',
+    type: 'SELECT',
+    options: ['None', 'Founder'],
+  },
   {
     fieldKey: 'founderStory',
     label: 'Story',
