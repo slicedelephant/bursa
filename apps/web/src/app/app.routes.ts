@@ -114,5 +114,19 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/scholarship/scholarship-admin.page').then((m) => m.ScholarshipAdminPage),
   },
+  {
+    // E20 localized donor deposit flow (public; money still goes to the school).
+    path: 'donate/:campaignId/local',
+    loadComponent: () =>
+      import('./features/donate/localized-donate.page').then((m) => m.LocalizedDonatePage),
+  },
+  {
+    // E20 school-side local payout account settings (SCHOOL_ADMIN only).
+    path: 'school/currency',
+    canActivate: [authGuard],
+    data: { roles: ['SCHOOL_ADMIN'] },
+    loadComponent: () =>
+      import('./features/school-settings/school-currency.page').then((m) => m.SchoolCurrencyPage),
+  },
   { path: '**', redirectTo: 'campaigns' },
 ];

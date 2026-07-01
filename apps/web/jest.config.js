@@ -662,5 +662,30 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E20 — Multi-Currency & local payment methods (new code, held to >= 80%).
+    './src/app/features/donate/currency-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donate/fx-display.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donate/method-labels.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/donate/i18n-resolve.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

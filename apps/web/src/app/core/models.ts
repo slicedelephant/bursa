@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -295,13 +285,7 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  | 'DETECTED'
-  | 'OFFERED'
-  | 'CLAIMED'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXPIRED';
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -1403,11 +1387,7 @@ export interface GroupMessagePostResult {
 export type FieldType = 'TEXT' | 'LONG_TEXT' | 'NUMBER' | 'SELECT' | 'BOOLEAN' | 'EMAIL';
 
 export type ApplicationStatus =
-  | 'SUBMITTED'
-  | 'UNDER_REVIEW'
-  | 'SHORTLISTED'
-  | 'AWARDED'
-  | 'REJECTED';
+  'SUBMITTED' | 'UNDER_REVIEW' | 'SHORTLISTED' | 'AWARDED' | 'REJECTED';
 
 export type ScholarStatus = 'AWARDED' | 'ENROLLED' | 'GRADUATED' | 'WORKING' | 'WITHDRAWN';
 
@@ -1540,4 +1520,75 @@ export interface SubmitApplicationBody {
   applicantName: string;
   applicantEmail: string;
   answers: Record<string, string>;
+}
+
+// ---- E20: Multi-Currency & local payment methods (payout always to the school) ----
+
+export type CurrencyCode = 'EUR' | 'USD' | 'KES' | 'NGN' | 'GHS' | 'BDT' | 'PHP' | 'VND';
+
+export type LocalPaymentMethod =
+  'CARD' | 'SEPA' | 'MPESA' | 'MOBILE_MONEY' | 'GCASH' | 'BKASH' | 'LOCAL_BANK_TRANSFER';
+
+export type PayoutRoute = 'LOCAL_BANK' | 'INTERNATIONAL';
+
+export interface CurrencyInfo {
+  code: CurrencyCode;
+  decimals: number;
+  symbol: string;
+  name: string;
+}
+
+export interface CountryMethods {
+  country: string;
+  methods: LocalPaymentMethod[];
+}
+
+export interface LocaleLabels {
+  locale: string;
+  labels: Record<string, string>;
+}
+
+export interface FxQuote {
+  base: CurrencyCode;
+  quote: CurrencyCode;
+  rate: number;
+  quotedAt: string;
+}
+
+export interface InitiateDepositBody {
+  campaignId: string;
+  amountMinor: number;
+  depositCurrency: CurrencyCode;
+  method: LocalPaymentMethod;
+  country: string;
+  payoutCurrency: CurrencyCode;
+  payerRef?: string;
+}
+
+export interface InitiateDepositResult {
+  donationId: string;
+  depositRef: string;
+  status: 'PENDING' | 'FAILED';
+  lockedRate: number;
+  payoutAmountMinor: number;
+  payoutCurrency: CurrencyCode;
+}
+
+export interface SchoolPayoutAccountBody {
+  schoolId: string;
+  country: string;
+  currency: CurrencyCode;
+  bankName: string;
+  accountNumber: string;
+  virtualIban?: string;
+}
+
+export interface SchoolPayoutAccountView {
+  id: string;
+  country: string;
+  currency: CurrencyCode;
+  bankName: string;
+  accountNumber: string;
+  virtualIban: string | null;
+  active: boolean;
 }

@@ -118,6 +118,14 @@ import {
   TrancheReleaseResult,
   PublicApplicationForm,
   SubmitApplicationBody,
+  CurrencyInfo,
+  CountryMethods,
+  LocaleLabels,
+  FxQuote,
+  InitiateDepositBody,
+  InitiateDepositResult,
+  SchoolPayoutAccountBody,
+  SchoolPayoutAccountView,
 } from './models';
 
 export interface TrackEventBody {
@@ -1328,6 +1336,55 @@ export class ApiService {
   applicationStatus(token: string): Observable<{ status: ApplicationStatus }> {
     return this.unwrap(
       this.http.get<Envelope<{ status: ApplicationStatus }>>(`${API_BASE}/apply/${token}/status`),
+    );
+  }
+
+  // ---- Multi-Currency & Local Payments (E20) ----
+
+  fxCurrencies(): Observable<CurrencyInfo[]> {
+    return this.unwrap(this.http.get<Envelope<CurrencyInfo[]>>(`${API_BASE}/fx/currencies`));
+  }
+
+  fxQuote(base: string, quote: string): Observable<FxQuote> {
+    return this.unwrap(
+      this.http.get<Envelope<FxQuote>>(`${API_BASE}/fx/quote?base=${base}&quote=${quote}`),
+    );
+  }
+
+  fxMethods(country: string): Observable<CountryMethods> {
+    return this.unwrap(
+      this.http.get<Envelope<CountryMethods>>(`${API_BASE}/fx/methods?country=${country}`),
+    );
+  }
+
+  fxLabels(locale: string): Observable<LocaleLabels> {
+    return this.unwrap(
+      this.http.get<Envelope<LocaleLabels>>(`${API_BASE}/fx/labels?locale=${locale}`),
+    );
+  }
+
+  fxInitiateDeposit(body: InitiateDepositBody): Observable<InitiateDepositResult> {
+    return this.unwrap(
+      this.http.post<Envelope<InitiateDepositResult>>(`${API_BASE}/fx/deposits`, body),
+    );
+  }
+
+  fxSchoolAccounts(schoolId: string): Observable<SchoolPayoutAccountView[]> {
+    return this.unwrap(
+      this.http.get<Envelope<SchoolPayoutAccountView[]>>(
+        `${API_BASE}/fx/school-accounts/${schoolId}`,
+      ),
+    );
+  }
+
+  fxCreateSchoolAccount(
+    body: SchoolPayoutAccountBody,
+  ): Observable<{ id: string; schoolId: string; country: string; currency: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ id: string; schoolId: string; country: string; currency: string }>>(
+        `${API_BASE}/fx/school-accounts`,
+        body,
+      ),
     );
   }
 }
