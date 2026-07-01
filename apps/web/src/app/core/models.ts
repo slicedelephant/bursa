@@ -3,7 +3,13 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
+  | 'DRAFT'
+  | 'PENDING_VERIFICATION'
+  | 'LIVE'
+  | 'FUNDED'
+  | 'DISBURSED'
+  | 'CLOSED'
+  | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -207,7 +213,11 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
+  | 'THANK_YOU'
+  | 'MILESTONE'
+  | 'IMPACT_UPDATE'
+  | 'GOAL_REACHED'
+  | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -285,7 +295,13 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  | 'DETECTED'
+  | 'OFFERED'
+  | 'CLAIMED'
+  | 'SUBMITTED'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -1387,7 +1403,11 @@ export interface GroupMessagePostResult {
 export type FieldType = 'TEXT' | 'LONG_TEXT' | 'NUMBER' | 'SELECT' | 'BOOLEAN' | 'EMAIL';
 
 export type ApplicationStatus =
-  'SUBMITTED' | 'UNDER_REVIEW' | 'SHORTLISTED' | 'AWARDED' | 'REJECTED';
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'SHORTLISTED'
+  | 'AWARDED'
+  | 'REJECTED';
 
 export type ScholarStatus = 'AWARDED' | 'ENROLLED' | 'GRADUATED' | 'WORKING' | 'WITHDRAWN';
 
