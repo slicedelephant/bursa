@@ -19,7 +19,15 @@
   - E17 Multi-Channel Impact-Feed (WhatsApp/Telegram): branch `018-impact-feed`, PR #17, gemerged.
   - Finaler `main` (2632b5e): beide Builds gruen, Seed laeuft, 17 Migrationen sauber, prettier-clean. Testsumme: API 1179 / Web 494.
   - Alle externen Dienste (Persona/Onfido/Sumsub/Plaid, Double-the-Donation, WhatsApp/Telegram) gemockt hinter austauschbaren Providern (Default `mock`, keine echten Keys noetig).
-- **Welle C (E18-E21): angefangen** -> E18 Gruppen-Engine (Cohort-Teams + Giving Circles) umgesetzt: branch `019-groups-engine`, PR offen, autonom ueber spec-kit gebaut (API 1292 / Web 528 Tests). Die XL-Brocken (E19 Scholarship-Manager, E20 Multi-Currency) bleiben bis zur Kapazitaetsklaerung zurueckgestellt.
+- **Welle C (E18-E21): UMGESETZT und gemerged** (Stand 01.07.2026) -> autonom ueber spec-kit gebaut, je Epic ein Agent + eigener PR.
+  - E18 Gruppen-Engine (Cohort-Teams + Giving Circles, eine Engine/zwei Modi, auf E16): branch `019-groups-engine`, PR #18, gemerged.
+  - E19 Self-Serve Corporate Scholarship Manager (XL, Awards an die Schule): branch `020-scholarship-manager`, PR #19, gemerged.
+  - E20 Multi-Currency + lokale Zahlungsmethoden (XL, Auszahlung an die Schule in Landeswaehrung): branch `021-multi-currency`, PR #20, gemerged.
+  - E21 Payroll-Match + HRIS-Kopplung (auf E13, matched gifts an die Schule): branch `022-payroll-hris`, PR #21, gemerged.
+
+## Gesamtstatus Welle 2 (Stand 01.07.2026)
+
+**ALLE 14 Epics (E8-E21) umgesetzt und gemerged.** Finaler `main` (a3b75b7): beide Builds gruen, Seed laeuft, 21 Migrationen sauber, prettier-clean. Testsumme API 1603 / 207 Suites, Web 608 / 112 Suites. Alle externen Dienste hinter austauschbaren Providern gemockt (Default `mock`). Welle A + B deployed auf littleBrother (bursa.slicedelephant.de); Welle C (E18-E21) noch nicht deployed.
 
 ## Kurzfazit
 
