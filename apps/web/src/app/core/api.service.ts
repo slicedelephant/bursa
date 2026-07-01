@@ -126,6 +126,16 @@ import {
   InitiateDepositResult,
   SchoolPayoutAccountBody,
   SchoolPayoutAccountView,
+  ConnectHrisBody,
+  HrisConnectionResult,
+  HrisSyncResult,
+  PayrollRuleBody,
+  PayrollRuleResult,
+  PayrollEmployeeList,
+  ActivateEmployeeResult,
+  RunCampaignBody,
+  CampaignRunResult,
+  ComplianceTrailEntry,
 } from './models';
 
 export interface TrackEventBody {
@@ -1384,6 +1394,54 @@ export class ApiService {
       this.http.post<Envelope<{ id: string; schoolId: string; country: string; currency: string }>>(
         `${API_BASE}/fx/school-accounts`,
         body,
+      ),
+    );
+  }
+
+  // ---- Payroll-Match & HRIS coupling (E21) ----
+
+  payrollConnect(body: ConnectHrisBody): Observable<HrisConnectionResult> {
+    return this.unwrap(
+      this.http.post<Envelope<HrisConnectionResult>>(`${API_BASE}/payroll/connect`, body),
+    );
+  }
+
+  payrollSync(connectionId: string): Observable<HrisSyncResult> {
+    return this.unwrap(
+      this.http.post<Envelope<HrisSyncResult>>(`${API_BASE}/payroll/sync`, { connectionId }),
+    );
+  }
+
+  payrollRule(body: PayrollRuleBody): Observable<PayrollRuleResult> {
+    return this.unwrap(
+      this.http.post<Envelope<PayrollRuleResult>>(`${API_BASE}/payroll/rule`, body),
+    );
+  }
+
+  payrollEmployees(connectionId: string): Observable<PayrollEmployeeList> {
+    return this.unwrap(
+      this.http.get<Envelope<PayrollEmployeeList>>(`${API_BASE}/payroll/employees/${connectionId}`),
+    );
+  }
+
+  payrollActivate(employeeProfileId: string): Observable<ActivateEmployeeResult> {
+    return this.unwrap(
+      this.http.post<Envelope<ActivateEmployeeResult>>(`${API_BASE}/payroll/activate`, {
+        employeeProfileId,
+      }),
+    );
+  }
+
+  payrollRunCampaign(body: RunCampaignBody): Observable<CampaignRunResult> {
+    return this.unwrap(
+      this.http.post<Envelope<CampaignRunResult>>(`${API_BASE}/payroll/campaign`, body),
+    );
+  }
+
+  payrollTrail(corporateProfileId: string): Observable<ComplianceTrailEntry[]> {
+    return this.unwrap(
+      this.http.get<Envelope<ComplianceTrailEntry[]>>(
+        `${API_BASE}/payroll/trail?corporateProfileId=${corporateProfileId}`,
       ),
     );
   }

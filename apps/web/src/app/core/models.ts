@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -295,13 +285,7 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  | 'DETECTED'
-  | 'OFFERED'
-  | 'CLAIMED'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXPIRED';
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -1403,11 +1387,7 @@ export interface GroupMessagePostResult {
 export type FieldType = 'TEXT' | 'LONG_TEXT' | 'NUMBER' | 'SELECT' | 'BOOLEAN' | 'EMAIL';
 
 export type ApplicationStatus =
-  | 'SUBMITTED'
-  | 'UNDER_REVIEW'
-  | 'SHORTLISTED'
-  | 'AWARDED'
-  | 'REJECTED';
+  'SUBMITTED' | 'UNDER_REVIEW' | 'SHORTLISTED' | 'AWARDED' | 'REJECTED';
 
 export type ScholarStatus = 'AWARDED' | 'ENROLLED' | 'GRADUATED' | 'WORKING' | 'WITHDRAWN';
 
@@ -1547,13 +1527,7 @@ export interface SubmitApplicationBody {
 export type CurrencyCode = 'EUR' | 'USD' | 'KES' | 'NGN' | 'GHS' | 'BDT' | 'PHP' | 'VND';
 
 export type LocalPaymentMethod =
-  | 'CARD'
-  | 'SEPA'
-  | 'MPESA'
-  | 'MOBILE_MONEY'
-  | 'GCASH'
-  | 'BKASH'
-  | 'LOCAL_BANK_TRANSFER';
+  'CARD' | 'SEPA' | 'MPESA' | 'MOBILE_MONEY' | 'GCASH' | 'BKASH' | 'LOCAL_BANK_TRANSFER';
 
 export type PayoutRoute = 'LOCAL_BANK' | 'INTERNATIONAL';
 
@@ -1617,4 +1591,92 @@ export interface SchoolPayoutAccountView {
   accountNumber: string;
   virtualIban: string | null;
   active: boolean;
+}
+
+// ---- E21: Payroll-Match & HRIS coupling (matched gift always to the school) ----
+
+export type HrisProvider =
+  'MOCK' | 'ADP' | 'WORKDAY' | 'PAYCHEX' | 'PAYLOCITY' | 'UKG' | 'BAMBOOHR';
+
+export type HrisConnectionStatus = 'PENDING' | 'CONNECTED' | 'SYNCED' | 'REVOKED' | 'ERROR';
+
+export type PayrollCycle = 'WEEKLY' | 'BIWEEKLY' | 'SEMIMONTHLY' | 'MONTHLY';
+
+export interface ConnectHrisBody {
+  corporateProfileId: string;
+  provider: HrisProvider;
+  scopes: string[];
+  programName: string;
+}
+
+export interface HrisConnectionResult {
+  connectionId: string;
+  provider: HrisProvider;
+  status: HrisConnectionStatus;
+  scopes: string[];
+  programId: string;
+}
+
+export interface HrisSyncResult {
+  connectionId: string;
+  status: HrisConnectionStatus;
+  employeeCount: number;
+  syncedAt: string;
+}
+
+export interface PayrollRuleBody {
+  programId: string;
+  matchRatio: number;
+  perEmployeeCapCents: number;
+}
+
+export interface PayrollRuleResult {
+  programId: string;
+  matchRatio: number;
+  perEmployeeCapCents: number;
+}
+
+export interface PayrollEmployeeView {
+  id: string;
+  employeeExternalId: string;
+  active: boolean;
+  payrollCycle: PayrollCycle;
+  remainingCents: number;
+}
+
+export interface PayrollEmployeeList {
+  activatedCount: number;
+  totalCount: number;
+  employees: PayrollEmployeeView[];
+}
+
+export interface ActivateEmployeeResult {
+  employeeProfileId: string;
+  active: boolean;
+  remainingCents: number;
+}
+
+export interface RunCampaignBody {
+  programId: string;
+  campaignId: string;
+  defaultContributionCents: number;
+  preTax?: boolean;
+  taxRatePercent?: number;
+}
+
+export interface CampaignRunResult {
+  programId: string;
+  campaignId: string;
+  contributions: number;
+  totalContributionCents: number;
+  totalMatchCents: number;
+  totalToSchoolCents: number;
+}
+
+export interface ComplianceTrailEntry {
+  action: string;
+  targetType: string | null;
+  targetId: string | null;
+  createdAt: string;
+  metadata: Record<string, unknown> | null;
 }

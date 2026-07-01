@@ -687,5 +687,30 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E21 — Payroll-Match & HRIS coupling (new code, held to >= 80%).
+    './src/app/features/payroll/hris-status.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/payroll/payroll-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/payroll/match-rule-preview.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/payroll/campaign-summary-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };

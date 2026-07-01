@@ -128,5 +128,28 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/school-settings/school-currency.page').then((m) => m.SchoolCurrencyPage),
   },
+  {
+    // E21 HRIS connection + mock OAuth-connect (SPONSOR only).
+    path: 'payroll/connect',
+    canActivate: [authGuard],
+    data: { roles: ['SPONSOR'] },
+    loadComponent: () =>
+      import('./features/payroll/hris-connection.page').then((m) => m.HrisConnectionPage),
+  },
+  {
+    // E21 employee payroll-giving opt-in (any authenticated user).
+    path: 'payroll/optin',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/payroll/payroll-optin.page').then((m) => m.PayrollOptinPage),
+  },
+  {
+    // E21 payroll-giving dashboard: employees, match rule, campaign, trail (SPONSOR only).
+    path: 'payroll',
+    canActivate: [authGuard],
+    data: { roles: ['SPONSOR'] },
+    loadComponent: () =>
+      import('./features/payroll/payroll-dashboard.page').then((m) => m.PayrollDashboardPage),
+  },
   { path: '**', redirectTo: 'campaigns' },
 ];
