@@ -8,5 +8,6 @@ import { CorporateService } from './corporate.service';
   imports: [DonationsModule, NotificationsModule],
   controllers: [CorporateController],
   providers: [CorporateService],
+  exports: [CorporateService],
 })
 export class CorporateModule {}

@@ -1014,6 +1014,66 @@
         "branches": 80,
         "functions": 80,
         "lines": 80
+      },
+      "**/groups/membership.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/shared-goal.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/stretch-goal.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/group-leaderboard.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/voting.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/group-analytics.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/group-invite.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/chat-moderation.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/cohort-match.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      },
+      "**/groups/groups.service.ts": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
       }
     }
   }

@@ -132,6 +132,44 @@ enum FeedChannel {
   MESSENGER
 }
 
+/// E18 Groups-Engine: one engine, two modes. A COHORT is a student fundraising
+/// team (sub-campaigns roll into a shared goal); a GIVING_CIRCLE is a donor
+/// circle (contributions roll into a shared goal). Both share membership, roles,
+/// leaderboard, invites, voting, chat and analytics.
+enum GroupMode {
+  COHORT
+  GIVING_CIRCLE
+}
+
+enum GroupVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+/// E18 Groups-Engine: per-group role. ADMIN manages members/invites/votes and can
+/// trigger a cohort match; CONTRIBUTOR contributes/votes/chats; VIEWER reads only.
+enum GroupRole {
+  ADMIN
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum GroupInviteStatus {
+  ACTIVE
+  REVOKED
+  USED
+}
+
+enum GroupVoteStatus {
+  OPEN
+  CLOSED
+}
+
+enum GroupMessageStatus {
+  APPROVED
+  REJECTED
+}
+
 enum SponsorshipTier {
   SEMESTER
   YEAR
@@ -379,6 +417,12 @@ model User {
   // ---- E17: multi-channel impact feed (donor channel opt-ins + feed reads) ----
   channelPrefs NotificationChannelPref[] @relation("DonorChannelPrefs")
   feedReads    FeedRead[]                @relation("DonorFeedReads")
+
+  // ---- E18: groups engine (cohort teams + giving circles) ----
+  groupMemberships   GroupMember[]       @relation("GroupMemberships")
+  groupContributions GroupContribution[] @relation("GroupContributions")
+  groupMessages      GroupMessage[]      @relation("GroupMessages")
+  groupBallots       GroupVoteBallot[]   @relation("GroupBallots")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -592,6 +636,10 @@ model Campaign {
   // ---- E17: multi-channel impact feed (moderated student voice messages) ----
   studentMessages StudentMessage[]
 
+  // ---- E18: groups engine (cohort sub-campaign links + vote options) ----
+  groupLinks  GroupCampaign[]   @relation("GroupCampaigns")
+  voteOptions GroupVoteOption[] @relation("GroupVoteCampaign")
+
   @@index([status])
   @@index([schoolId])
 }
@@ -651,6 +699,9 @@ model Donation {
 
   // ---- E15: referral attribution (money-free; a donation counts at most once) ----
   referralAttribution ReferralAttribution? @relation("DonationReferral")
+
+  // ---- E18: groups engine (money-free circle contribution mirror) ----
+  groupContribution GroupContribution? @relation("GroupContributionDonation")
 
   @@index([campaignId])
   @@index([donorUserId])
@@ -1280,4 +1331,169 @@ model ReferralAttribution {
 
   @@index([referralLinkId])
   @@index([advocateInviteId])
+}
+
+// ============================================================================
+// E18 Groups-Engine — one engine, two modes (COHORT | GIVING_CIRCLE).
+// Student cohorts and donor giving-circles share the SAME group / membership /
+// leaderboard / shared-goal / invite / voting / chat / analytics infrastructure;
+// only `Group.mode` discriminates the surface. Money-free: groups are a social /
+// coordination layer. `GroupContribution` mirrors an existing donation for the
+// leaderboard/analytics; the cohort match runs through the EXISTING E5 corporate
+// flow. E18 never writes to a Donation/Payout — funds still flow to the school.
+// Progress / stretch-unlock / leaderboard / analytics are derived on read (no DB
+// model), reusing the E16 gamification primitives.
+// ============================================================================
+
+/// E18 — a group (cohort team or giving circle). `sharedGoalCents` is the TARGET
+/// (input); progress is derived on read. `stretchThresholdPct` drives the
+/// recognition-only stretch unlock (default 80). Money-free.
+model Group {
+  id                  String          @id @default(cuid())
+  mode                GroupMode
+  visibility          GroupVisibility @default(PRIVATE)
+  name                String
+  description         String?
+  logoUrl             String?
+  sharedGoalCents     Int             @default(0)
+  stretchThresholdPct Int             @default(80)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  members       GroupMember[]
+  invites       GroupInvite[]
+  campaigns     GroupCampaign[]
+  contributions GroupContribution[]
+  votes         GroupVote[]
+  messages      GroupMessage[]
+
+  @@index([mode, visibility])
+}
+
+/// E18 — membership + per-group role. Exactly one row per (group, user).
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupRole @default(CONTRIBUTOR)
+  joinedAt DateTime  @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation("GroupMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+}
+
+/// E18 — an invite, hash-only (E15/E8 one-time-token pattern). The raw token is
+/// only ever in the invite link/QR; only its `codeHash` is persisted. `role` is
+/// the role the joiner receives.
+model GroupInvite {
+  id        String            @id @default(cuid())
+  groupId   String
+  codeHash  String            @unique
+  role      GroupRole         @default(CONTRIBUTOR)
+  status    GroupInviteStatus @default(ACTIVE)
+  expiresAt DateTime?
+  createdAt DateTime          @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, status])
+}
+
+/// E18 — a cohort sub-campaign link: an existing Campaign rolled into the team
+/// goal. Exactly one row per (group, campaign).
+model GroupCampaign {
+  id            String   @id @default(cuid())
+  groupId       String
+  campaignId    String
+  addedByUserId String
+  createdAt     DateTime @default(now())
+
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation("GroupCampaigns", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, campaignId])
+  @@index([groupId])
+}
+
+/// E18 — a giving-circle contribution: a MONEY-FREE mirror of an existing donation
+/// for the leaderboard/analytics. `valueCents` projects the already-recorded gift.
+/// No new money path; exactly one row per (group, donation).
+model GroupContribution {
+  id         String   @id @default(cuid())
+  groupId    String
+  userId     String
+  donationId String   @unique
+  valueCents Int
+  createdAt  DateTime @default(now())
+
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User     @relation("GroupContributions", fields: [userId], references: [id], onDelete: Cascade)
+  donation Donation @relation("GroupContributionDonation", fields: [donationId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+}
+
+/// E18 — a group vote: which campaign the group supports next.
+model GroupVote {
+  id        String          @id @default(cuid())
+  groupId   String
+  question  String
+  status    GroupVoteStatus @default(OPEN)
+  createdAt DateTime        @default(now())
+
+  group   Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  options GroupVoteOption[]
+  ballots GroupVoteBallot[]
+
+  @@index([groupId, status])
+}
+
+/// E18 — a vote option (one campaign).
+model GroupVoteOption {
+  id         String @id @default(cuid())
+  voteId     String
+  campaignId String
+  label      String
+
+  vote     GroupVote         @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  campaign Campaign          @relation("GroupVoteCampaign", fields: [campaignId], references: [id], onDelete: Cascade)
+  ballots  GroupVoteBallot[]
+
+  @@index([voteId])
+}
+
+/// E18 — a ballot. Exactly one per (vote, user): a member votes once.
+model GroupVoteBallot {
+  id       String   @id @default(cuid())
+  voteId   String
+  optionId String
+  userId   String
+  castAt   DateTime @default(now())
+
+  vote   GroupVote       @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  option GroupVoteOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User            @relation("GroupBallots", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([voteId, userId])
+  @@index([optionId])
+}
+
+/// E18 — a moderated group chat message (E9 keyword/slur filter). Only APPROVED
+/// messages are shown in the chat history; REJECTED rows keep the reason.
+model GroupMessage {
+  id               String             @id @default(cuid())
+  groupId          String
+  userId           String
+  text             String
+  status           GroupMessageStatus @default(APPROVED)
+  moderationReason String?
+  createdAt        DateTime           @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation("GroupMessages", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, status])
 }

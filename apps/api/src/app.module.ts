@@ -26,6 +26,7 @@ import { EsgModule } from './esg/esg.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { ReferralModule } from './referral/referral.module';
 import { ImpactFeedModule } from './impact-feed/impact-feed.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { ImpactFeedModule } from './impact-feed/impact-feed.module';
     PortfolioModule,
     ReferralModule,
     ImpactFeedModule,
+    GroupsModule,
   ],
 })
 export class AppModule {}

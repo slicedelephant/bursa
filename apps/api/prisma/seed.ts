@@ -389,6 +389,16 @@ const STUDENTS: StudentSeed[] = [
 // ----------------------------------------------------------------------------
 
 async function clearDatabase(): Promise<void> {
+  // E18 (delete before campaign/donation/user — groups engine; children first)
+  await prisma.groupVoteBallot.deleteMany();
+  await prisma.groupVoteOption.deleteMany();
+  await prisma.groupVote.deleteMany();
+  await prisma.groupMessage.deleteMany();
+  await prisma.groupContribution.deleteMany();
+  await prisma.groupCampaign.deleteMany();
+  await prisma.groupInvite.deleteMany();
+  await prisma.groupMember.deleteMany();
+  await prisma.group.deleteMany();
   // E17 (delete before campaign/user — student voices, channel prefs, feed reads)
   await prisma.studentMessage.deleteMany();
   await prisma.notificationChannelPref.deleteMany();
@@ -2062,6 +2072,182 @@ async function main(): Promise<void> {
     console.log(
       'Created E17 impact-feed demo data (1 approved student voice, ' +
         '4 channel prefs [WhatsApp + Telegram opt-in], 3-month read streak).',
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // E18 — Groups-Engine demo data. ONE engine, TWO modes:
+  //  - a COHORT team (owned by Amara) with 2-3 existing campaigns as sub-campaigns
+  //    plus a corporate cohort match (a CORPORATE donation on one sub-campaign,
+  //    mirroring the E5 flow — money still goes to the school, never the student);
+  //  - a GIVING_CIRCLE (owned by donor@bursa.test) with two extra members, a shared
+  //    goal, two of the donor's existing donations mirrored as money-free
+  //    contributions, an open vote with a ballot, and one moderated (APPROVED) chat
+  //    message. Nothing here creates a new money path. Idempotent via clearDatabase().
+  // --------------------------------------------------------------------------
+  const cohortAmaraId = campaignBySlug['amara-okonkwo'];
+  const cohortKwameId = campaignBySlug['kwame-mensah'];
+  const cohortThandiweId = campaignBySlug['thandiwe-ncube'];
+  const amaraOwnerId = userIdBySlug['amara-okonkwo'];
+  const kwameOwnerId = userIdBySlug['kwame-mensah'];
+
+  if (cohortAmaraId && cohortKwameId && amaraOwnerId) {
+    const cohort = await prisma.group.create({
+      data: {
+        mode: 'COHORT',
+        visibility: 'PUBLIC',
+        name: 'INSEAD MBA 2026 Cohort',
+        description:
+          'Classmates fundraising together — every sub-campaign rolls into our shared goal.',
+        sharedGoalCents: eur(90000),
+        stretchThresholdPct: 80,
+        members: {
+          create: [
+            { userId: amaraOwnerId, role: 'ADMIN' },
+            ...(kwameOwnerId
+              ? [{ userId: kwameOwnerId, role: 'CONTRIBUTOR' as const }]
+              : []),
+          ],
+        },
+      },
+    });
+
+    const subCampaignIds = [
+      cohortAmaraId,
+      cohortKwameId,
+      cohortThandiweId,
+    ].filter((id): id is string => Boolean(id));
+    for (const campaignId of subCampaignIds) {
+      await prisma.groupCampaign.create({
+        data: { groupId: cohort.id, campaignId, addedByUserId: amaraOwnerId },
+      });
+    }
+
+    // Corporate cohort match: a CORPORATE donation on the first sub-campaign,
+    // mirroring the E5 flow. Money goes to the school (the campaign), never the
+    // student. Kept simple + idempotent (no invoice/sponsorship rows here).
+    const matchDonation = await prisma.donation.create({
+      data: {
+        campaignId: cohortAmaraId,
+        corporateProfileId: sponsorProfile.id,
+        amountCents: eur(10000),
+        method: 'SEPA',
+        type: 'CORPORATE',
+        status: 'SUCCEEDED',
+        providerRef: 'mock_seed_cohort_match',
+        donorName: sponsorProfile.companyName,
+      },
+    });
+    await prisma.campaign.update({
+      where: { id: cohortAmaraId },
+      data: { raisedCents: { increment: eur(10000) } },
+    });
+
+    console.log(
+      `Created E18 cohort "INSEAD MBA 2026 Cohort" (${subCampaignIds.length} ` +
+        `sub-campaigns + a corporate match ${matchDonation.providerRef}).`,
+    );
+  }
+
+  // Giving Circle owned by donor@bursa.test.
+  const circleCampaignId = campaignBySlug['amara-okonkwo'];
+  if (circleCampaignId) {
+    const memberBella = await prisma.user.create({
+      data: {
+        email: 'circle.bella@bursa.test',
+        passwordHash,
+        displayName: 'Bella Circle',
+        role: 'DONOR',
+      },
+    });
+    const memberCarlos = await prisma.user.create({
+      data: {
+        email: 'circle.carlos@bursa.test',
+        passwordHash,
+        displayName: 'Carlos Circle',
+        role: 'DONOR',
+      },
+    });
+
+    const circle = await prisma.group.create({
+      data: {
+        mode: 'GIVING_CIRCLE',
+        visibility: 'PUBLIC',
+        name: 'Lagos Alumni Giving Circle',
+        description:
+          'Diaspora alumni pooling support for the next MBA cohort. We vote on who we back next.',
+        logoUrl: 'https://example.com/lagos-circle.png',
+        sharedGoalCents: eur(5000),
+        stretchThresholdPct: 80,
+        members: {
+          create: [
+            { userId: donor.id, role: 'ADMIN' },
+            { userId: memberBella.id, role: 'CONTRIBUTOR' },
+            { userId: memberCarlos.id, role: 'VIEWER' },
+          ],
+        },
+      },
+    });
+
+    // Mirror two of the donor's existing donations as money-free contributions.
+    const donorDonations = await prisma.donation.findMany({
+      where: { donorUserId: donor.id, status: 'CAPTURED' },
+      orderBy: { createdAt: 'desc' },
+      take: 2,
+      select: { id: true, amountCents: true },
+    });
+    for (const d of donorDonations) {
+      await prisma.groupContribution.create({
+        data: {
+          groupId: circle.id,
+          userId: donor.id,
+          donationId: d.id,
+          valueCents: d.amountCents,
+        },
+      });
+    }
+
+    // An open vote on which campaign to back next, with one ballot from Bella.
+    const voteOptionCampaigns = [circleCampaignId, cohortKwameId].filter(
+      (id): id is string => Boolean(id),
+    );
+    if (voteOptionCampaigns.length >= 2) {
+      const vote = await prisma.groupVote.create({
+        data: {
+          groupId: circle.id,
+          question: 'Which student do we back next quarter?',
+          options: {
+            create: voteOptionCampaigns.map((campaignId, i) => ({
+              campaignId,
+              label: i === 0 ? 'Amara' : 'Kwame',
+            })),
+          },
+        },
+        include: { options: true },
+      });
+      await prisma.groupVoteBallot.create({
+        data: {
+          voteId: vote.id,
+          optionId: vote.options[0].id,
+          userId: memberBella.id,
+        },
+      });
+    }
+
+    // One moderated (APPROVED) chat message.
+    await prisma.groupMessage.create({
+      data: {
+        groupId: circle.id,
+        userId: donor.id,
+        text: 'Welcome everyone — great to have the Lagos alumni pooling support together!',
+        status: 'APPROVED',
+        moderationReason: null,
+      },
+    });
+
+    console.log(
+      `Created E18 giving circle "Lagos Alumni Giving Circle" (3 members, ` +
+        `${donorDonations.length} contributions, 1 vote, 1 chat message).`,
     );
   }
 
