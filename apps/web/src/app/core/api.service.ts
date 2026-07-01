@@ -104,6 +104,20 @@ import {
   GroupChatView,
   GroupMessagePostResult,
   GroupAnalyticsView,
+  ProgramSummary,
+  CreateProgramBody,
+  CreateProgramResult,
+  FormSchemaBody,
+  ApplicationRow,
+  ApplicationStatus,
+  ScholarRow,
+  ScholarStatus,
+  ScholarEvent,
+  AwardDecisionResult,
+  DisburseResult,
+  TrancheReleaseResult,
+  PublicApplicationForm,
+  SubmitApplicationBody,
 } from './models';
 
 export interface TrackEventBody {
@@ -1142,6 +1156,179 @@ export class ApiService {
 
   groupMessages(id: string): Observable<GroupChatView> {
     return this.unwrap(this.http.get<Envelope<GroupChatView>>(`${API_BASE}/groups/${id}/messages`));
+  }
+
+  // ---- Scholarship Program Manager (E19) ----
+
+  listScholarshipPrograms(): Observable<ProgramSummary[]> {
+    return this.unwrap(
+      this.http.get<Envelope<ProgramSummary[]>>(`${API_BASE}/scholarship/programs`),
+    );
+  }
+
+  createScholarshipProgram(body: CreateProgramBody): Observable<CreateProgramResult> {
+    return this.unwrap(
+      this.http.post<Envelope<CreateProgramResult>>(`${API_BASE}/scholarship/programs`, body),
+    );
+  }
+
+  setScholarshipForm(
+    programId: string,
+    body: FormSchemaBody,
+  ): Observable<{ formId: string; fieldCount: number }> {
+    return this.unwrap(
+      this.http.put<Envelope<{ formId: string; fieldCount: number }>>(
+        `${API_BASE}/scholarship/programs/${programId}/form`,
+        body,
+      ),
+    );
+  }
+
+  addScholarshipReviewer(
+    programId: string,
+    body: { reviewerName: string; reviewerEmail: string },
+  ): Observable<{ reviewerId: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ reviewerId: string }>>(
+        `${API_BASE}/scholarship/programs/${programId}/reviewers`,
+        body,
+      ),
+    );
+  }
+
+  createApplicationSlot(
+    programId: string,
+  ): Observable<{ applicationId: string; applyToken: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ applicationId: string; applyToken: string }>>(
+        `${API_BASE}/scholarship/programs/${programId}/application-slot`,
+        {},
+      ),
+    );
+  }
+
+  listScholarshipApplications(programId: string): Observable<ApplicationRow[]> {
+    return this.unwrap(
+      this.http.get<Envelope<ApplicationRow[]>>(
+        `${API_BASE}/scholarship/programs/${programId}/applications`,
+      ),
+    );
+  }
+
+  scoreApplication(
+    applicationId: string,
+    body: {
+      reviewerId: string;
+      scores: { fieldKey: string; score: number; comment?: string }[];
+    },
+  ): Observable<{ consensusScore: number }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ consensusScore: number }>>(
+        `${API_BASE}/scholarship/applications/${applicationId}/scores`,
+        body,
+      ),
+    );
+  }
+
+  decideScholarshipAwards(programId: string, cycleYear: number): Observable<AwardDecisionResult> {
+    return this.unwrap(
+      this.http.post<Envelope<AwardDecisionResult>>(
+        `${API_BASE}/scholarship/programs/${programId}/decide`,
+        { cycleYear },
+      ),
+    );
+  }
+
+  disburseAward(awardId: string): Observable<DisburseResult> {
+    return this.unwrap(
+      this.http.post<Envelope<DisburseResult>>(
+        `${API_BASE}/scholarship/awards/${awardId}/disburse`,
+        {},
+      ),
+    );
+  }
+
+  releaseTranche(awardId: string, gpa: number): Observable<TrancheReleaseResult> {
+    return this.unwrap(
+      this.http.post<Envelope<TrancheReleaseResult>>(
+        `${API_BASE}/scholarship/awards/${awardId}/release-tranche`,
+        { gpa },
+      ),
+    );
+  }
+
+  listScholars(programId: string): Observable<ScholarRow[]> {
+    return this.unwrap(
+      this.http.get<Envelope<ScholarRow[]>>(
+        `${API_BASE}/scholarship/programs/${programId}/scholars`,
+      ),
+    );
+  }
+
+  setScholarStatus(
+    scholarId: string,
+    event: ScholarEvent,
+  ): Observable<{ scholarId: string; status: ScholarStatus }> {
+    return this.unwrap(
+      this.http.put<Envelope<{ scholarId: string; status: ScholarStatus }>>(
+        `${API_BASE}/scholarship/scholars/${scholarId}/status`,
+        { event },
+      ),
+    );
+  }
+
+  messageScholar(
+    scholarId: string,
+    channel: string,
+    body: string,
+  ): Observable<{ sent: boolean; ref?: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ sent: boolean; ref?: string }>>(
+        `${API_BASE}/scholarship/scholars/${scholarId}/message`,
+        { channel, body },
+      ),
+    );
+  }
+
+  /** Impact report export as a binary blob (CSV or PDF); auth added by the interceptor. */
+  scholarshipReport(programId: string, format: 'csv' | 'pdf'): Observable<Blob> {
+    return this.http.get(`${API_BASE}/scholarship/programs/${programId}/report.${format}`, {
+      responseType: 'blob',
+    });
+  }
+
+  renewScholarshipProgram(
+    programId: string,
+    body: { budgetCents?: number; slots?: number; awardCents?: number },
+  ): Observable<{ cycle: { year: number }; fieldsCopied: number }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ cycle: { year: number }; fieldsCopied: number }>>(
+        `${API_BASE}/scholarship/programs/${programId}/renew`,
+        body,
+      ),
+    );
+  }
+
+  // Public applicant surface (no auth; token-gated).
+  publicApplicationForm(token: string): Observable<PublicApplicationForm> {
+    return this.unwrap(
+      this.http.get<Envelope<PublicApplicationForm>>(`${API_BASE}/apply/${token}`),
+    );
+  }
+
+  submitApplication(
+    token: string,
+    body: SubmitApplicationBody,
+  ): Observable<{ applicationId: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ applicationId: string }>>(`${API_BASE}/apply/${token}`, body),
+    );
+  }
+
+  applicationStatus(token: string): Observable<{ status: ApplicationStatus }> {
+    return this.unwrap(
+      this.http.get<Envelope<{ status: ApplicationStatus }>>(`${API_BASE}/apply/${token}/status`),
+    );
   }
 }
 

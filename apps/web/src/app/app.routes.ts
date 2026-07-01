@@ -101,5 +101,18 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/transparency/transparency.page').then((m) => m.TransparencyPage),
   },
+  {
+    // E19 public application form (token-gated) — declared before /scholarship.
+    path: 'apply/:token',
+    loadComponent: () => import('./features/scholarship/apply.page').then((m) => m.ApplyPage),
+  },
+  {
+    // E19 corporate scholarship program manager (SPONSOR only).
+    path: 'scholarship',
+    canActivate: [authGuard],
+    data: { roles: ['SPONSOR'] },
+    loadComponent: () =>
+      import('./features/scholarship/scholarship-admin.page').then((m) => m.ScholarshipAdminPage),
+  },
   { path: '**', redirectTo: 'campaigns' },
 ];

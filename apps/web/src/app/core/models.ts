@@ -3,13 +3,7 @@
 export type Role = 'STUDENT' | 'DONOR' | 'SPONSOR' | 'ADMIN' | 'SCHOOL_ADMIN';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_VERIFICATION'
-  | 'LIVE'
-  | 'FUNDED'
-  | 'DISBURSED'
-  | 'CLOSED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_VERIFICATION' | 'LIVE' | 'FUNDED' | 'DISBURSED' | 'CLOSED' | 'REJECTED';
 
 export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DonationType = 'PRIVATE' | 'CORPORATE';
@@ -213,11 +207,7 @@ export interface Payout {
 // ---- E4: Donor Retention ----
 
 export type NotificationType =
-  | 'THANK_YOU'
-  | 'MILESTONE'
-  | 'IMPACT_UPDATE'
-  | 'GOAL_REACHED'
-  | 'RECURRING_CHARGE';
+  'THANK_YOU' | 'MILESTONE' | 'IMPACT_UPDATE' | 'GOAL_REACHED' | 'RECURRING_CHARGE';
 
 export type TributeType = 'HONOR' | 'MEMORY';
 export type RecurringStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -295,13 +285,7 @@ export interface SubscriptionItem {
 
 export type MatchLocale = 'en' | 'de' | 'fr' | 'es';
 export type MatchClaimStatus =
-  | 'DETECTED'
-  | 'OFFERED'
-  | 'CLAIMED'
-  | 'SUBMITTED'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'EXPIRED';
+  'DETECTED' | 'OFFERED' | 'CLAIMED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 export type EmployerIntegrationLevel = 'AUTO_SUBMIT' | 'PORTAL' | 'MANUAL';
 
 export interface MatchOfferLabels {
@@ -1396,4 +1380,144 @@ export interface GroupMessagePostResult {
   id: string;
   status: 'APPROVED' | 'REJECTED';
   reasons: string[];
+}
+
+// ---- E19: Corporate Scholarship Program Manager ----
+
+export type FieldType = 'TEXT' | 'LONG_TEXT' | 'NUMBER' | 'SELECT' | 'BOOLEAN' | 'EMAIL';
+
+export type ApplicationStatus =
+  'SUBMITTED' | 'UNDER_REVIEW' | 'SHORTLISTED' | 'AWARDED' | 'REJECTED';
+
+export type ScholarStatus = 'AWARDED' | 'ENROLLED' | 'GRADUATED' | 'WORKING' | 'WITHDRAWN';
+
+export type AwardTrancheStatus = 'NONE' | 'HELD' | 'RELEASED';
+
+export type ScholarEvent = 'enroll' | 'graduate' | 'employ' | 'withdraw';
+
+export interface ProgramCycleView {
+  year: number;
+  budgetCents: number;
+  slots: number;
+  awardCents: number;
+}
+
+export interface ProgramSummary {
+  id: string;
+  name: string;
+  slug: string;
+  brandPrimary: string;
+  brandSecondary: string;
+  activeCycle: ProgramCycleView | null;
+  applicationCount: number;
+  awardCount: number;
+  reviewerCount: number;
+}
+
+export interface CreateProgramBody {
+  name: string;
+  slug: string;
+  logoUrl?: string;
+  brandPrimary?: string;
+  brandSecondary?: string;
+  tagline?: string;
+  year: number;
+  budgetCents: number;
+  slots: number;
+  awardCents: number;
+}
+
+export interface CreateProgramResult {
+  id: string;
+  slug: string;
+  activeCycle: { year: number; budgetCents: number; slots: number };
+}
+
+export interface FormFieldBody {
+  fieldKey: string;
+  label: string;
+  type: FieldType;
+  required?: boolean;
+  options?: string[];
+  rubricWeight?: number;
+  showIfFieldId?: string;
+  showIfValue?: string;
+}
+
+export interface FormSchemaBody {
+  title: string;
+  intro?: string;
+  fields: FormFieldBody[];
+}
+
+export interface ApplicationRow {
+  id: string;
+  applicantName: string;
+  applicantEmail: string;
+  status: ApplicationStatus;
+  consensusScore: number;
+  answerCount: number;
+  scoreCount: number;
+  awarded: boolean;
+}
+
+export interface ScholarRow {
+  id: string;
+  fullName: string;
+  status: ScholarStatus;
+  alumniNetwork: boolean;
+  gpa: number | null;
+  amountCents: number;
+  trancheStatus: AwardTrancheStatus;
+}
+
+export interface AwardDecisionResult {
+  winners: { applicationId: string; awardId: string; amountCents: number }[];
+  spentCents: number;
+}
+
+export interface DisburseResult {
+  awardId: string;
+  schoolId: string;
+  amountCents: number;
+  payoutRef: string;
+  ledgerRefId: string;
+}
+
+export interface TrancheReleaseResult {
+  decision: 'RELEASE' | 'HELD';
+  reason?: string;
+  schoolId?: string;
+  trancheCents?: number;
+  tranchePayoutRef?: string;
+}
+
+export interface PublicFormField {
+  fieldKey: string;
+  label: string;
+  type: FieldType;
+  required: boolean;
+  options: string[];
+  showIfFieldId: string | null;
+  showIfValue: string | null;
+}
+
+export interface PublicApplicationForm {
+  program: {
+    name: string;
+    brandPrimary: string;
+    brandSecondary: string;
+    tagline: string | null;
+  };
+  form: {
+    title: string;
+    intro: string | null;
+    fields: PublicFormField[];
+  };
+}
+
+export interface SubmitApplicationBody {
+  applicantName: string;
+  applicantEmail: string;
+  answers: Record<string, string>;
 }

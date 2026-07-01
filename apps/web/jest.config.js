@@ -625,5 +625,42 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E19 — Corporate Scholarship Program Manager (new code, held to >= 80%).
+    './src/app/features/scholarship/field-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/scholarship/status-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/scholarship/apply-visibility.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/scholarship/srm-dashboard.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/scholarship/reviewer-console.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/scholarship/award-management.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };
