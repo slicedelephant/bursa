@@ -19,7 +19,7 @@
   - E17 Multi-Channel Impact-Feed (WhatsApp/Telegram): branch `018-impact-feed`, PR #17, gemerged.
   - Finaler `main` (2632b5e): beide Builds gruen, Seed laeuft, 17 Migrationen sauber, prettier-clean. Testsumme: API 1179 / Web 494.
   - Alle externen Dienste (Persona/Onfido/Sumsub/Plaid, Double-the-Donation, WhatsApp/Telegram) gemockt hinter austauschbaren Providern (Default `mock`, keine echten Keys noetig).
-- **Welle C (E18-E21): zurueckgestellt** -> XL-Brocken (E19 Scholarship-Manager, E20 Multi-Currency) erst nach Kapazitaetsklaerung.
+- **Welle C (E18-E21): angefangen** -> E18 Gruppen-Engine (Cohort-Teams + Giving Circles) umgesetzt: branch `019-groups-engine`, PR offen, autonom ueber spec-kit gebaut (API 1292 / Web 528 Tests). Die XL-Brocken (E19 Scholarship-Manager, E20 Multi-Currency) bleiben bis zur Kapazitaetsklaerung zurueckgestellt.
 
 ## Kurzfazit
 
