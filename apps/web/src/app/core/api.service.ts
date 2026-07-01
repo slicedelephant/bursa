@@ -93,6 +93,17 @@ import {
   FeedChannel,
   InactivityView,
   VoiceSubmitView,
+  GroupListView,
+  GroupDetailView,
+  CreatedGroupView,
+  GroupInviteView,
+  GroupRole,
+  GroupMode,
+  GroupVisibility,
+  GroupVoteView,
+  GroupChatView,
+  GroupMessagePostResult,
+  GroupAnalyticsView,
 } from './models';
 
 export interface TrackEventBody {
@@ -999,6 +1010,138 @@ export class ApiService {
     return this.unwrap(
       this.http.get<Envelope<TransparencyView>>(`${API_BASE}/transparency/schools/${schoolId}`),
     );
+  }
+
+  // ---- Groups-Engine (E18): one engine, two modes ----
+
+  createGroup(body: {
+    mode: GroupMode;
+    visibility?: GroupVisibility;
+    name: string;
+    description?: string;
+    logoUrl?: string;
+    sharedGoalCents?: number;
+    stretchThresholdPct?: number;
+  }): Observable<CreatedGroupView> {
+    return this.unwrap(this.http.post<Envelope<CreatedGroupView>>(`${API_BASE}/groups`, body));
+  }
+
+  listGroups(): Observable<GroupListView> {
+    return this.unwrap(this.http.get<Envelope<GroupListView>>(`${API_BASE}/groups`));
+  }
+
+  getGroup(id: string): Observable<GroupDetailView> {
+    return this.unwrap(this.http.get<Envelope<GroupDetailView>>(`${API_BASE}/groups/${id}`));
+  }
+
+  inviteToGroup(
+    id: string,
+    body: { role?: GroupRole; expiresInDays?: number },
+  ): Observable<GroupInviteView> {
+    return this.unwrap(
+      this.http.post<Envelope<GroupInviteView>>(`${API_BASE}/groups/${id}/invites`, body),
+    );
+  }
+
+  joinGroup(id: string, token: string): Observable<{ groupId: string; role: GroupRole }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ groupId: string; role: GroupRole }>>(
+        `${API_BASE}/groups/${id}/join`,
+        { token },
+      ),
+    );
+  }
+
+  leaveGroup(id: string): Observable<{ left: boolean }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ left: boolean }>>(`${API_BASE}/groups/${id}/leave`, {}),
+    );
+  }
+
+  setGroupRole(
+    id: string,
+    userId: string,
+    role: GroupRole,
+  ): Observable<{ userId: string; role: GroupRole }> {
+    return this.unwrap(
+      this.http.put<Envelope<{ userId: string; role: GroupRole }>>(
+        `${API_BASE}/groups/${id}/members/${userId}/role`,
+        { role },
+      ),
+    );
+  }
+
+  addGroupCampaign(
+    id: string,
+    campaignId: string,
+  ): Observable<{ groupId: string; campaignId: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ groupId: string; campaignId: string }>>(
+        `${API_BASE}/groups/${id}/campaigns`,
+        { campaignId },
+      ),
+    );
+  }
+
+  contributeToGroup(
+    id: string,
+    donationId: string,
+  ): Observable<{ groupId: string; donationId: string; valueCents: number }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ groupId: string; donationId: string; valueCents: number }>>(
+        `${API_BASE}/groups/${id}/contributions`,
+        { donationId },
+      ),
+    );
+  }
+
+  groupAnalytics(id: string): Observable<GroupAnalyticsView> {
+    return this.unwrap(
+      this.http.get<Envelope<GroupAnalyticsView>>(`${API_BASE}/groups/${id}/analytics`),
+    );
+  }
+
+  openGroupVote(
+    id: string,
+    body: { question: string; options: { campaignId: string; label: string }[] },
+  ): Observable<{ id: string; status: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ id: string; status: string }>>(
+        `${API_BASE}/groups/${id}/votes`,
+        body,
+      ),
+    );
+  }
+
+  castGroupBallot(
+    id: string,
+    voteId: string,
+    optionId: string,
+  ): Observable<{ voteId: string; optionId: string }> {
+    return this.unwrap(
+      this.http.post<Envelope<{ voteId: string; optionId: string }>>(
+        `${API_BASE}/groups/${id}/votes/${voteId}/ballot`,
+        { optionId },
+      ),
+    );
+  }
+
+  getGroupVote(id: string, voteId: string): Observable<GroupVoteView> {
+    return this.unwrap(
+      this.http.get<Envelope<GroupVoteView>>(`${API_BASE}/groups/${id}/votes/${voteId}`),
+    );
+  }
+
+  postGroupMessage(id: string, text: string): Observable<GroupMessagePostResult> {
+    return this.unwrap(
+      this.http.post<Envelope<GroupMessagePostResult>>(`${API_BASE}/groups/${id}/messages`, {
+        text,
+      }),
+    );
+  }
+
+  groupMessages(id: string): Observable<GroupChatView> {
+    return this.unwrap(this.http.get<Envelope<GroupChatView>>(`${API_BASE}/groups/${id}/messages`));
   }
 }
 

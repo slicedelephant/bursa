@@ -36,6 +36,13 @@ import { AuthService } from '../core/auth.service';
               My dashboard
             </a>
             <a
+              routerLink="/groups"
+              routerLinkActive="text-brand-green"
+              class="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-mist"
+            >
+              Groups
+            </a>
+            <a
               routerLink="/account"
               routerLinkActive="text-brand-green"
               class="rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-mist"

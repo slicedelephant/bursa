@@ -78,6 +78,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),
   },
   {
+    // Groups engine (E18): cohort teams + giving circles, for any signed-in user.
+    path: 'groups',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/groups.page').then((m) => m.GroupsPage),
+  },
+  {
     // Public hosted onboarding flow (token-gated) — declared before /school.
     path: 'school/onboarding/:token',
     loadComponent: () =>

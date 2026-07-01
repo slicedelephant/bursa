@@ -588,5 +588,42 @@ module.exports = {
       functions: 80,
       lines: 80,
     },
+    // E18 — Groups-Engine (new code, held to >= 80%).
+    './src/app/features/groups/group-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/groups/role-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/groups/voting-format.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/groups/group-detail.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/groups/group-voting.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+    './src/app/features/groups/group-chat.component.ts': {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
   },
 };
