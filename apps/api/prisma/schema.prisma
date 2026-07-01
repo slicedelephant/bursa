@@ -423,6 +423,9 @@ model User {
   groupContributions GroupContribution[] @relation("GroupContributions")
   groupMessages      GroupMessage[]      @relation("GroupMessages")
   groupBallots       GroupVoteBallot[]   @relation("GroupBallots")
+
+  // ---- E19: scholarship manager (scholar relationships this user is the scholar of) ----
+  scholarRelationships ScholarRelationship[] @relation("ScholarUser")
 }
 
 /// Append-only access/security audit trail. Metadata is PII-redacted before
@@ -501,6 +504,9 @@ model School {
   ledgerEntries    LedgerEntry[]
   bankTransactions BankTransaction[]
   reconciliations  Reconciliation[]
+
+  // ---- E19: scholarship manager (award disbursement target — always the school) ----
+  scholarshipAwards ScholarshipAward[]
 }
 
 /// Binds a User (role SCHOOL_ADMIN) to exactly one School (E8). One user admins
@@ -825,6 +831,9 @@ model CorporateProfile {
   user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   donations    Donation[]
   sponsorships CorporateSponsorship[]
+
+  // ---- E19: scholarship manager (self-serve programs owned by this company) ----
+  scholarshipPrograms ScholarshipProgram[]
 }
 
 model Payout {
@@ -1496,4 +1505,228 @@ model GroupMessage {
   user  User  @relation("GroupMessages", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([groupId, status])
+}
+
+// ============================================================================
+// E19 — Self-Serve Corporate Scholarship Program Manager
+// A company runs its own branded scholarship program: schema-driven application
+// form, reviewer scoring, award selection, and disbursement to the SCHOOL
+// (never the scholar; see Constitution II) via the E2/E12 payout + ledger path.
+// ============================================================================
+
+enum FieldType {
+  TEXT
+  LONG_TEXT
+  NUMBER
+  SELECT
+  BOOLEAN
+  EMAIL
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  SHORTLISTED
+  AWARDED
+  REJECTED
+}
+
+enum ScholarStatus {
+  AWARDED
+  ENROLLED
+  GRADUATED
+  WORKING
+  WITHDRAWN
+}
+
+enum AwardTrancheStatus {
+  NONE
+  HELD
+  RELEASED
+}
+
+model ScholarshipProgram {
+  id                 String   @id @default(cuid())
+  corporateProfileId String
+  name               String
+  slug               String   @unique
+  logoUrl            String?
+  brandPrimary       String   @default("#4d977c")
+  brandSecondary     String   @default("#6ca5c3")
+  tagline            String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  corporateProfile CorporateProfile      @relation(fields: [corporateProfileId], references: [id], onDelete: Cascade)
+  form             ApplicationForm?
+  cycles           ProgramCycle[]
+  reviewers        ProgramReviewer[]
+  applications     Application[]
+  awards           ScholarshipAward[]
+  scholars         ScholarRelationship[]
+
+  @@index([corporateProfileId])
+}
+
+model ProgramCycle {
+  id          String    @id @default(cuid())
+  programId   String
+  year        Int
+  budgetCents Int       @default(0)
+  slots       Int       @default(0)
+  awardCents  Int       @default(0)
+  deadline    DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  program ScholarshipProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, year])
+  @@index([programId])
+}
+
+model ApplicationForm {
+  id        String   @id @default(cuid())
+  programId String   @unique
+  title     String
+  intro     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program ScholarshipProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  fields  FormField[]
+}
+
+model FormField {
+  id            String    @id @default(cuid())
+  formId        String
+  fieldKey      String
+  label         String
+  type          FieldType
+  required      Boolean   @default(false)
+  options       String[]  @default([])
+  rubricWeight  Int       @default(0)
+  showIfFieldId String?
+  showIfValue   String?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+
+  form ApplicationForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, fieldKey])
+  @@index([formId])
+}
+
+model Application {
+  id             String            @id @default(cuid())
+  programId      String
+  cycleId        String
+  tokenHash      String            @unique
+  applicantName  String
+  applicantEmail String
+  status         ApplicationStatus @default(SUBMITTED)
+  consensusScore Int               @default(0)
+  submittedAt    DateTime          @default(now())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  program ScholarshipProgram  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  answers ApplicationAnswer[]
+  scores  ReviewScore[]
+  award   ScholarshipAward?
+
+  @@index([programId, status])
+}
+
+model ApplicationAnswer {
+  id            String @id @default(cuid())
+  applicationId String
+  fieldKey      String
+  value         String
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, fieldKey])
+}
+
+model ProgramReviewer {
+  id            String   @id @default(cuid())
+  programId     String
+  reviewerName  String
+  reviewerEmail String
+  createdAt     DateTime @default(now())
+
+  program ScholarshipProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  scores  ReviewScore[]
+
+  @@unique([programId, reviewerEmail])
+  @@index([programId])
+}
+
+model ReviewScore {
+  id            String   @id @default(cuid())
+  applicationId String
+  reviewerId    String
+  fieldKey      String
+  score         Int
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  reviewer    ProgramReviewer @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, reviewerId, fieldKey])
+  @@index([applicationId])
+}
+
+model ScholarshipAward {
+  id               String             @id @default(cuid())
+  programId        String
+  applicationId    String             @unique
+  schoolId         String
+  amountCents      Int
+  currency         String             @default("EUR")
+  payoutRef        String?
+  ledgerRefId      String?
+  // ---- conditional second tranche (still paid to the school, never the scholar) ----
+  trancheCents     Int                @default(0)
+  gpaThreshold     Float?
+  trancheStatus    AwardTrancheStatus @default(NONE)
+  tranchePayoutRef String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  program     ScholarshipProgram   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  application Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  school      School               @relation(fields: [schoolId], references: [id])
+  scholar     ScholarRelationship?
+
+  @@index([programId])
+  @@index([schoolId])
+}
+
+model ScholarRelationship {
+  id                 String        @id @default(cuid())
+  programId          String
+  awardId            String        @unique
+  scholarUserId      String?
+  fullName           String
+  country            String?
+  gpa                Float?
+  status             ScholarStatus @default(AWARDED)
+  alumniNetwork      Boolean       @default(false)
+  verificationCaseId String?
+  enrolledAt         DateTime?
+  graduatedAt        DateTime?
+  employedAt         DateTime?
+  withdrawnAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  program ScholarshipProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  award   ScholarshipAward   @relation(fields: [awardId], references: [id], onDelete: Cascade)
+  scholar User?              @relation("ScholarUser", fields: [scholarUserId], references: [id], onDelete: SetNull)
+
+  @@index([programId, status])
 }

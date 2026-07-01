@@ -27,6 +27,7 @@ import { PortfolioModule } from './portfolio/portfolio.module';
 import { ReferralModule } from './referral/referral.module';
 import { ImpactFeedModule } from './impact-feed/impact-feed.module';
 import { GroupsModule } from './groups/groups.module';
+import { ScholarshipModule } from './scholarship/scholarship.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { GroupsModule } from './groups/groups.module';
     ReferralModule,
     ImpactFeedModule,
     GroupsModule,
+    ScholarshipModule,
   ],
 })
 export class AppModule {}
